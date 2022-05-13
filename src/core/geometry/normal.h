@@ -14,7 +14,7 @@
 
 struct Normal3f : public TVector3<float> {
     
-    Normal3f() { }
+    Normal3f() = default;
 
     Normal3f (const TVector3<float> &v) : TVector3<float>(normalize(v)) { }
 

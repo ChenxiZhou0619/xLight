@@ -12,6 +12,21 @@ void MeshSet::mergeMeshSet(std::unique_ptr<MeshSet> meshSet) {
     );
 }
 
+Point3ui MeshSet::getFBuf(int meshIdx, int triIdx) const {
+    const auto &meshPtr = mMeshes[meshIdx];
+    return meshPtr->getFBuf(triIdx);
+}
+
+Point3f MeshSet::getVtxBuf(int meshIdx, int vtxIdx) const {
+    const auto &meshPtr = mMeshes[meshIdx];
+    return meshPtr->getVtxBuf(vtxIdx);
+}
+
+Normal3f MeshSet::getNmlBuf(int meshIdx, int vtxIdx) const {
+    const auto &meshPtr = mMeshes[meshIdx];
+    return meshPtr->getNmlBuf(vtxIdx);
+}
+
 int MeshSet::size() const {
     return mMeshes.size();
 }

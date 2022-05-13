@@ -11,6 +11,12 @@ public:
     
     int size() const;
 
+    Point3ui getFBuf(int meshIdx, int triIdx) const;
+
+    Point3f getVtxBuf(int meshIdx, int vtxIdx) const;
+
+    Normal3f getNmlBuf(int meshIdx, int vtxIdx) const;
+
     std::string toString() const;
     
 private:

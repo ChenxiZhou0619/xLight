@@ -20,3 +20,10 @@ using Point3ui = TPoint3<unsigned int>;
 #include "vector.h"
 using Vector2f = TVector2<float>;
 using Vector3f = TVector3<float>;
+
+#include "ray.h"
+using Ray3f = TRay3<float>;
+using Ray3d = TRay3<double>;
+
+#include "bbox.h"
+using AABB3f = TAABB3<float>;
