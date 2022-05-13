@@ -11,10 +11,13 @@ add_executable(test
 
     # core/mesh
     ${XLIGHT_CORE_MESH_DIR}/meshLoader.cpp
+    ${XLIGHT_CORE_MESH_DIR}/meshSet.cpp
+    ${XLIGHT_CORE_MESH_DIR}/mesh.cpp
 )
 
 target_include_directories(test PRIVATE
     ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/dependencies
 )
 
 target_link_directories(test PRIVATE

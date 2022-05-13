@@ -1,2 +1,4 @@
 /data
-/build
+/build-release
+/build-debug
+/develop-doc.md
