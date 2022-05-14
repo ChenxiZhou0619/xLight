@@ -27,6 +27,11 @@ Normal3f MeshSet::getNmlBuf(int meshIdx, int vtxIdx) const {
     return meshPtr->getNmlBuf(vtxIdx);
 }
 
+AABB3f MeshSet::getAABB3(int meshIdx) const {
+    const auto &meshPtr = mMeshes[meshIdx];
+    return meshPtr->getAABB3();
+}
+
 int MeshSet::size() const {
     return mMeshes.size();
 }

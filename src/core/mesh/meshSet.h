@@ -17,6 +17,8 @@ public:
 
     Normal3f getNmlBuf(int meshIdx, int vtxIdx) const;
 
+    AABB3f getAABB3(int meshIdx) const;
+
     std::string toString() const;
     
 private:

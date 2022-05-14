@@ -98,7 +98,12 @@ struct TAABB3 : public TBBox3<T> {
             max.y > min.y &&
             max.z > min.z;
     }
-
-private:
+    
     TPoint3<T> min, max;
 };
+
+template<typename T>
+std::ostream& operator<<(std::ostream &os, const TAABB3<T> &box) {
+    os << "AABB: min = [ " << box.min << " ], max = [ " << box.max << " ]";
+    return os;
+}

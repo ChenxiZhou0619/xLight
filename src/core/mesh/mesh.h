@@ -22,7 +22,12 @@ public:
 
     virtual Normal3f getNmlBuf(int vtxIdx) const = 0;
 
+    virtual AABB3f getAABB3() const;
+
     virtual std::string toString() const = 0;
+
+protected:
+    AABB3f mAABB;
 };
 
 class TriMesh : public Mesh{
@@ -39,10 +44,7 @@ public:
         std::vector<Normal3f> &&_mNormalsBuf,
         std::vector<Point3ui> &&_mFacesBuf,
         std::vector<Point2f> &&_mUVsBuf
-    ): mVerticesBuf(std::make_unique<std::vector<Point3f>>(_mVerticesBuf)),
-       mNormalsBuf(std::make_unique<std::vector<Normal3f>>(_mNormalsBuf)),
-       mFacesBuf(std::make_unique<std::vector<Point3ui>>(_mFacesBuf)),
-       mUVsBuf(std::make_unique<std::vector<Point2f>>(_mUVsBuf)) {}
+    );
 
     virtual ~TriMesh() = default;
 
@@ -60,4 +62,5 @@ protected:
     std::unique_ptr<std::vector<Normal3f>> mNormalsBuf;    // normals per vertex
     std::unique_ptr<std::vector<Point3ui>> mFacesBuf;      // mesh faces
     std::unique_ptr<std::vector<Point2f>>  mUVsBuf;        // uv coordinates
+
 };

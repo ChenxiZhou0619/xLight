@@ -4,19 +4,18 @@
 
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+
 #include <iostream>
 
 std::unique_ptr<MeshSet> MeshLoader::loadFromFile(const std::string &filePath) const {
     
     Assimp::Importer importer;
-    
     const aiScene *scene = importer.ReadFile( filePath, 
         aiProcess_CalcTangentSpace      |
         aiProcess_Triangulate           |
         aiProcess_JoinIdenticalVertices |
         aiProcess_SortByPType
     );
-
     if (nullptr == scene) {
         std::cerr << "Error when loading the file " << filePath << std::endl;
         exit(0);
@@ -42,7 +41,7 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
     std::vector<Normal3f> normals;
     std::vector<Point3ui> faces;
     std::vector<Point2f>  UVs;
-    
+
     // the two optional data
     bool hasNormals = true, hasUVs = true;
     
@@ -50,7 +49,9 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
     if (!_aiMesh.HasPositions()) {
         std::cerr << "Fatal : Meshes with no vertices\n";
         exit(1);
-    } 
+    }
+    // reserve the size
+    vertices.reserve(_aiMesh.mNumVertices);
     for (int i = 0; i < _aiMesh.mNumVertices; ++i) {
         auto vertex = _aiMesh.mVertices[i];
         vertices.emplace_back(Point3f {vertex[0], vertex[1], vertex[2]});
@@ -60,6 +61,8 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
     if (!_aiMesh.HasNormals())
         hasNormals = false;
     else {
+        // reserve the size
+        normals.reserve(_aiMesh.mNumVertices);
         // The array is mNumVertices in size (According to the assimp-doc)
         for (int i = 0; i < _aiMesh.mNumVertices; ++i) {
             const auto &normal = _aiMesh.mNormals[i];
@@ -72,6 +75,8 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
         std::cerr << "Fatal : Meshes with no faces\n";
         exit(1);
     }
+    // reserve the size
+    faces.reserve(_aiMesh.mNumFaces);
     for (int i = 0; i < _aiMesh.mNumFaces; ++i) {
         const auto &face = _aiMesh.mFaces[i];
         if (face.mNumIndices != 3) {
@@ -94,6 +99,8 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
             std::cerr << "Fatal : Current only support for uv channels = 2!\n";
             exit(1);
         }
+        // reserve the size
+        UVs.reserve(_aiMesh.mNumVertices);
         for (int i = 0; i < _aiMesh.mNumVertices; ++i) {
             const auto &uv = _aiMesh.mTextureCoords[0];
             UVs.emplace_back(Point2f {uv[i][0], uv[i][1]});
