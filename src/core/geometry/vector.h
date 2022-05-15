@@ -127,16 +127,20 @@ TVector2<float> normalize(const TVector2<T> &v) {
     return TVector2<float> (v.x * recip, v.y * recip);
 }
 
-template<> 
-inline TVector2<int> TVector2<int>::operator/(int i) const {
-    return TVector2<int>(x/i, y/i);
-}
+//template<> 
+//inline TVector2<int> TVector2<int>::operator/(int i) const {
+//    return TVector2<int>(x/i, y/i);
+//}
+template<>
+inline TVector2<int> TVector2<int>::operator/(int i) const = delete;
 
-template<> 
-inline TVector2<int>& TVector2<int>::operator/=(int i) {
-    x/=i, y/=i;
-    return *this;
-}
+template<>
+inline TVector2<int>& TVector2<int>::operator/=(int i) = delete;
+//template<> 
+//inline TVector2<int>& TVector2<int>::operator/=(int i) {
+//    x/=i, y/=i;
+//    return *this;
+//}
 
 
 

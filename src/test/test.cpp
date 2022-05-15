@@ -1,9 +1,14 @@
 #include "core/mesh/mesh.h"
 #include "core/mesh/meshLoader.h"
 #include "core/mesh/meshSet.h"
+
 #include "core/geometry/geometry.h"
+#include "core/render-core/spectrum.h"
+#include "core/file/image.h"
+
 
 #include <iostream>
+
 
 void meshTest(int argc, char **argv) {
     if (1 == argc) {
@@ -33,6 +38,26 @@ void meshTest(int argc, char **argv) {
 
 }
 
+void spectrumTest() {
+    SpectrumRGB rgb1 (Vector3f(1.0f, .5f, .1f));
+    std::cout << rgb1.toString() << std::endl;
+    SpectrumRGB rgb2 (Vector3f(.2f, .3f, .0f));
+    std::cout << (rgb1 + rgb2).toString() << std::endl;
+    std::cout << (rgb1 - rgb2).toString() << std::endl;
+    std::cout << (rgb1 * rgb2).toString() << std::endl;
+    std::cout << (rgb1 / rgb2).toString() << std::endl;
+}
+
+void imageTest() {
+
+}
+
 int main(int argc, char **argv) {
-    meshTest(argc, argv);
+    Image img(Vector2i(5,5));
+    ImageBlock block(Vector2i(1, 2), Vector2i(2, 2));
+    block.setPixel(Vector2i(1, 1), SpectrumRGB(.1f));
+    block.setPixel(Vector2i(0, 1), SpectrumRGB(.2f));
+    std::cout << block << std::endl;
+    img.putBlock(block);
+    std::cout << img << std::endl;
 }

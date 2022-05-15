@@ -20,6 +20,8 @@ using Point3ui = TPoint3<unsigned int>;
 #include "vector.h"
 using Vector2f = TVector2<float>;
 using Vector3f = TVector3<float>;
+using Vector2i = TVector2<int>;
+
 
 #include "ray.h"
 using Ray3f = TRay3<float>;
