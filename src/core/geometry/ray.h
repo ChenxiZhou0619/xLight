@@ -32,3 +32,12 @@ public:
     TVector3<T> dir;
     T time, tmin, tmax;
 };
+
+template<typename T>
+std::ostream& operator<<(std::ostream &os, const TRay3<T> &ray) {
+    os << "Ray3:\n"
+       << "\torigin: " << ray.ori << std::endl
+       << "\tdir   : " << ray.dir << std::endl
+       << "\ttmin = " << ray.tmin << ", tmax = " << ray.tmax;
+    return os;
+}

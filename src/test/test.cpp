@@ -1,9 +1,10 @@
 #include "core/mesh/mesh.h"
 #include "core/mesh/meshLoader.h"
 #include "core/mesh/meshSet.h"
-
+#include "core/math/math.h"
 #include "core/geometry/geometry.h"
 #include "core/render-core/spectrum.h"
+#include "core/render-core/camera.h"
 #include "core/file/image.h"
 
 
@@ -49,10 +50,6 @@ void spectrumTest() {
 }
 
 void imageTest() {
-
-}
-
-int main(int argc, char **argv) {
     Image img(Vector2i(400, 300));
     
     ImageBlock block{
@@ -69,4 +66,24 @@ int main(int argc, char **argv) {
     );
 
     img.savePNG("test.png");
+}
+
+void matTest() {
+    Mat4f m;
+    std::cout << m << std::endl;
+}
+
+void cameraTest() {
+    PerspectiveCamera camera {
+        Point3f  (-1, 0, 0),
+        Point3f  (0, 0, 0),
+        Vector3f (0, 1, 0)
+    };
+
+    Ray3f ray = camera.sampleRay(Vector2f(.5f, .5f));
+    std::cout << ray << std::endl;
+}
+
+int main(int argc, char **argv) {
+    cameraTest();
 }
