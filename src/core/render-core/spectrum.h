@@ -77,6 +77,10 @@ public:
         return *this;
     }
 
+    float operator[](int i) const {
+        return rgb[i];
+    }
+
 private:
     Vector3f rgb;
 };

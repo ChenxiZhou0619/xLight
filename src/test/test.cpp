@@ -53,11 +53,20 @@ void imageTest() {
 }
 
 int main(int argc, char **argv) {
-    Image img(Vector2i(5,5));
-    ImageBlock block(Vector2i(1, 2), Vector2i(2, 2));
-    block.setPixel(Vector2i(1, 1), SpectrumRGB(.1f));
-    block.setPixel(Vector2i(0, 1), SpectrumRGB(.2f));
-    std::cout << block << std::endl;
-    img.putBlock(block);
-    std::cout << img << std::endl;
+    Image img(Vector2i(400, 300));
+    
+    ImageBlock block{
+        Vector2i(100, 0), 
+        Vector2i(200, 100)
+    };
+
+    for (int i = 0; i < 200; ++i)
+        for (int j = 0; j < 100; ++j)
+            block.setPixel(Vector2i(i, j), SpectrumRGB {.1f, .6f, .2f});      
+
+    img.putBlock (
+        block
+    );
+
+    img.savePNG("test.png");
 }

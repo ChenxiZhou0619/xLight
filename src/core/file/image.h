@@ -72,7 +72,7 @@ public:
     
     void putBlock(const ImageBlock &block) {
         Vector2i rightDown = block.offset + block.size;
-        if (rightDown.x >= size.x || rightDown.y >= size.y) {
+        if (rightDown.x > size.x || rightDown.y > size.y) {
             std::cerr << "Fatal : out of image range\n";
             exit(1);
         }
@@ -82,7 +82,21 @@ public:
             }
     }
 
-    friend std::ostream& operator<<(std::ostream &os, const Image &img);    
+    void savePNG(const char *filename) const {
+        uint8_t *data = new uint8_t[size.x * size.y * channels];
+        for (int x = 0; x < size.x; ++x)
+            for (int y = 0; y < size.y; ++y) {
+                data[(x + y * size.x) * channels + 0] = screen.pixels[x][y][0] * 255;
+                data[(x + y * size.x) * channels + 1] = screen.pixels[x][y][1] * 255;
+                data[(x + y * size.x) * channels + 2] = screen.pixels[x][y][2] * 255;
+            }
+        stbi_write_png(filename, size.x, size.y, 3, data ,0);
+        delete[] data;
+    }
+    
+    friend std::ostream& operator<<(std::ostream &os, const Image &img);
+
+
 
 protected:
     Vector2i size;
