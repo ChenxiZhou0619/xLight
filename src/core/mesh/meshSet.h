@@ -19,8 +19,13 @@ public:
 
     AABB3f getAABB3(int meshIdx) const;
 
+    AABB3f getAABB3() const;
+
+    bool rayIntersectMeshFace(const Ray3f &ray, RayIntersectionRec &iRec, int meshIdx, int faceIdx) const ;
+
     std::string toString() const;
     
 private:
     std::vector<std::unique_ptr<Mesh>> mMeshes;
+    AABB3f mAABB;
 };

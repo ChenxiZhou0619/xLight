@@ -63,13 +63,13 @@ struct TAABB3 : public TBBox3<T> {
     }
 
     virtual void expands(const TPoint3<T> &p) {
-        min.x = std::min(min.x, p.x);
-        min.y = std::min(min.y, p.y);
-        min.z = std::min(min.z, p.z);
+        min.x = std::min(min.x, p.x) - EPSILON;
+        min.y = std::min(min.y, p.y) - EPSILON;
+        min.z = std::min(min.z, p.z) - EPSILON;
 
-        max.x = std::max(max.x, p.x);
-        max.y = std::max(max.y, p.y);
-        max.z = std::max(max.z, p.z);
+        max.x = std::max(max.x, p.x) + EPSILON;
+        max.y = std::max(max.y, p.y) + EPSILON;
+        max.z = std::max(max.z, p.z) + EPSILON;
     }
 
     virtual void expands(const TAABB3<T> &box) {

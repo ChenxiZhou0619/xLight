@@ -26,6 +26,8 @@ public:
 
     virtual std::string toString() const = 0;
 
+    virtual bool hasNormal() const = 0;
+
 protected:
     AABB3f mAABB;
 };
@@ -55,6 +57,8 @@ public:
     virtual Normal3f getNmlBuf(int vtxIdx) const;
 
     virtual std::string toString() const;
+
+    virtual bool hasNormal() const;
 
 protected:
 

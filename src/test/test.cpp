@@ -22,20 +22,7 @@ void meshTest(int argc, char **argv) {
 
     std::cout << meshSet->toString() << std::endl;
 
-    int meshIdx = 0, triIdx = 0;
-
-    auto fBuf = meshSet->getFBuf(meshIdx, triIdx);
-    std::cout << fBuf << std::endl;
-
-    std::cout << "p0 = " << meshSet->getVtxBuf(meshIdx, fBuf[0]) << std::endl;
-    std::cout << "p1 = " << meshSet->getVtxBuf(meshIdx, fBuf[1]) << std::endl;
-    std::cout << "p2 = " << meshSet->getVtxBuf(meshIdx, fBuf[2]) << std::endl;
-    
-    std::cout << "n0 = " << meshSet->getNmlBuf(meshIdx, fBuf[0]) << std::endl;
-    std::cout << "n1 = " << meshSet->getNmlBuf(meshIdx, fBuf[1]) << std::endl;
-    std::cout << "n2 = " << meshSet->getNmlBuf(meshIdx, fBuf[2]) << std::endl;
-
-    std::cout << meshSet->getAABB3(meshIdx) << std::endl;
+    std::cout << meshSet->getAABB3() << std::endl;
 
 }
 
@@ -74,14 +61,36 @@ void matTest() {
 }
 
 void cameraTest() {
+
+    Image img {Vector2i {400, 300}};
+
     PerspectiveCamera camera {
-        Point3f  (-1, 0, 0),
+        Point3f  (0, 0, -3),
         Point3f  (0, 0, 0),
         Vector3f (0, 1, 0)
     };
 
-    Ray3f ray = camera.sampleRay(Vector2f(.5f, .5f));
-    std::cout << ray << std::endl;
+    MeshLoader loader;
+
+    auto meshSet = loader.loadFromFile("/mnt/renderer/xLight/data/rectangle.obj");
+
+    ImageBlock block {Vector2i {0, 0}, Vector2i {400, 300}};
+
+    for (int i = 0; i < 400; ++i) {
+        for (int j = 0; j < 300; ++j) {
+            Ray3f ray = camera.sampleRay (Vector2f {i / 400.f, j / 300.f});
+            if (meshSet->getAABB3().rayIntersect(ray)) {
+                RayIntersectionRec iRec;
+                if (meshSet->rayIntersectMeshFace(ray, iRec, 0, 0)||meshSet->rayIntersectMeshFace(ray, iRec, 0, 1))
+                    block.setPixel ( Vector2i {i, j}, SpectrumRGB { 0.2f, 0.9f, 0.2f});
+            }
+            else block.setPixel ( Vector2i {i, j}, SpectrumRGB {.1f, .1f, .1f});
+        }   
+    }
+
+    img.putBlock(block);
+    img.savePNG("test3.png");
+    
 }
 
 int main(int argc, char **argv) {

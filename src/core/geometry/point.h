@@ -134,6 +134,16 @@ struct TPoint3 {
         return *this;
     }
 
+    TPoint3 operator+(const TPoint3<T> &rhs) {
+        return TPoint3(x+rhs.x, y+rhs.y, z+rhs.z);
+    }
+
+
+    TPoint3& operator+=(const TPoint3<T> &rhs) {
+        x += rhs.x, y += rhs.y, z += rhs.z;
+        return *this;
+    }
+
     TPoint3 operator-(const TVector3<T> &rhs) const {
         return TPoint3(x-rhs.x, y-rhs.y, z-rhs.z);
     }

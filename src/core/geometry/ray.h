@@ -41,3 +41,31 @@ std::ostream& operator<<(std::ostream &os, const TRay3<T> &ray) {
        << "\ttmin = " << ray.tmin << ", tmax = " << ray.tmax;
     return os;
 }
+
+/**
+ * @brief record the context at the hitting point
+ * 
+ */
+class Mesh;
+
+struct RayIntersectionRec {
+    bool isValid;
+    
+    // the distance bewteen ray ori and hit point
+    float t;
+
+    // the hit point
+    Point3f p;
+
+    // the normal at hit point
+    // geometryNormal and shadingNormal respectively
+    Normal3f geoN, shdN;
+
+    // the uv coordinate
+    Vector2f UV;
+
+    // the hitted object
+    std::shared_ptr<Mesh> meshPtr;
+
+    RayIntersectionRec() : isValid(false), t(FLOATMAX), meshPtr(nullptr) { }
+};
