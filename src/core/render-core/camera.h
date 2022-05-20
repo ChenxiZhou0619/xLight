@@ -24,7 +24,7 @@ public:
      */
 
     Camera(const Point3f& _pos, const Point3f lookAt, const Vector3f &up) 
-        : pos(_pos), aspectRatio(1.7778f), vertFov(90.f), distToFilm(1.f) {
+        : pos(_pos), aspectRatio(1.7778f), vertFov(60.f), distToFilm(1.f) {
         // initialize the translation part
         cameraToWorld(0, 3) = _pos.x;
         cameraToWorld(1, 3) = _pos.y;
@@ -100,7 +100,7 @@ public:
     }
 };
 
-std::ostream& operator<<(std::ostream &os, const PerspectiveCamera &camera) {
+inline std::ostream& operator<<(std::ostream &os, const PerspectiveCamera &camera) {
     os << "Perspective Camera:\n"
        << "cameraToWorld matrix:\n" << camera.cameraToWorld << std::endl
        << "position: " << camera.pos << std::endl;

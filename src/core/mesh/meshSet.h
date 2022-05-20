@@ -21,7 +21,9 @@ public:
 
     AABB3f getAABB3() const;
 
-    bool rayIntersectMeshFace(const Ray3f &ray, RayIntersectionRec &iRec, int meshIdx, int faceIdx) const ;
+    bool rayIntersectMeshFace(Ray3f &ray, RayIntersectionRec &iRec, int meshIdx, int faceIdx) const ;
+
+    bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const;
 
     std::string toString() const;
     

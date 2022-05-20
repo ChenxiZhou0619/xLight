@@ -28,6 +28,8 @@ public:
 
     virtual bool hasNormal() const = 0;
 
+    virtual int getFaceNum() const = 0;
+
 protected:
     AABB3f mAABB;
 };
@@ -59,6 +61,8 @@ public:
     virtual std::string toString() const;
 
     virtual bool hasNormal() const;
+
+    virtual int getFaceNum() const;
 
 protected:
 

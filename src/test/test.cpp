@@ -6,10 +6,31 @@
 #include "core/render-core/spectrum.h"
 #include "core/render-core/camera.h"
 #include "core/file/image.h"
-
+#include "core/render-core/scene.h"
 
 #include <iostream>
 
+void render(const Scene &scene,const Camera &camera ,Image &img) {
+    ImageBlock block {Vector2i {0, 0}, img.getSize()};
+
+    for (int i = 0; i < block.getWidth(); ++i) {
+        for (int j = 0; j < block.getHeight(); ++j) {
+            Ray3f ray = camera.sampleRay (Vector2f {i / (float)img.getWidth(), j / (float)img.getHeight()});
+            RayIntersectionRec iRec;
+            if (scene.rayIntersect(ray, iRec)){
+                SpectrumRGB color {
+                    iRec.geoN.x,
+                    iRec.geoN.y,
+                    iRec.geoN.z
+                };
+                block.setPixel ( Vector2i {i, j}, color);
+            }
+            else block.setPixel (Vector2i {i, j}, SpectrumRGB {.0f, .0f, .0f});
+        } 
+    }
+
+    img.putBlock(block);
+}
 
 void meshTest(int argc, char **argv) {
     if (1 == argc) {
@@ -64,32 +85,17 @@ void cameraTest() {
 
     Image img {Vector2i {400, 300}};
 
-    PerspectiveCamera camera {
-        Point3f  (0, 0, -3),
+    Scene scene ("/mnt/renderer/xLight/data/monkey.obj");
+
+    PerspectiveCamera camera = PerspectiveCamera(
+        Point3f  (0, 0, 2.5),
         Point3f  (0, 0, 0),
         Vector3f (0, 1, 0)
-    };
+    );
 
-    MeshLoader loader;
+    render(scene, camera, img);
 
-    auto meshSet = loader.loadFromFile("/mnt/renderer/xLight/data/rectangle.obj");
-
-    ImageBlock block {Vector2i {0, 0}, Vector2i {400, 300}};
-
-    for (int i = 0; i < 400; ++i) {
-        for (int j = 0; j < 300; ++j) {
-            Ray3f ray = camera.sampleRay (Vector2f {i / 400.f, j / 300.f});
-            if (meshSet->getAABB3().rayIntersect(ray)) {
-                RayIntersectionRec iRec;
-                if (meshSet->rayIntersectMeshFace(ray, iRec, 0, 0)||meshSet->rayIntersectMeshFace(ray, iRec, 0, 1))
-                    block.setPixel ( Vector2i {i, j}, SpectrumRGB { 0.2f, 0.9f, 0.2f});
-            }
-            else block.setPixel ( Vector2i {i, j}, SpectrumRGB {.1f, .1f, .1f});
-        }   
-    }
-
-    img.putBlock(block);
-    img.savePNG("test3.png");
+    img.savePNG("test1.png");
     
 }
 

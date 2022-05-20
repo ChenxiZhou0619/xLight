@@ -4,6 +4,8 @@ project(XLight LANGUAGES CXX)
 
 set(XLIGHT_CORE_MESH_DIR ${PROJECT_SOURCE_DIR}/src/core/mesh)
 set(XLIGHT_TEST_DIR ${PROJECT_SOURCE_DIR}/src/test)
+set(XLIGHT_CORE_RENDER_DIR ${PROJECT_SOURCE_DIR}/src/core/render-core)
+
 
 add_executable(test
     # test
@@ -13,6 +15,9 @@ add_executable(test
     ${XLIGHT_CORE_MESH_DIR}/meshLoader.cpp
     ${XLIGHT_CORE_MESH_DIR}/meshSet.cpp
     ${XLIGHT_CORE_MESH_DIR}/mesh.cpp
+
+    # core/render-core
+    ${XLIGHT_CORE_RENDER_DIR}/scene.cpp
 )
 
 target_include_directories(test PRIVATE

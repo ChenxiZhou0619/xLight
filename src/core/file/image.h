@@ -31,6 +31,18 @@ public:
         pixels[pos.x][pos.y] = rgb;
     }
 
+    Vector2i getSize() const {
+        return size;
+    }
+
+    int getWidth() const {
+        return size[0];
+    }
+
+    int getHeight() const {
+        return size[1];
+    }
+
     /**
      * @brief put a small block into a big one
      * 
@@ -92,6 +104,18 @@ public:
             }
         stbi_write_png(filename, size.x, size.y, 3, data ,0);
         delete[] data;
+    }
+
+    Vector2i getSize() const {
+        return size;
+    }
+
+    int getWidth() const {
+        return size[0];
+    }
+
+    int getHeight() const {
+        return size[1];
     }
     
     friend std::ostream& operator<<(std::ostream &os, const Image &img);

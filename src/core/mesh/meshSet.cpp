@@ -42,7 +42,7 @@ int MeshSet::size() const {
     return mMeshes.size();
 }
 
-bool MeshSet::rayIntersectMeshFace(const Ray3f &ray, RayIntersectionRec &iRec, int i, int j) const {
+bool MeshSet::rayIntersectMeshFace(Ray3f &ray, RayIntersectionRec &iRec, int i, int j) const {
     // check whether the ray hit the ith mesh's jth face
     // getThe triangle face first
     const auto &meshPtr = mMeshes[i];
@@ -72,13 +72,14 @@ bool MeshSet::rayIntersectMeshFace(const Ray3f &ray, RayIntersectionRec &iRec, i
     if (t <= ray.tmin || t >= ray.tmax) return false;
     // yes, fit the range
     // fill the hitRecord
+    ray.tmax = t;
+
     iRec.isValid = true;
     iRec.t = t;
     iRec.p = 
         (1.f - u - v) * p0 +
         u * p1 +
         v * p2;
-
     iRec.geoN = Normal3f {cross(edge1, edge2)};
     if (meshPtr->hasNormal()) {
         iRec.shdN = Normal3f {
@@ -90,6 +91,23 @@ bool MeshSet::rayIntersectMeshFace(const Ray3f &ray, RayIntersectionRec &iRec, i
         iRec.shdN = iRec.geoN;
     }
     return true;
+}
+
+bool MeshSet::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
+    Ray3f _ray {ray};
+    RayIntersectionRec _iRec;
+    bool hit = false;
+    for (int i = 0; i < mMeshes.size(); ++i) {
+        const auto& mesh = mMeshes[i];
+        for (int j = 0; j < mesh->getFaceNum(); ++j) {
+            if (rayIntersectMeshFace(_ray, _iRec, i, j))
+                hit = true;
+        }
+    }
+    if (hit) {
+        iRec = _iRec;
+    }
+    return hit;
 }
 
 std::string MeshSet::toString() const {
