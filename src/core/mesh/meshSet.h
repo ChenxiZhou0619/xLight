@@ -21,13 +21,18 @@ public:
 
     AABB3f getAABB3() const;
 
+    uint32_t getFaceNum(int meshIdx) const;
+
     bool rayIntersectMeshFace(Ray3f &ray, RayIntersectionRec &iRec, int meshIdx, int faceIdx) const ;
 
     bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const;
+
+    void initAccel();
 
     std::string toString() const;
     
 private:
     std::vector<std::unique_ptr<Mesh>> mMeshes;
+    std::vector<uint32_t> count;
     AABB3f mAABB;
 };

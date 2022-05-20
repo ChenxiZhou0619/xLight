@@ -2,11 +2,23 @@
 
 void MeshSet::addMesh(std::unique_ptr<Mesh> meshPtr) {
     mAABB.expands(meshPtr->getAABB3());
+    if (count.empty()) {
+        count.emplace_back(meshPtr->getFaceNum());
+    } else {
+        count.emplace_back(meshPtr->getFaceNum() + count.back());
+    }
     mMeshes.emplace_back(std::move(meshPtr));
 }
 
 void MeshSet::mergeMeshSet(std::unique_ptr<MeshSet> meshSet) {
     mAABB.expands (meshSet->getAABB3());
+    for (int i = 0; i < meshSet->size(); ++i) {
+        if (count.empty()) {
+            count.emplace_back(meshSet->getFaceNum(i));
+        } else {
+            count.emplace_back(meshSet->getFaceNum(i) + count.back());
+        }
+    }
     mMeshes.insert (
         mMeshes.end(),
         std::make_move_iterator(meshSet->mMeshes.begin()),
@@ -27,6 +39,11 @@ Point3f MeshSet::getVtxBuf(int meshIdx, int vtxIdx) const {
 Normal3f MeshSet::getNmlBuf(int meshIdx, int vtxIdx) const {
     const auto &meshPtr = mMeshes[meshIdx];
     return meshPtr->getNmlBuf(vtxIdx);
+}
+
+uint32_t MeshSet::getFaceNum(int meshIdx) const {
+    const auto &meshPtr = mMeshes[meshIdx];
+    return meshPtr->getFaceNum();
 }
 
 AABB3f MeshSet::getAABB3(int meshIdx) const {

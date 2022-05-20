@@ -1,6 +1,7 @@
 #pragma once
 #include "core/mesh/meshLoader.h"
 #include "core/geometry/geometry.h"
+#include "core/accelerate/accel.h"
 #include "camera.h"
 
 class Scene {
@@ -9,7 +10,7 @@ public:
 
     Scene(std::string sceneFile) {
         MeshLoader loader;
-        meshSetPtr = loader.loadFromFile(sceneFile);
+        accelPtr->meshSetPtr = loader.loadFromFile(sceneFile);
     }
 
     void preprocess();
@@ -19,5 +20,5 @@ public:
     bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const ;
 
 private:
-    std::unique_ptr<MeshSet> meshSetPtr;
+    std::unique_ptr<Accel> accelPtr;
 };

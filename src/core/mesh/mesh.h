@@ -29,7 +29,7 @@ public:
     virtual bool hasNormal() const = 0;
 
     virtual int getFaceNum() const = 0;
-
+    
 protected:
     AABB3f mAABB;
 };

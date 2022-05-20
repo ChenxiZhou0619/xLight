@@ -98,7 +98,11 @@ struct TAABB3 : public TBBox3<T> {
             max.y > min.y &&
             max.z > min.z;
     }
-    
+
+    virtual TPoint3<T> getCentroid() const {
+        return (T)0.5 * (min + max);
+    }
+
     TPoint3<T> min, max;
 };
 
