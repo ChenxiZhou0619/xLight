@@ -35,6 +35,16 @@ AABB3f Mesh::getAABB3() const {
     return mAABB;
 }
 
+AABB3f Mesh::getTriBounds(uint32_t triIdx) const {
+    Point3ui fBuf = getFBuf(triIdx);
+    Point3f p0 = getVtxBuf(fBuf[0]),
+            p1 = getVtxBuf(fBuf[1]),
+            p2 = getVtxBuf(fBuf[2]);
+    AABB3f bounds;
+    bounds.expands(p0);bounds.expands(p1),bounds.expands(p2);
+    return bounds;
+}
+
 bool TriMesh::hasNormal() const {
     return !mNormalsBuf->empty();
 }

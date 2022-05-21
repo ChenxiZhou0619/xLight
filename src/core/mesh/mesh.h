@@ -29,6 +29,8 @@ public:
     virtual bool hasNormal() const = 0;
 
     virtual int getFaceNum() const = 0;
+
+    virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
     
 protected:
     AABB3f mAABB;
@@ -63,6 +65,8 @@ public:
     virtual bool hasNormal() const;
 
     virtual int getFaceNum() const;
+
+    virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
 
 protected:
 

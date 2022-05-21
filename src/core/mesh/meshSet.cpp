@@ -12,7 +12,7 @@ void MeshSet::addMesh(std::unique_ptr<Mesh> meshPtr) {
 
 void MeshSet::mergeMeshSet(std::unique_ptr<MeshSet> meshSet) {
     mAABB.expands (meshSet->getAABB3());
-    for (int i = 0; i < meshSet->size(); ++i) {
+    for (int i = 0; i < meshSet->getMeshNum(); ++i) {
         if (count.empty()) {
             count.emplace_back(meshSet->getFaceNum(i));
         } else {
@@ -25,6 +25,43 @@ void MeshSet::mergeMeshSet(std::unique_ptr<MeshSet> meshSet) {
         std::make_move_iterator(meshSet->mMeshes.end())
     );
 }
+
+AABB3f MeshSet::getAABB3() const {
+    return mAABB;
+}
+
+AABB3f MeshSet::getTriBounds(uint32_t _triIdx) const {
+    const auto &idxPair = idxConvert(_triIdx);
+    uint32_t meshIdx = idxPair.first,
+             triIdx = idxPair.second;
+    return mMeshes[meshIdx]->getTriBounds(triIdx);
+}
+
+uint32_t MeshSet::getTotalTriNum() const {
+    uint32_t total = 0;
+    for (const auto &mesh : mMeshes) {
+        total += mesh->getFaceNum();
+    }
+    return total;
+}
+
+/*--------------------------- private ----------------------------------*/
+
+uint32_t MeshSet::getMeshNum() const {
+    return mMeshes.size();
+}
+
+
+decltype(auto) MeshSet::idxConvert(uint32_t _triIdx) const {
+    auto cmp = [&_triIdx](uint32_t f) {
+        return f > _triIdx;
+    };
+    const auto &entry = std::find_if(count.begin(), count.end(), cmp);
+    uint32_t meshIdx = entry - count.begin(),
+             triIdx = _triIdx - (meshIdx > 0? count[meshIdx-1]:0);
+    return std::pair<uint32_t, uint32_t> {meshIdx, triIdx};
+}
+
 
 Point3ui MeshSet::getFBuf(int meshIdx, int triIdx) const {
     const auto &meshPtr = mMeshes[meshIdx];
@@ -51,19 +88,16 @@ AABB3f MeshSet::getAABB3(int meshIdx) const {
     return meshPtr->getAABB3();
 }
 
-AABB3f MeshSet::getAABB3() const {
-    return mAABB;
-}
 
-int MeshSet::size() const {
-    return mMeshes.size();
-}
+bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _triIdx) const {
+    // get the meshIdx and fIdx first
 
-bool MeshSet::rayIntersectMeshFace(Ray3f &ray, RayIntersectionRec &iRec, int i, int j) const {
-    // check whether the ray hit the ith mesh's jth face
-    // getThe triangle face first
-    const auto &meshPtr = mMeshes[i];
-    Point3ui faceBuf = meshPtr->getFBuf(j);
+    const auto &idxPair = idxConvert(_triIdx);
+    uint32_t meshIdx = idxPair.first,
+             triIdx = idxPair.second;
+
+    const auto &meshPtr = mMeshes[meshIdx];
+    Point3ui faceBuf = meshPtr->getFBuf(triIdx);
     
     Point3f p0 = meshPtr->getVtxBuf(faceBuf[0]),
             p1 = meshPtr->getVtxBuf(faceBuf[1]),
@@ -110,22 +144,6 @@ bool MeshSet::rayIntersectMeshFace(Ray3f &ray, RayIntersectionRec &iRec, int i, 
     return true;
 }
 
-bool MeshSet::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
-    Ray3f _ray {ray};
-    RayIntersectionRec _iRec;
-    bool hit = false;
-    for (int i = 0; i < mMeshes.size(); ++i) {
-        const auto& mesh = mMeshes[i];
-        for (int j = 0; j < mesh->getFaceNum(); ++j) {
-            if (rayIntersectMeshFace(_ray, _iRec, i, j))
-                hit = true;
-        }
-    }
-    if (hit) {
-        iRec = _iRec;
-    }
-    return hit;
-}
 
 std::string MeshSet::toString() const {
     std::string result;

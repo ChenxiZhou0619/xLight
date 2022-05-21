@@ -1,6 +1,6 @@
 #include "octree.h"
 
-std::vector<AABB3f> OcNode::getSubBounds() {
+std::vector<AABB3f> OcNode::getSubBounds() const {
     //std::cout << nodeBox.toString() << std::endl;
 
     Point3f center {bounds.getCentroid()};
@@ -64,27 +64,6 @@ std::vector<AABB3f> OcNode::getSubBounds() {
     return subBoxes;
 }
 
-OcNode* Accel::buildOcTree(const AABB3f &_bounds, const std::vector<uint32_t> &faceBuf, int _depth) {
-    if (faceBuf.size() == 0) return nullptr;
-
-    if (faceBuf.size() < ocLeafMaxSize) {
-        OcNode *node = new OcNode {_bounds, faceBuf, _depth};
-        return node;
-    }
-
-    if (_depth > maxDepth) {
-        OcNode *node = new OcNode {_bounds, faceBuf, _depth};
-        return node;
-    }
-
-    std::vector<uint32_t> faceBufs[nSubs];
-    OcNode *node = new OcNode {_bounds, _depth};
-    const auto& subBounds = node->getSubBounds();
-
-    for (const auto &faceIdx : faceBuf) {
-        const auto &triBounds = meshSetPtr
-    }
-}
 
 
 

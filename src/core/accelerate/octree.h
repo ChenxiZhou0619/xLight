@@ -9,12 +9,6 @@ constexpr int nSubs = 8;
 constexpr int ocLeafMaxSize = 64;
 constexpr int maxDepth = 10;
 struct OcNode : public AccelNode {
-    AABB3f bounds;
-    int depth;
-    std::unique_ptr<std::vector<uint32_t>> faceBufPtr {nullptr};
-    OcNode *subNodes[nSubs] {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
-    std::shared_ptr<Mesh> meshPtr;
-
     OcNode(const AABB3f &_bounds, int _depth) : bounds(_bounds), depth(_depth) { }
 
     OcNode(const AABB3f &_bounds, const std::vector<uint32_t> &faceBuf, int _depth)
@@ -25,8 +19,20 @@ struct OcNode : public AccelNode {
             delete subNodes[i];
     }
 
-    std::vector<AABB3f> getSubBounds();
-
     virtual bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const;
+
+    friend struct Accel;
+    
+    AABB3f bounds;
+
+    int depth;
+
+    std::unique_ptr<std::vector<uint32_t>> faceBufPtr {nullptr};
+
+    OcNode *subNodes[nSubs] {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
+    
+    std::shared_ptr<Mesh> meshPtr;
+private:
+    std::vector<AABB3f> getSubBounds() const;
 
 };
