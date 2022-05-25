@@ -64,7 +64,11 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "typeinfo": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "condition_variable": "cpp",
+        "forward_list": "cpp",
+        "mutex": "cpp",
+        "valarray": "cpp"
     },
     "cmake.configureOnOpen": false
 }

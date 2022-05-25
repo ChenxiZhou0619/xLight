@@ -35,7 +35,7 @@ AABB3f Mesh::getAABB3() const {
     return mAABB;
 }
 
-AABB3f Mesh::getTriBounds(uint32_t triIdx) const {
+AABB3f TriMesh::getTriBounds(uint32_t triIdx) const {
     Point3ui fBuf = getFBuf(triIdx);
     Point3f p0 = getVtxBuf(fBuf[0]),
             p1 = getVtxBuf(fBuf[1]),

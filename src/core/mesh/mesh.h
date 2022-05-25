@@ -66,7 +66,7 @@ public:
 
     virtual int getFaceNum() const;
 
-    virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
+    virtual AABB3f getTriBounds(uint32_t triIdx) const;
 
 protected:
 

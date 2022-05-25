@@ -10,7 +10,7 @@ class MeshLoader {
 public:
     MeshLoader() = default;
 
-    std::unique_ptr<MeshSet> loadFromFile (const std::string &filePath) const ;
+    MeshSet* loadFromFile (const std::string &filePath) const ;
 
     std::unique_ptr<Mesh> convertFromAIMesh (const aiMesh &_aiMesh) const ;
 };

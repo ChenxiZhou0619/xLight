@@ -85,17 +85,21 @@ void cameraTest() {
 
     Image img {Vector2i {400, 300}};
 
-    Scene scene ("/mnt/renderer/xLight/data/monkey.obj");
+    MeshLoader loader;
+
+    MeshSet *meshSetPtr = loader.loadFromFile("/mnt/renderer/xLight/data/monkey.obj");
+    Scene scene (meshSetPtr);
+    scene.preprocess();
 
     PerspectiveCamera camera = PerspectiveCamera(
-        Point3f  (0, 0, 2.5),
+        Point3f  (0, 0, 2.8),
         Point3f  (0, 0, 0),
         Vector3f (0, 1, 0)
     );
 
     render(scene, camera, img);
 
-    img.savePNG("test1.png");
+    img.savePNG("test2.png");
     
 }
 

@@ -5,11 +5,15 @@ project(XLight LANGUAGES CXX)
 set(XLIGHT_CORE_MESH_DIR ${PROJECT_SOURCE_DIR}/src/core/mesh)
 set(XLIGHT_TEST_DIR ${PROJECT_SOURCE_DIR}/src/test)
 set(XLIGHT_CORE_RENDER_DIR ${PROJECT_SOURCE_DIR}/src/core/render-core)
-
+set(XLIGHT_CORE_ACCEL_DIR ${PROJECT_SOURCE_DIR}/src/core/accelerate)
 
 add_executable(test
     # test
     ${XLIGHT_TEST_DIR}/test.cpp
+
+    # core/accelerate
+    ${XLIGHT_CORE_ACCEL_DIR}/accel.cpp
+    ${XLIGHT_CORE_ACCEL_DIR}/octree.cpp
 
     # core/mesh
     ${XLIGHT_CORE_MESH_DIR}/meshLoader.cpp

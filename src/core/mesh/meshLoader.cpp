@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-std::unique_ptr<MeshSet> MeshLoader::loadFromFile(const std::string &filePath) const {
+MeshSet* MeshLoader::loadFromFile(const std::string &filePath) const {
     
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile( filePath, 
@@ -23,13 +23,13 @@ std::unique_ptr<MeshSet> MeshLoader::loadFromFile(const std::string &filePath) c
 
     std::cout << "Convert the format\n";
     
-    auto meshSetPtr = std::make_unique<MeshSet>();
+    MeshSet* meshSetPtr = new MeshSet();
     for (int i = 0; i < scene->mNumMeshes; ++i) {
         auto meshPtr = convertFromAIMesh(*(scene->mMeshes[i]));
         meshSetPtr->addMesh(std::move(meshPtr));
     }
 
-    std::cout << filePath << " contains " << meshSetPtr->size() << " meshes\n";
+    std::cout << filePath << " contains " << meshSetPtr->getMeshNum() << " meshes\n";
 
     return meshSetPtr;
 }

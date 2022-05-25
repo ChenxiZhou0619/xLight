@@ -14,6 +14,7 @@
 #include "vector.h"
 #include "point.h"
 #include "common.h"
+#include <memory>
 
 template<typename T>
 struct TRay3 {

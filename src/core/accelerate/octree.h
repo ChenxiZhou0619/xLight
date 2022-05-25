@@ -19,19 +19,16 @@ struct OcNode : public AccelNode {
             delete subNodes[i];
     }
 
-    virtual bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const;
-
-    friend struct Accel;
+    virtual bool rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const;
     
+    bool isLeaf() const;
+
     AABB3f bounds;
-
     int depth;
-
     std::unique_ptr<std::vector<uint32_t>> faceBufPtr {nullptr};
-
     OcNode *subNodes[nSubs] {nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr};
     
-    std::shared_ptr<Mesh> meshPtr;
+    friend struct Accel;
 private:
     std::vector<AABB3f> getSubBounds() const;
 

@@ -2,12 +2,23 @@
 
 #include "core/geometry/geometry.h"
 #include "core/mesh/meshSet.h"
+#include <memory>
 struct OcNode;
+struct AccelNode {
+    AccelNode() = default;
 
+    virtual ~AccelNode() = default; 
+
+    virtual bool rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const = 0;
+};
 struct Accel {
     Accel() = default;
 
-    Accel(std::unique_ptr<MeshSet> _meshSetPtr):meshSetPtr(std::move(_meshSetPtr)) { }
+    Accel(MeshSet *_meshSetPtr):meshSetPtr(_meshSetPtr) { }
+
+    ~Accel() {
+        delete root;
+    }
 
     OcNode* buildOcTree(const AABB3f &_bounds, const std::vector<uint32_t> &faceBuf, int _depth);
 
@@ -17,11 +28,6 @@ struct Accel {
     /*data*/
     std::unique_ptr<MeshSet> meshSetPtr;
 
-    std::unique_ptr<AccelNode> root;
+    AccelNode* root;
 };
 
-struct AccelNode {
-    AccelNode() = default;
-
-    virtual bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const = 0;
-};

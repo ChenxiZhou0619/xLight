@@ -89,7 +89,10 @@ struct TAABB3 : public TBBox3<T> {
     }
 
     virtual bool overlaps(const TAABB3<T> &box) const {
-        return contains(box.min) || contains(box.max);
+        return
+            (max.x >= box.min.x && min.x <= box.max.x ) &&
+            (max.y >= box.min.y && min.y <= box.max.y ) &&
+            (max.z >= box.min.z && min.z <= box.max.z );
     }
 
     virtual bool isValid() const {

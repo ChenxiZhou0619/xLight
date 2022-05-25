@@ -52,7 +52,7 @@ uint32_t MeshSet::getMeshNum() const {
 }
 
 
-decltype(auto) MeshSet::idxConvert(uint32_t _triIdx) const {
+std::pair<uint32_t, uint32_t> MeshSet::idxConvert(uint32_t _triIdx) const {
     auto cmp = [&_triIdx](uint32_t f) {
         return f > _triIdx;
     };

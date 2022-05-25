@@ -64,9 +64,26 @@ std::vector<AABB3f> OcNode::getSubBounds() const {
     return subBoxes;
 }
 
+bool OcNode::isLeaf() const {
+    return faceBufPtr!=nullptr && faceBufPtr->size()!=0;
+}
 
-
-
-bool OcNode::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
+bool OcNode::rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const {
+    // miss the bounds, return false
+    if (!bounds.rayIntersect(ray)) return false;
+    // if leafNode
+    if (isLeaf()) {
+        // force brute check every tri
+        for (uint32_t _triIdx : *faceBufPtr) {
+            meshSet.rayIntersectTri(ray, iRec, _triIdx);
+        }
+    } else {
+        // force brute its every child
+        for (int i = 0; i < nSubs; ++i) {
+            if (subNodes[i]!=nullptr)
+                subNodes[i]->rayIntersect(ray, iRec, meshSet);
+        }
+    }
+    return iRec.isValid;
 
 }

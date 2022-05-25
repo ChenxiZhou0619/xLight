@@ -3,15 +3,13 @@
 #include "core/geometry/geometry.h"
 #include "core/accelerate/accel.h"
 #include "camera.h"
+#include <memory>
 
 class Scene {
 public:
     Scene() = default;
 
-    Scene(std::string sceneFile) {
-        MeshLoader loader;
-        accelPtr->meshSetPtr = loader.loadFromFile(sceneFile);
-    }
+    Scene(MeshSet *_meshSetPtr) : accelPtr(std::make_unique<Accel>(_meshSetPtr)) {}
 
     void preprocess();
 
