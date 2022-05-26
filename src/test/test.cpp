@@ -13,22 +13,18 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+#include "render/integrator/ao.h"
+#include "render/integrator/simple.h"
+
 void render(const Scene &scene,const Camera &camera ,Image &img) {
     ImageBlock block {Vector2i {0, 0}, img.getSize()};
+    Integrator *integrator = new SimpleIntegrator(Point3f {0, 1, 0}, SpectrumRGB {1500.f});
 
     for (int i = 0; i < block.getWidth(); ++i) {
         for (int j = 0; j < block.getHeight(); ++j) {
             Ray3f ray = camera.sampleRay (Vector2f {i / (float)img.getWidth(), j / (float)img.getHeight()});
-            RayIntersectionRec iRec;
-            if (scene.rayIntersect(ray, iRec)){
-                SpectrumRGB color {
-                    iRec.geoN.x,
-                    iRec.geoN.y,
-                    iRec.geoN.z
-                };
-                block.setPixel ( Vector2i {i, j}, color);
-            }
-            else block.setPixel (Vector2i {i, j}, SpectrumRGB {.0f, .0f, .0f});
+            SpectrumRGB color = integrator->getLi(scene, ray);
+            block.setPixel(Vector2i {i, j}, color);
         } 
     }
 
@@ -102,7 +98,7 @@ void cameraTest() {
 
     render(scene, camera, img);
 
-    img.savePNG("test-scene-1.png");
+    img.savePNG("test-scene-3.png");
     
 }
 

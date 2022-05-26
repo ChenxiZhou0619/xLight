@@ -6,6 +6,7 @@ set(XLIGHT_CORE_MESH_DIR ${PROJECT_SOURCE_DIR}/src/core/mesh)
 set(XLIGHT_TEST_DIR ${PROJECT_SOURCE_DIR}/src/test)
 set(XLIGHT_CORE_RENDER_DIR ${PROJECT_SOURCE_DIR}/src/core/render-core)
 set(XLIGHT_CORE_ACCEL_DIR ${PROJECT_SOURCE_DIR}/src/core/accelerate)
+set(XLIGHT_RENDER_INT_DIR ${PROJECT_SOURCE_DIR}/src/render/integrator)
 
 add_executable(test
     # test
@@ -22,6 +23,9 @@ add_executable(test
 
     # core/render-core
     ${XLIGHT_CORE_RENDER_DIR}/scene.cpp
+
+    # render/integrator
+    ${XLIGHT_RENDER_INT_DIR}/simple.cpp
 )
 
 target_include_directories(test PRIVATE
