@@ -6,15 +6,19 @@
 #include <assimp/postprocess.h>
 
 #include <iostream>
+#include <queue>
+#include <stack>
 
 MeshSet* MeshLoader::loadFromFile(const std::string &filePath) const {
     
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile( filePath, 
-        aiProcess_CalcTangentSpace      |
-        aiProcess_Triangulate           |
-        aiProcess_JoinIdenticalVertices |
-        aiProcess_SortByPType
+//        aiProcess_CalcTangentSpace      |
+//        aiProcess_Triangulate           |
+//        aiProcess_JoinIdenticalVertices |
+//        aiProcess_SortByPType
+          aiProcess_Triangulate           |
+          aiProcess_ConvertToLeftHanded
     );
     if (nullptr == scene) {
         std::cerr << "Error when loading the file " << filePath << std::endl;
@@ -28,6 +32,36 @@ MeshSet* MeshLoader::loadFromFile(const std::string &filePath) const {
         auto meshPtr = convertFromAIMesh(*(scene->mMeshes[i]));
         meshSetPtr->addMesh(std::move(meshPtr));
     }
+    
+    //traverse the aiNode, apply the transformation to all the point
+    //const auto &root = scene->mRootNode;
+    // a aiNode queue and matrix stack
+    //std::queue<aiNode*> nodeQueue;
+    //std::stack<aiMatrix4x4> transMat;
+
+    //nodeQueue.push(root); 
+    //transMat.push(root->mTransformation);
+
+    //while (!nodeQueue.empty()) {
+    //    const auto &node = nodeQueue.front(); nodeQueue.pop();
+    //    const auto &trans= transMat.top(); transMat.pop();
+    //    if (node->mNumMeshes != 0) {
+    //        for (int i = 0; i < node->mNumMeshes; ++i) {
+    //            unsigned int index = node->mMeshes[i];
+    //            auto meshPtr = convertFromAIMesh(*(scene->mMeshes[index]), trans);
+    //            meshSetPtr->addMesh(std::move(meshPtr));
+    //        }
+    //    } else {
+    //        if (node->mNumChildren != 0) {
+    //            for (int i = 0; i < node->mNumChildren; ++i) {
+    //                const auto &childNodePtr = node->mChildren[i];
+    //                nodeQueue.push(childNodePtr);
+    //                transMat.push(childNodePtr->mTransformation * trans);
+    //            }
+    //        }
+    //    }
+    //}
+
 
     std::cout << filePath << " contains " << meshSetPtr->getMeshNum() << " meshes\n";
 
@@ -65,7 +99,7 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
         normals.reserve(_aiMesh.mNumVertices);
         // The array is mNumVertices in size (According to the assimp-doc)
         for (int i = 0; i < _aiMesh.mNumVertices; ++i) {
-            const auto &normal = _aiMesh.mNormals[i];
+            auto normal = _aiMesh.mNormals[i];
             normals.emplace_back(Normal3f {normal[0], normal[1], normal[2]});
         }
     }

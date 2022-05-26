@@ -24,7 +24,7 @@ public:
      */
 
     Camera(const Point3f& _pos, const Point3f lookAt, const Vector3f &up) 
-        : pos(_pos), aspectRatio(1.7778f), vertFov(60.f), distToFilm(1.f) {
+        : pos(_pos), aspectRatio(1.7778f), vertFov(30.f), distToFilm(1.f) {
         // initialize the translation part
         cameraToWorld(0, 3) = _pos.x;
         cameraToWorld(1, 3) = _pos.y;
@@ -50,6 +50,11 @@ public:
         cameraToWorld(3, 2) = .0f;
     }
 
+    Camera(const Mat4f& _cameraToWorld):
+        cameraToWorld(_cameraToWorld),aspectRatio(1.7778f), vertFov(30.f), distToFilm(1.f){
+        pos = Point3f {_cameraToWorld(0, 3), _cameraToWorld(1, 3),_cameraToWorld(2, 3)};
+    }
+
     virtual Ray3f sampleRay (const Vector2f &offset) const = 0;
 
 protected:
@@ -65,6 +70,8 @@ public:
     PerspectiveCamera() = delete;
 
     PerspectiveCamera(const Point3f& pos, const Point3f lookAt, const Vector3f &up) : Camera(pos, lookAt, up) { }
+
+    PerspectiveCamera(const Mat4f &_cameraToWorld) : Camera(_cameraToWorld) { }
 
     friend std::ostream& operator<<(std::ostream &os, const PerspectiveCamera &camera);
 

@@ -22,16 +22,19 @@ public:
     bool rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _triIdx) const ;
 
     uint32_t getMeshNum() const;
-private:
-    std::pair<uint32_t, uint32_t> idxConvert(uint32_t idx) const;
 
-    uint32_t getFaceNum(int meshIdx) const;
-
+    // temporily
     Point3ui getFBuf(int meshIdx, int triIdx) const;
 
     Point3f getVtxBuf(int meshIdx, int vtxIdx) const;
 
     Normal3f getNmlBuf(int meshIdx, int vtxIdx) const;
+
+
+private:
+    std::pair<uint32_t, uint32_t> idxConvert(uint32_t idx) const;
+
+    uint32_t getFaceNum(int meshIdx) const;
 
     AABB3f getAABB3(int meshIdx) const;
 

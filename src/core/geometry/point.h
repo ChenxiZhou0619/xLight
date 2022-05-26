@@ -210,6 +210,12 @@ std::ostream& operator<<(std::ostream &os, const TPoint3<T> &p) {
     return os;
 }
 
+template <>
+inline std::ostream& operator<<(std::ostream &os, const TPoint3<float> &p) {
+    os << tfm::format (" %.3f %.3f %.3f", p.x, p.y, p.z);
+    return os;
+}
+
 template <typename T>
 TPoint3<T> operator*(T t, const TPoint3<T> &v) {
     return TPoint3(t*v.x, t*v.y, t*v.z);

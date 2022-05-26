@@ -10,6 +10,9 @@
 
 #include <iostream>
 
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 void render(const Scene &scene,const Camera &camera ,Image &img) {
     ImageBlock block {Vector2i {0, 0}, img.getSize()};
 
@@ -87,20 +90,52 @@ void cameraTest() {
 
     MeshLoader loader;
 
-    MeshSet *meshSetPtr = loader.loadFromFile("/mnt/renderer/xLight/data/monkey.obj");
+    MeshSet *meshSetPtr = loader.loadFromFile("/mnt/renderer/xLight/data/test-scene.obj");
     Scene scene (meshSetPtr);
     scene.preprocess();
 
     PerspectiveCamera camera = PerspectiveCamera(
-        Point3f  (0, 0, 2.8),
         Point3f  (0, 0, 0),
+        Point3f  (0, 0, 1),
         Vector3f (0, 1, 0)
     );
 
     render(scene, camera, img);
 
-    img.savePNG("test2.png");
+    img.savePNG("test-scene-1.png");
     
+}
+
+
+void assimpTest() {
+    std::string filePath = "/mnt/renderer/xLight/data/assimp-test.obj";
+
+    MeshLoader loader;
+    MeshSet *meshSetPtr = loader.loadFromFile(filePath); 
+
+    Assimp::Importer importer;
+    const aiScene *scene = importer.ReadFile( filePath, 
+//        aiProcess_CalcTangentSpace      |
+//        aiProcess_Triangulate           |
+//        aiProcess_JoinIdenticalVertices |
+//        aiProcess_SortByPType
+          aiProcess_Triangulate           |
+          aiProcess_ConvertToLeftHanded
+    );
+    if (nullptr == scene) {
+        std::cerr << "Error when loading the file " << filePath << std::endl;
+        exit(0);
+    }
+
+    const auto &root = scene->mRootNode;
+
+    std::cout << root->mNumChildren << std::endl;
+    std::cout << "Root transformation \n"<< Mat4f {root->mTransformation} << std::endl;
+    for (int i = 0; i < root->mNumChildren; ++i) {
+        std::cout << "mNumMeshes = " << root->mChildren[i]->mNumMeshes << std::endl;
+        std::cout << "Trans = " << Mat4f {root->mChildren[i]->mTransformation} << std::endl;
+    }
+
 }
 
 int main(int argc, char **argv) {
