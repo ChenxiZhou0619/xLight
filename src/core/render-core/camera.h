@@ -55,7 +55,7 @@ public:
         pos = Point3f {_cameraToWorld(0, 3), _cameraToWorld(1, 3),_cameraToWorld(2, 3)};
     }
 
-    virtual Ray3f sampleRay (const Vector2f &offset) const = 0;
+    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const Point2f &sample) const = 0;
 
 protected:
     Point3f pos;
@@ -81,10 +81,15 @@ public:
      * @param offset 
      * @return Ray3f 
      */
-    virtual Ray3f sampleRay (const Vector2f &offset) const {
+    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const Point2f &sample) const {
         // generate in the camera coordinate first
         float halfH = std::tan(vertFov * pi / 360.f) * distToFilm,
               halfW = halfH * aspectRatio;
+
+        Point2f _offset {
+            (offset.x + sample.x) / (float)resolution.x,
+            (offset.y + sample.y) / (float)resolution.y
+        };
     
         Point3f filmTopLeft = 
             Point3f(0, 0, 0) 
@@ -93,7 +98,7 @@ public:
 
         Point3f pointOnFilm = 
             filmTopLeft
-            + Vector3f(2 * halfW * offset.x, - 2 * halfH * offset.y, 0);
+            + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
 
         Vector3f rayDirLocal = normalize(pointOnFilm - Point3f(0, 0, 0));
 

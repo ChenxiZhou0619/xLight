@@ -43,6 +43,10 @@ public:
         return size[1];
     }
 
+    Vector2i getOffset() const {
+        return offset;
+    }
+
     /**
      * @brief put a small block into a big one
      * 
@@ -135,3 +139,43 @@ inline std::ostream& operator<<(std::ostream &os, const Image &img) {
     os << img.screen << "\n";
     return os;
 }
+
+
+constexpr size_t BLOCKSIZE = 32;
+class ImageBlockManager {
+    size_t x, y;
+    ImageBlock ***blocks;
+public:
+    ImageBlockManager() = delete;
+    ImageBlockManager(const Vector2i &imgSize) : x(imgSize.x / BLOCKSIZE), y(imgSize.y / BLOCKSIZE) {
+        blocks = new ImageBlock**[x];
+        for (size_t _x = 0; _x < x; ++_x) {
+            blocks[_x] = new ImageBlock*[y];
+        }
+        for (size_t _x = 0; _x < x; ++_x)
+            for (size_t _y = 0; _y < y; ++_y) {
+                blocks[_x][_y] = new ImageBlock(
+                    Vector2i {_x * BLOCKSIZE, _y * BLOCKSIZE},
+                    Vector2i {BLOCKSIZE, BLOCKSIZE}
+                );
+            }
+    }
+    ImageBlockManager(const ImageBlockManager &rhs) = delete;
+    ImageBlockManager& operator()(const ImageBlockManager &rhs) = delete;
+    ~ImageBlockManager() {
+        for (size_t _x = 0; _x < x; ++_x)
+            for (size_t _y = 0; _y < y; ++_y) {
+                delete blocks[_x][_y];
+            }
+        for (size_t _x = 0; _x < x; ++_x) {
+            delete[] blocks[_x];
+        }
+        delete[] blocks;
+    }
+
+    Vector2i getSize() const {return Vector2i {x, y};}
+
+    ImageBlock& at(size_t _x, size_t _y) {return *blocks[_x][_y];}
+    
+
+};

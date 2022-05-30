@@ -17,7 +17,7 @@ class SpectrumRGB : public Spectrum {
 public:
     SpectrumRGB() = default;
 
-    SpectrumRGB(float v) : rgb(v) { }
+    explicit SpectrumRGB(float v) : rgb(v) { }
 
     SpectrumRGB(float r, float g, float b) : rgb(Vector3f{r, g, b}) { }
 
@@ -57,6 +57,16 @@ public:
         };
     }
 
+    SpectrumRGB operator*(float f) const {
+        return SpectrumRGB {
+            Vector3f {
+                rgb.x * f, 
+                rgb.y * f,
+                rgb.z * f
+            }
+        };
+    }
+
     SpectrumRGB& operator*=(const SpectrumRGB &rhs) {
         *this = *this * rhs;
         return *this;
@@ -68,6 +78,16 @@ public:
                 rgb.x / rhs.rgb.x, 
                 rgb.y / rhs.rgb.y,
                 rgb.z / rhs.rgb.z
+            }
+        };
+    }
+
+    SpectrumRGB operator/(float v) const {
+        return SpectrumRGB {
+            Vector3f {
+                rgb.x / v,
+                rgb.y / v,
+                rgb.z / v
             }
         };
     }
