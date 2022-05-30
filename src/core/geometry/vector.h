@@ -247,6 +247,11 @@ decltype(auto) dot(const TVector3<T> &v1, const TVector3<T> &v2) {
 }
 
 template <typename T>
+decltype(auto) sinBetween(const TVector3<T> &v1, const TVector3<T> &v2) {
+    return dot(v1, v2) / (v1.length() * v2.length());
+}
+
+template <typename T>
 decltype(auto) absDot(const TVector3<T> &v1, const TVector3<T> &v2) {
     return std::abs(v1.x * v2.x + v1.y * v2.y + v1.z * v2.z);
 }

@@ -5,7 +5,6 @@ SpectrumRGB SimpleIntegrator::getLi(const Scene &scene, const Ray3f &ray) const 
     RayIntersectionRec iRec;
     if (!scene.rayIntersect(ray, iRec))
         return SpectrumRGB{.0f};
-
     Vector3f dir = m_lightPosition - iRec.p;
     Ray3f shadowRay {
         iRec.p, dir, .0f, EPSILON, dir.length()

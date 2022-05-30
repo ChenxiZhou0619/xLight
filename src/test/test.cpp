@@ -22,14 +22,14 @@
 
 
 void renderBlock(const Scene &scene,const Camera &camera ,ImageBlock &block, const Vector2i &totalSize) {
-    Integrator *integrator = new SimpleIntegrator(Point3f {0, 1, 0}, SpectrumRGB {1500.f});
+    Integrator *integrator = new SimpleIntegrator(Point3f {0, 1, 0}, SpectrumRGB {300.f});
     Sampler *sampler = new Independent();
     
     for (int i = 0; i < block.getWidth(); ++i) {
         for (int j = 0; j < block.getHeight(); ++j) {
             SpectrumRGB color {.0f};
 
-            for (int spp = 0; spp < 20; ++spp) {
+            for (int spp = 0; spp < 4; ++spp) {
                 Ray3f ray = camera.sampleRay (
                     Vector2i {i + block.getOffset().x, j + block.getOffset().y},
                     totalSize,
@@ -38,7 +38,7 @@ void renderBlock(const Scene &scene,const Camera &camera ,ImageBlock &block, con
             
                 color += integrator->getLi(scene, ray);
             }
-            color = color / 20;
+            color = color / 4;
             
             block.setPixel(Vector2i {i, j}, color);
         } 
@@ -66,13 +66,13 @@ void render(const Scene &scene,const Camera &camera ,Image &img) {
 }
 
 
-void renderTest() {
+void renderTest(const char* filePath) {
 
     Image img {Vector2i {768, 416}};
 
     MeshLoader loader;
 
-    MeshSet *meshSetPtr = loader.loadFromFile("/mnt/renderer/xLight/data/test-scene.obj");
+    MeshSet *meshSetPtr = loader.loadFromFile(filePath);
     Scene scene (meshSetPtr);
     scene.preprocess();
 
@@ -83,10 +83,10 @@ void renderTest() {
     );
 
     render(scene, camera, img);
-    img.savePNG("test-scene-7.png");
+    img.savePNG("dragon-test5.png");
 }
 
 
 int main(int argc, char **argv) {
-    renderTest();
+    renderTest(argv[1]);
 }
