@@ -6,8 +6,6 @@
 #include "core/geometry/geometry.h"
 #include "core/render-core/spectrum.h"
 #include "tinyformat/tinyformat.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb/stb_image_write.h"
 
 class ImageBlock {
 public:
@@ -85,7 +83,11 @@ public:
 
     Image(Vector2i _size, unsigned _channels = 3) : 
         size(_size), channels(_channels), screen(Vector2i(0, 0), _size) { }
-    
+
+    Image(Vector2i _size, const std::string &_filename, 
+        uint32_t _spp, unsigned _channels = 3)
+        : size(_size), filename(_filename), spp(_spp), channels(_channels), screen(Vector2i(0, 0), _size) { }
+
     void putBlock(const ImageBlock &block) {
         Vector2i rightDown = block.offset + block.size;
         if (rightDown.x > size.x || rightDown.y > size.y) {
@@ -98,17 +100,7 @@ public:
             }
     }
 
-    void savePNG(const char *filename) const {
-        uint8_t *data = new uint8_t[size.x * size.y * channels];
-        for (int x = 0; x < size.x; ++x)
-            for (int y = 0; y < size.y; ++y) {
-                data[(x + y * size.x) * channels + 0] = std::min(screen.pixels[x][y][0], 1.f) * 255;
-                data[(x + y * size.x) * channels + 1] = std::min(screen.pixels[x][y][1], 1.f) * 255;
-                data[(x + y * size.x) * channels + 2] = std::min(screen.pixels[x][y][2], 1.f) * 255;
-            }
-        stbi_write_png(filename, size.x, size.y, 3, data ,0);
-        delete[] data;
-    }
+    void savePNG() const;
 
     Vector2i getSize() const {
         return size;
@@ -121,6 +113,10 @@ public:
     int getHeight() const {
         return size[1];
     }
+
+    uint32_t getSpp() const {
+        return spp;
+    }
     
     friend std::ostream& operator<<(std::ostream &os, const Image &img);
 
@@ -128,6 +124,9 @@ public:
 
 protected:
     Vector2i size;
+    std::string filename;
+    uint32_t spp;
+
     unsigned channels;
     ImageBlock screen;
 };
@@ -135,8 +134,9 @@ protected:
 inline std::ostream& operator<<(std::ostream &os, const Image &img) {
     os << "Image :\n"
        << "\tsize     = " << img.size << "\n"
+       << "\tfilename = " << img.filename << "\n"
+       << "\tspp      = " << img.spp << "\n"
        << "\tchannels = " << img.channels << "\n";
-    os << img.screen << "\n";
     return os;
 }
 

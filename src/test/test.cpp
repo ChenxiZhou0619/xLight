@@ -1,92 +1,75 @@
-#include "core/mesh/mesh.h"
-#include "core/mesh/meshLoader.h"
-#include "core/mesh/meshSet.h"
-#include "core/math/math.h"
-#include "core/geometry/geometry.h"
-#include "core/render-core/spectrum.h"
-#include "core/render-core/camera.h"
 #include "core/file/image.h"
+#include "core/render-core/integrator.h"
+#include "core/render-core/sampler.h"
+#include "core/render-core/camera.h"
 #include "core/render-core/scene.h"
+#include "core/utils/taskparser.h"
 
-#include "render/integrator/ao.h"
-#include "render/integrator/simple.h"
-#include "render/sampler/independent.h"
-
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 #include <tbb/tbb.h>
-
+#include <tinyformat/tinyformat.h>
 #include <iostream>
 #include <chrono>
-#include <thread>
 
 
-void renderBlock(const Scene &scene,const Camera &camera ,ImageBlock &block, const Vector2i &totalSize) {
-    Integrator *integrator = new SimpleIntegrator(Point3f {0, 1, 0}, SpectrumRGB {300.f});
-    Sampler *sampler = new Independent();
-    
+void renderBlock(ImageBlock &block, const RenderTask* task) {
+    Integrator *integrator = task->integrator.get();
+    Sampler *sampler = task->sampler.get();
+    Camera *camera = task->camera.get();
+    Scene *scene = task->scene.get();
+
     for (int i = 0; i < block.getWidth(); ++i) {
         for (int j = 0; j < block.getHeight(); ++j) {
             SpectrumRGB color {.0f};
 
-            for (int spp = 0; spp < 4; ++spp) {
-                Ray3f ray = camera.sampleRay (
+            for (int spp = 0; spp < task->getSpp(); ++spp) {
+                Ray3f ray = camera->sampleRay (
                     Vector2i {i + block.getOffset().x, j + block.getOffset().y},
-                    totalSize,
+                    task->getImgSize(),
                     sampler->next2D()
                 );
             
-                color += integrator->getLi(scene, ray);
+                color += integrator->getLi(*scene, ray);
             }
             color = color / 4;
             
             block.setPixel(Vector2i {i, j}, color);
         } 
     }
-    delete integrator;
-    delete sampler;
 }
 
 
-void render(const Scene &scene,const Camera &camera ,Image &img) {
+void render(const RenderTask* task) {
+    auto start = std::chrono::high_resolution_clock::now();
 
-    ImageBlockManager blcMng(img.getSize());
+    ImageBlockManager blcMng(task->getImgSize());
 
     tbb::parallel_for(
         tbb::blocked_range2d<size_t>(0, blcMng.getSize().x, 0, blcMng.getSize().y), 
         [&](const tbb::blocked_range2d<size_t> &r){
                 for (size_t rows = r.rows().begin(); rows != r.rows().end(); ++rows)
                     for (size_t cols = r.cols().begin(); cols != r.cols().end(); ++cols){        
-                        renderBlock(scene, camera, blcMng.at(rows, cols), img.getSize());
-                        img.putBlock(blcMng.at(rows, cols));
+                        renderBlock(
+                            blcMng.at(rows, cols), 
+                            task
+                        );
+                        task->image->putBlock(blcMng.at(rows, cols));
                     }
             }
     );
-
-}
-
-
-void renderTest(const char* filePath) {
-
-    Image img {Vector2i {768, 416}};
-
-    MeshLoader loader;
-
-    MeshSet *meshSetPtr = loader.loadFromFile(filePath);
-    Scene scene (meshSetPtr);
-    scene.preprocess();
-
-    PerspectiveCamera camera = PerspectiveCamera(
-        Point3f  (0, 0, 0),
-        Point3f  (0, 0, 1),
-        Vector3f (0, 1, 0)
-    );
-
-    render(scene, camera, img);
-    img.savePNG("dragon-test5.png");
+    auto end = std::chrono::high_resolution_clock::now();
+    std::cout << tfm::format("Rendering costs : %.2f seconds\n",
+        (float)std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.f);
+    task->image->savePNG();
 }
 
 
 int main(int argc, char **argv) {
-    renderTest(argv[1]);
+    if (!argv[1]) {
+        std::cout << "No given file!\n";
+        exit(1);
+    }
+    std::unique_ptr<RenderTask> task = RenderTaskParser::createTask(argv[1]);
+    
+    render(task.get());
+
 }

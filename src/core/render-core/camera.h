@@ -1,9 +1,9 @@
 #pragma once
-
+#include "core/utils/configurable.h"
 #include "core/geometry/geometry.h"
 #include "core/math/math.h"
 
-class Camera {
+class Camera : public Configurable {
 public:
     /**
      * @brief 
@@ -14,6 +14,29 @@ public:
      * @return Ray3f 
      */
     Camera() = delete;
+
+    Camera(const rapidjson::Value &_value):
+        Camera(
+            Point3f {
+                _value["position"].GetArray()[0].GetFloat(), 
+                _value["position"].GetArray()[1].GetFloat(), 
+                _value["position"].GetArray()[2].GetFloat()
+            },
+            Point3f {
+                _value["lookAt"].GetArray()[0].GetFloat(), 
+                _value["lookAt"].GetArray()[1].GetFloat(), 
+                _value["lookAt"].GetArray()[2].GetFloat()
+            },
+            Vector3f {
+                _value["up"].GetArray()[0].GetFloat(), 
+                _value["up"].GetArray()[1].GetFloat(), 
+                _value["up"].GetArray()[2].GetFloat()
+            }
+
+        ){ }
+
+    ~Camera() = default;
+
 
     /**
      * @brief Construct a new Camera object
@@ -64,57 +87,3 @@ protected:
 
     Mat4f cameraToWorld;
 };
-
-class PerspectiveCamera : public Camera {
-public:
-    PerspectiveCamera() = delete;
-
-    PerspectiveCamera(const Point3f& pos, const Point3f lookAt, const Vector3f &up) : Camera(pos, lookAt, up) { }
-
-    PerspectiveCamera(const Mat4f &_cameraToWorld) : Camera(_cameraToWorld) { }
-
-    friend std::ostream& operator<<(std::ostream &os, const PerspectiveCamera &camera);
-
-    /**
-     * @brief e.g. f = (.5f, .5f) the center 
-     * 
-     * @param offset 
-     * @return Ray3f 
-     */
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const Point2f &sample) const {
-        // generate in the camera coordinate first
-        float halfH = std::tan(vertFov * pi / 360.f) * distToFilm,
-              halfW = halfH * aspectRatio;
-
-        Point2f _offset {
-            (offset.x + sample.x) / (float)resolution.x,
-            (offset.y + sample.y) / (float)resolution.y
-        };
-    
-        Point3f filmTopLeft = 
-            Point3f(0, 0, 0) 
-            + Vector3f(0, 0, 1) * distToFilm 
-            + Vector3f(-halfW, halfH, 0);
-
-        Point3f pointOnFilm = 
-            filmTopLeft
-            + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
-
-        Vector3f rayDirLocal = normalize(pointOnFilm - Point3f(0, 0, 0));
-
-        // turn to the world coordinate
-        Vector3f rayDirWorld = cameraToWorld.rotate(rayDirLocal);
-        
-        return Ray3f {
-            pos,
-            rayDirWorld
-        };
-    }
-};
-
-inline std::ostream& operator<<(std::ostream &os, const PerspectiveCamera &camera) {
-    os << "Perspective Camera:\n"
-       << "cameraToWorld matrix:\n" << camera.cameraToWorld << std::endl
-       << "position: " << camera.pos << std::endl;
-    return os;
-}
