@@ -5,8 +5,12 @@
 #include <assimp/scene.h>
 
 #include "core/geometry/geometry.h"
+#include "core/math/discretepdf.h"
 
 class BSDF;
+class Emitter;
+struct PointQueryRecord;
+class Sampler;
 
 class Mesh {
 public:
@@ -34,15 +38,21 @@ public:
 
     virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
 
-    std::string mName;
-
     virtual void setBSDF(BSDF *_bsdf) ;
 
     virtual BSDF* getBSDF() const ;
+
+    virtual void sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const = 0;
+
+    virtual float getMeshSurfaceArea() const = 0;
     
+    std::string mName;
+
 protected:
     AABB3f mAABB;
     BSDF *mBSDF;
+    Emitter *mEmitter {nullptr};
+    float mTotalArea;
 };
 
 class TriMesh : public Mesh{
@@ -78,11 +88,19 @@ public:
 
     virtual AABB3f getTriBounds(uint32_t triIdx) const;
 
+    virtual void sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const = 0;
+
+    virtual float getMeshSurfaceArea() const = 0;
+
 protected:
+    virtual float getTriArea(uint32_t triIdx) const;
 
     std::unique_ptr<std::vector<Point3f>>  mVerticesBuf;   // vertices
     std::unique_ptr<std::vector<Normal3f>> mNormalsBuf;    // normals per vertex
     std::unique_ptr<std::vector<Point3ui>> mFacesBuf;      // mesh faces
     std::unique_ptr<std::vector<Point2f>>  mUVsBuf;        // uv coordinates
+
+    DiscretePDF mTriDistribution;
+
 
 };

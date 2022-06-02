@@ -3,7 +3,9 @@
 
 struct PointQueryRecord {
     Point3f point;
+    Normal3f normal;
     float pdf;
+    const Mesh *mesh;
 };
 
 struct EmitterQueryRecord {
