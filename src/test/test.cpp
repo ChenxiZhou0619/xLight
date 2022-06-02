@@ -30,7 +30,7 @@ void renderBlock(ImageBlock &block, const RenderTask* task) {
             
                 color += integrator->getLi(*scene, ray);
             }
-            color = color / 4;
+            color = color / (float)task->getSpp();
             
             block.setPixel(Vector2i {i, j}, color);
         } 
@@ -51,11 +51,12 @@ void render(const RenderTask* task) {
                         renderBlock(
                             blcMng.at(rows, cols), 
                             task
-                        );
+                        ); 
                         task->image->putBlock(blcMng.at(rows, cols));
                     }
             }
     );
+    
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << tfm::format("Rendering costs : %.2f seconds\n",
         (float)std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.f);

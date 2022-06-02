@@ -3,3 +3,5 @@
 /build-debug
 /develop-doc.md
 /.vscode
+/.cache
+/build

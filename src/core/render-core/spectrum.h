@@ -3,6 +3,7 @@
 #include <core/geometry/geometry.h>
 #include <tinyformat/tinyformat.h>
 
+
 class Spectrum{
 public:
     Spectrum() = default;

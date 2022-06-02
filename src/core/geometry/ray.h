@@ -10,12 +10,11 @@
  */
 
 #pragma once
-
 #include "vector.h"
 #include "point.h"
-#include "common.h"
+#include "frame.h"
 #include <memory>
-
+#include "common.h"
 template<typename T>
 struct TRay3 {
 public:
@@ -48,6 +47,12 @@ std::ostream& operator<<(std::ostream &os, const TRay3<T> &ray) {
  * 
  */
 class Mesh;
+class Frame;
+
+using Vector3f = TVector3<float>;
+using Vector2f = TVector2<float>;
+using Point3f  = TPoint3<float>;
+using Point2f = TPoint2<float>;
 
 struct RayIntersectionRec {
     bool isValid;
@@ -62,11 +67,14 @@ struct RayIntersectionRec {
     // geometryNormal and shadingNormal respectively
     Normal3f geoN, shdN;
 
+    // the two local frame using normals as Y axis
+    Frame geoFrame, shdFrame;
+
     // the uv coordinate
-    Vector2f UV;
+    Point2f UV;
 
     // the hitted object
-    std::shared_ptr<Mesh> meshPtr;
+    Mesh* meshPtr;
 
     RayIntersectionRec() : isValid(false), t(FLOATMAX), meshPtr(nullptr) { }
 };

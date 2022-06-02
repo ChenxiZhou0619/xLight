@@ -12,6 +12,16 @@ uint32_t RenderTask::getSpp() const {
     return image->getSpp();
 }
 
+Texture* RenderTask::getTexture(const std::string &textureName) const {
+    const auto &itr = textures.find(textureName);
+    if (itr == textures.end()) {
+        std::cout << "Error! : Undefined texture name \"" <<textureName << "\"" 
+                  << std::endl;
+        exit(1);
+    }
+    return itr->second.get();
+}
+
 std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &jsonFilePath) {
     RenderTask *task = new RenderTask();
 
@@ -28,7 +38,7 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
     jsonFile.close();
     rapidjson::Document document;
     document.Parse(json);
-    delete json;
+    delete[] json;
 
     /*============= traverse the document object =========*/
     for (auto itr = document.MemberBegin(); itr != document.MemberEnd(); ++itr) {
@@ -50,13 +60,74 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
             std::cout << "====================================\n";
         } 
         else if (strcmp(itr->name.GetString(), "scene") == 0) {
+            // configure textures
+            const auto &textures = (*itr).value["textures"].GetArray();
+            for (int i = 0; i < textures.Size(); ++i) {
+                const auto &texture = textures[i].GetObject();
+                const std::string &textureName
+                    = texture["name"].GetString();
+                const std::string &textureType
+                    = texture["type"].GetString();
+                task->textures[textureName].reset(
+                    static_cast<Texture *> (ObjectFactory::createInstance(
+                        textureType, texture))
+                );  
+            }
+            // configure bsdf
+            const auto &bsdfs = (*itr).value["bsdfs"].GetArray();
+            for (int i = 0; i < bsdfs.Size(); ++i) {
+                const auto &bsdf = bsdfs[i].GetObject();
+                const std::string &bsdfName
+                    = bsdf["name"].GetString();
+                const std::string &bsdfType
+                    = bsdf["type"].GetString();
+                const std::string &textureRef
+                    = bsdf["textureRef"].GetString();
+                BSDF *newBsdf
+                    = static_cast<BSDF*>(
+                        ObjectFactory::createInstance(bsdfType, bsdf)
+                    );
+                newBsdf->setTexture(
+                    task->getTexture(textureRef)
+                );
+                task->bsdfs[bsdfName].reset(newBsdf);
+            }
+            
             // configure the scene object
             MeshLoader meshLoader;
             const auto &entities = (*itr).value["entities"].GetArray();
-            const std::string &filepath = entities[0].GetObject()["filepath"].GetString();
-            task->scene = std::make_unique<Scene>(
-                meshLoader.loadFromFile(filepath)
-            );
+            MeshSet *meshSet = new MeshSet();
+            for (int i = 0; i < entities.Size(); ++i) {
+                const auto &entity = entities[i].GetObject();
+                const std::string &filepath = entity["filepath"].GetString();
+                std::unique_ptr<MeshSet> tmp;
+                tmp.reset(
+                    meshLoader.loadFromFile(filepath)
+                );
+                // configure the bsdf 
+                const auto &meshProperties = entity["meshProperties"].GetArray();
+                for (int i = 0; i < meshProperties.Size(); ++i) {
+                    const auto &property = meshProperties[i].GetObject();
+                    const std::string &meshName 
+                        = property["meshName"].GetString();
+                    Mesh *targetMesh = tmp->getByName(meshName);
+                    if (!targetMesh) {
+                        std::cout << "No such a mesh : \"" << meshName << "\"" << std::endl;
+                        exit(1);
+                    }
+                    const std::string &bsdfRef
+                        = property["BSDFRef"].GetString();
+                    const auto &itr = task->bsdfs.find(bsdfRef);
+                    if (itr == task->bsdfs.end()) {
+                        std::cout << "No such a BSDF : \"" << bsdfRef << "\"" << std::endl;
+                        exit(1);
+                    }
+                    targetMesh->setBSDF(itr->second.get());
+                }
+
+                meshSet->mergeMeshSet(std::move(tmp));
+            }
+            task->scene = std::make_unique<Scene>(meshSet);
             task->scene->preprocess();
 
         } else if (strcmp(itr->name.GetString(), "renderer") == 0) {

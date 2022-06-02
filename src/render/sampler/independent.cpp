@@ -1,4 +1,3 @@
-#pragma once
 #include "core/render-core/sampler.h"
 #include <random>
 

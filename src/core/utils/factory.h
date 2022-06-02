@@ -1,7 +1,7 @@
 #pragma once
 #include <functional>
 #include <rapidjson/document.h>
-
+#include "unordered_map"
 
 class Configurable;
 using Constructor = std::function<Configurable *(const rapidjson::Value&)>;

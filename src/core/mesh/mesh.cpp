@@ -1,13 +1,21 @@
 #include "mesh.h"
 #include "tinyformat/tinyformat.h"
 
+void Mesh::setBSDF(BSDF *_bsdf) {
+    mBSDF = _bsdf;
+}
+
+BSDF* Mesh::getBSDF() const {
+    return mBSDF;
+}
+
 TriMesh::TriMesh( std::vector<Point3f> &&_mVerticesBuf, std::vector<Normal3f> &&_mNormalsBuf,
-    std::vector<Point3ui> &&_mFacesBuf, std::vector<Point2f> &&_mUVsBuf
+    std::vector<Point3ui> &&_mFacesBuf, std::vector<Point2f> &&_mUVsBuf, const char *_name
 ): mVerticesBuf(std::make_unique<std::vector<Point3f>>(_mVerticesBuf)),
    mNormalsBuf(std::make_unique<std::vector<Normal3f>>(_mNormalsBuf)),
    mFacesBuf(std::make_unique<std::vector<Point3ui>>(_mFacesBuf)),
    mUVsBuf(std::make_unique<std::vector<Point2f>>(_mUVsBuf)) {
-
+    mName = std::string(_name);
     // initialize for aabb
     for (const Point3f &p : *mVerticesBuf) {
         mAABB.expands(p);

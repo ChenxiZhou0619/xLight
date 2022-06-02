@@ -6,7 +6,7 @@
 #include <vector>
 
 constexpr int nSubs = 8;
-constexpr int ocLeafMaxSize = 64;
+constexpr int ocLeafMaxSize = 32;
 constexpr int maxDepth = 10;
 struct OcNode : public AccelNode {
     OcNode(const AABB3f &_bounds, int _depth) : bounds(_bounds), depth(_depth) { }

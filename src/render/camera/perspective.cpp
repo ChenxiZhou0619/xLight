@@ -20,7 +20,7 @@ public:
      */
     virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const Point2f &sample) const {
         // generate in the camera coordinate first
-        float halfH = std::tan(vertFov * pi / 360.f) * distToFilm,
+        float halfH = std::tan(vertFov * PI / 360.f) * distToFilm,
               halfW = halfH * aspectRatio;
 
         Point2f _offset {

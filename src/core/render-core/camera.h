@@ -17,22 +17,9 @@ public:
 
     Camera(const rapidjson::Value &_value):
         Camera(
-            Point3f {
-                _value["position"].GetArray()[0].GetFloat(), 
-                _value["position"].GetArray()[1].GetFloat(), 
-                _value["position"].GetArray()[2].GetFloat()
-            },
-            Point3f {
-                _value["lookAt"].GetArray()[0].GetFloat(), 
-                _value["lookAt"].GetArray()[1].GetFloat(), 
-                _value["lookAt"].GetArray()[2].GetFloat()
-            },
-            Vector3f {
-                _value["up"].GetArray()[0].GetFloat(), 
-                _value["up"].GetArray()[1].GetFloat(), 
-                _value["up"].GetArray()[2].GetFloat()
-            }
-
+            getPoint3f("position", _value),
+            getPoint3f("lookAt", _value),
+            getVector3f("up", _value)
         ){ }
 
     ~Camera() = default;

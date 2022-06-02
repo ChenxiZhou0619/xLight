@@ -6,6 +6,8 @@
 
 #include "core/geometry/geometry.h"
 
+class BSDF;
+
 class Mesh {
 public:
     Mesh() = default;
@@ -31,9 +33,16 @@ public:
     virtual int getFaceNum() const = 0;
 
     virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
+
+    std::string mName;
+
+    virtual void setBSDF(BSDF *_bsdf) ;
+
+    virtual BSDF* getBSDF() const ;
     
 protected:
     AABB3f mAABB;
+    BSDF *mBSDF;
 };
 
 class TriMesh : public Mesh{
@@ -49,7 +58,8 @@ public:
         std::vector<Point3f> &&_mVerticesBuf,
         std::vector<Normal3f> &&_mNormalsBuf,
         std::vector<Point3ui> &&_mFacesBuf,
-        std::vector<Point2f> &&_mUVsBuf
+        std::vector<Point2f> &&_mUVsBuf,
+        const char *_name
     );
 
     virtual ~TriMesh() = default;

@@ -12,16 +12,8 @@ public:
         m_lightPosition(_lightPosition), m_lightEnergy(_lightEnergy) { }
 
     SimpleIntegrator(const rapidjson::Value &_value) {
-        m_lightPosition = Point3f {
-            _value["lightPosition"].GetArray()[0].GetFloat(),
-            _value["lightPosition"].GetArray()[1].GetFloat(),
-            _value["lightPosition"].GetArray()[2].GetFloat()
-        };
-        m_lightEnergy = SpectrumRGB {
-            _value["lightEnergy"].GetArray()[0].GetFloat(),
-            _value["lightEnergy"].GetArray()[1].GetFloat(),
-            _value["lightEnergy"].GetArray()[2].GetFloat()
-        };
+        m_lightPosition = getPoint3f("lightPosition", _value);
+        m_lightEnergy = SpectrumRGB {getVector3f("lightEnergy", _value)};
     }
 
     virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray) const {
@@ -38,6 +30,7 @@ public:
             SpectrumRGB Li = m_lightEnergy * (.25f * INV_PI * INV_PI)
                 * std::max(.0f, dot(iRec.shdN, shadowRay.dir)) / dir.length2();
             //std::cout << Li << std::endl;
+            Li *= iRec.meshPtr->getBSDF()->evaluate(iRec);
             return Li;
         }
         return SpectrumRGB {.0f};

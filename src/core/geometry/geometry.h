@@ -29,3 +29,5 @@ using Ray3d = TRay3<double>;
 
 #include "bbox.h"
 using AABB3f = TAABB3<float>;
+
+#include "frame.h"

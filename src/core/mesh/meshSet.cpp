@@ -88,6 +88,15 @@ AABB3f MeshSet::getAABB3(int meshIdx) const {
     return meshPtr->getAABB3();
 }
 
+Mesh* MeshSet::getByName(const std::string &name) const {
+    for (int i = 0; i < mMeshes.size(); ++i) {
+        if (strcmp(name.c_str(), mMeshes[i]->mName.c_str()) == 0) {
+            return mMeshes[i].get();
+        }
+    }
+    return nullptr;
+}
+
 
 bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _triIdx) const {
     // get the meshIdx and fIdx first
@@ -141,6 +150,9 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     } else {
         iRec.shdN = iRec.geoN;
     }
+    iRec.geoFrame = Frame {iRec.geoN};
+    iRec.shdFrame = Frame {iRec.shdN};
+    iRec.meshPtr = meshPtr.get();
     return true;
 }
 

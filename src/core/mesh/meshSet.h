@@ -30,7 +30,7 @@ public:
 
     Normal3f getNmlBuf(int meshIdx, int vtxIdx) const;
 
-
+    Mesh* getByName(const std::string &name) const ;
 private:
     std::pair<uint32_t, uint32_t> idxConvert(uint32_t idx) const;
 

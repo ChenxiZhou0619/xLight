@@ -1,6 +1,7 @@
 #pragma once
 #include "core/utils/configurable.h"
 #include "core/core.h"
+#include "bsdf.h"
 
 class Integrator : public Configurable {
 public:

@@ -13,6 +13,10 @@ set(XLIGHT_CORE_FILE_DIR ${PROJECT_SOURCE_DIR}/src/core/file)
 set(XLIGHT_RENDER_INTEGRATOR_DIR ${PROJECT_SOURCE_DIR}/src/render/integrator)
 set(XLIGHT_RENDER_SAMPLER_DIR ${PROJECT_SOURCE_DIR}/src/render/sampler)
 set(XLIGHT_RENDER_CAMERA_DIR ${PROJECT_SOURCE_DIR}/src/render/camera)
+set(XLIGHT_RENDER_TEXTURE_DIR ${PROJECT_SOURCE_DIR}/src/render/texture)
+set(XLIGHT_RENDER_BSDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bsdf)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_executable(test
     # test
@@ -45,6 +49,12 @@ add_executable(test
 
     # render/camera
     ${XLIGHT_RENDER_CAMERA_DIR}/perspective.cpp
+
+    # render/texture
+    ${XLIGHT_RENDER_TEXTURE_DIR}/constant.cpp
+
+    # render/bsdf
+    ${XLIGHT_RENDER_BSDF_DIR}/diffuse.cpp
 )
 
 target_include_directories(test PRIVATE

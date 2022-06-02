@@ -71,6 +71,8 @@ MeshSet* MeshLoader::loadFromFile(const std::string &filePath) const {
 std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) const {
     // convert the assimp data structure to specified format
     
+    std::cout << "Current meshName is : " << _aiMesh.mName.C_Str() << std::endl;
+
     std::vector<Point3f>  vertices;
     std::vector<Normal3f> normals;
     std::vector<Point3ui> faces;
@@ -148,7 +150,8 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
         std::move(vertices),
         std::move(normals),
         std::move(faces),
-        std::move(UVs)        
+        std::move(UVs),
+        _aiMesh.mName.C_Str()        
     );
 
     return meshPtr;
