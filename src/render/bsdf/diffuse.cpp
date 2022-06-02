@@ -10,15 +10,19 @@ public:
 
     ~Diffuse() = default;
 
-    virtual SpectrumRGB evaluate (const RayIntersectionRec &iRec) const {
-        return m_texture->evaluate(iRec.UV);
+    virtual bool isDiffuse() const {
+        return true;
+    }
+    
+    virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const {
+        
     }
 
-    virtual float pdf (const RayIntersectionRec &iRec) const {
+    virtual float pdf (const BSDFQueryRecord &bRec) const {
 
     }
 
-    virtual SpectrumRGB sample(RayIntersectionRec &iRec, const Point2f &sample) const {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
 
     }
 };

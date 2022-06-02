@@ -1,6 +1,7 @@
 #include "core/render-core/integrator.h"
 
 class BruteForce : public Integrator {
+    
 public:
     BruteForce(const rapidjson::Value &_value) {
         // do nothing

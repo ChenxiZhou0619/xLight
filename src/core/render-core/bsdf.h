@@ -3,6 +3,14 @@
 #include "spectrum.h"
 #include "texture.h"
 
+struct BSDFQueryRecord {
+    // ! both point from the origin in local
+    Vector3f wi, wo;
+
+    BSDFQueryRecord() = default;
+    BSDFQueryRecord(const Vector3f &_wi) : wi(_wi) { }
+};
+
 class BSDF : public Configurable{
 protected:
     Texture *m_texture;
@@ -15,14 +23,13 @@ public:
         m_texture = texture;
     }
 
-
     /**
      * @brief return the bsdf value * cosTheta
      * 
      * @param iRec 
      * @return SpectrumRGB 
      */
-    virtual SpectrumRGB evaluate (const RayIntersectionRec &iRec) const = 0;
+    virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const = 0;
 
     /**
      * @brief return the pdf of given wo
@@ -30,13 +37,15 @@ public:
      * @param iRec 
      * @return float 
      */
-    virtual float pdf (const RayIntersectionRec &iRec) const = 0;
+    virtual float pdf (const BSDFQueryRecord &bRec) const = 0;
 
     /**
-     * @brief sample a wo, return the bsdf value * cosTheta
+     * @brief sample a wo, return the bsdf value * cosTheta / pdf
      * 
      * @param iRec 
      * @return SpectrumRGB 
      */
-    virtual SpectrumRGB sample(RayIntersectionRec &iRec, const Point2f &sample) const = 0;
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample) const = 0;
+
+    virtual bool isDiffuse() const = 0;
 };

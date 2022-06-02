@@ -16,7 +16,7 @@ public:
         m_lightEnergy = SpectrumRGB {getVector3f("lightEnergy", _value)};
     }
 
-    virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray) const {
+    virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray, Sampler *sampler) const {
         RayIntersectionRec iRec;
         if (!scene.rayIntersect(ray, iRec))
             return SpectrumRGB{.0f};
@@ -29,8 +29,8 @@ public:
         if (!scene.rayIntersect(shadowRay)) {
             SpectrumRGB Li = m_lightEnergy * (.25f * INV_PI * INV_PI)
                 * std::max(.0f, dot(iRec.shdN, shadowRay.dir)) / dir.length2();
-            //std::cout << Li << std::endl;
-            Li *= iRec.meshPtr->getBSDF()->evaluate(iRec);
+            BSDFQueryRecord bRec {iRec.toLocal(-ray.dir)};
+            Li *= iRec.meshPtr->getBSDF()->evaluate(bRec);
             return Li;
         }
         return SpectrumRGB {.0f};

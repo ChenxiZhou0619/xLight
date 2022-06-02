@@ -77,4 +77,12 @@ struct RayIntersectionRec {
     Mesh* meshPtr;
 
     RayIntersectionRec() : isValid(false), t(FLOATMAX), meshPtr(nullptr) { }
+
+    Vector3f toWorld(const Vector3f &local) const {
+        return shdFrame.toWorld(local);
+    }
+
+    Vector3f toLocal(const Vector3f &world) const {
+        return shdFrame.toLocal(world);
+    }
 };

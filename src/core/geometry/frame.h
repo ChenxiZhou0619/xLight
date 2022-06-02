@@ -32,6 +32,18 @@ public:
         float temp = 1.f - localV.y * localV.y;
         if(temp <= .0f ) return .0f;
         return std::sqrt(temp) / localV.y;
+    }
+
+    Vector3f toLocal(const Vector3f &world) const {
+        return Vector3f {
+            dot(world, _x),
+            dot(world, _y),
+            dot(world, _z)
+        };
     } 
+
+    Vector3f toWorld(const Vector3f &local) const {
+        return local.x * _x + local.y * _y + local.z * _z;
+    }
 
 };

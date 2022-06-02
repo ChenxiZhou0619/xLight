@@ -2,6 +2,7 @@
 #include "core/utils/configurable.h"
 #include "core/core.h"
 #include "bsdf.h"
+#include "sampler.h"
 
 class Integrator : public Configurable {
 public:
@@ -9,6 +10,6 @@ public:
     Integrator(const rapidjson::Value &_value) {}
     
     virtual ~Integrator() {}
-    virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray) const = 0;
+    virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray, Sampler *sampler) const = 0;
 
 };
