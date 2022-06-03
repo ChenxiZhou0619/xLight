@@ -57,6 +57,7 @@ add_executable(test
 
     # render/bsdf
     ${XLIGHT_RENDER_BSDF_DIR}/diffuse.cpp
+    ${XLIGHT_RENDER_BSDF_DIR}/mirror.cpp
 
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp

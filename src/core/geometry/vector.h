@@ -279,6 +279,13 @@ TVector3<T> cross(const TVector3<T> &v1, const TVector3<T> &v2) {
     );
 }
 
+template<typename T>
+TVector3<T> reflect(const TVector3<T> &v) {
+    return TVector3<T> {
+        -v.x, v.y, -v.z
+    };
+}
+
 
 
 

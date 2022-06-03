@@ -2,10 +2,13 @@
 #include <vector>
 
 struct DiscretePDF {
-    DiscretePDF() = default;
+    DiscretePDF() : DiscretePDF(0) {
+
+    }
 
     explicit DiscretePDF(std::size_t nEntries) {
         mCdf.reserve(nEntries + 1);
+        clear();
     }
 
     void clear() {
@@ -15,12 +18,13 @@ struct DiscretePDF {
     }
 
     void append(float pdfValue) {
-        if (mCdf.size() == 0) 
-            mCdf.emplace_back(pdfValue);
-        else 
         mCdf.emplace_back(
             mCdf.back() + pdfValue
         );
+    }
+
+    std::size_t size() const {
+        return mCdf.size() - 1;
     }
 
     float operator[](std::size_t entry) const {

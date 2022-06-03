@@ -81,15 +81,20 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                     = bsdf["name"].GetString();
                 const std::string &bsdfType
                     = bsdf["type"].GetString();
-                const std::string &textureRef
-                    = bsdf["textureRef"].GetString();
                 BSDF *newBsdf
-                    = static_cast<BSDF*>(
-                        ObjectFactory::createInstance(bsdfType, bsdf)
+                        = static_cast<BSDF*>(
+                            ObjectFactory::createInstance(bsdfType, bsdf)
+                        );
+                if (bsdf.HasMember("textureRef")) {
+                    const std::string &textureRef
+                        = bsdf["textureRef"].GetString();
+                    newBsdf->setTexture(
+                        task->getTexture(textureRef)
                     );
-                newBsdf->setTexture(
-                    task->getTexture(textureRef)
-                );
+                } else {
+                    newBsdf->setTexture(nullptr);
+                }
+                
                 task->bsdfs[bsdfName].reset(newBsdf);
             }
             // configure emitters

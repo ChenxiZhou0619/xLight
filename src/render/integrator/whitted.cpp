@@ -52,10 +52,8 @@ public:
                     iRec.toLocal(-ray.dir), iRec.toLocal(shadowRay.dir)
                 );
                 SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
-                return bsdfVal * eRec.getEmitter()->evaluate(eRec)
-                    * std::abs(dot(iRec.shdN, shadowRay.dir))
-                    * std::abs(dot(pRec.normal, shadowRay.dir))
-                    / (shadowRay.dir.length2() * pRec.pdf);
+                float pdf = (shadowRay.tmax * shadowRay.tmax) / std::abs(dot(pRec.normal, shadowRay.dir)) * pRec.pdf;
+                return bsdfVal * eRec.getEmitter()->evaluate(eRec) / pdf;
             }
             
         }
