@@ -6,9 +6,12 @@
 struct BSDFQueryRecord {
     // ! both point from the origin in local
     Vector3f wi, wo;
+    Point2f uv;
+
 
     BSDFQueryRecord() = default;
     BSDFQueryRecord(const Vector3f &_wi) : wi(_wi) { }
+    BSDFQueryRecord(const Vector3f &_wi, const Vector3f &_wo) : wi(_wi), wo(_wo) { }
 };
 
 class BSDF : public Configurable{

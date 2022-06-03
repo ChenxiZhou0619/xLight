@@ -15,6 +15,9 @@ struct DiscretePDF {
     }
 
     void append(float pdfValue) {
+        if (mCdf.size() == 0) 
+            mCdf.emplace_back(pdfValue);
+        else 
         mCdf.emplace_back(
             mCdf.back() + pdfValue
         );

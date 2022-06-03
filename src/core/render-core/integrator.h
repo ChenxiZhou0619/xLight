@@ -3,6 +3,7 @@
 #include "core/core.h"
 #include "bsdf.h"
 #include "sampler.h"
+#include "emitter.h"
 
 class Integrator : public Configurable {
 public:

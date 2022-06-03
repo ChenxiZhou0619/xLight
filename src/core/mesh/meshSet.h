@@ -31,6 +31,9 @@ public:
     Normal3f getNmlBuf(int meshIdx, int vtxIdx) const;
 
     Mesh* getByName(const std::string &name) const ;
+
+    friend class Scene;
+
 private:
     std::pair<uint32_t, uint32_t> idxConvert(uint32_t idx) const;
 
@@ -38,8 +41,6 @@ private:
 
     AABB3f getAABB3(int meshIdx) const;
 
-    
-private:
     std::vector<std::unique_ptr<Mesh>> mMeshes;
     std::vector<uint32_t> count;
     AABB3f mAABB;

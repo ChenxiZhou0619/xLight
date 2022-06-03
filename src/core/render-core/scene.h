@@ -2,8 +2,10 @@
 #include "core/mesh/meshLoader.h"
 #include "core/geometry/geometry.h"
 #include "core/accelerate/accel.h"
+#include "core/math/discretepdf.h"
 #include "camera.h"
 #include <memory>
+
 
 class Scene {
 public:
@@ -17,6 +19,12 @@ public:
 
     bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const ;
 
+    void sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) const;   
+
 private:
     std::unique_ptr<Accel> accelPtr;
+    
+    std::vector<Mesh *> emitterList;
+    DiscretePDF emitterDistribution;
+    float emitterSurfaceArea;
 };

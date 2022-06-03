@@ -14,22 +14,49 @@ public:
             return SpectrumRGB {.0f};
         }
         // hit the scene
-        SpectrumRGB Li {.0f};
         // TODO evaluate the hit at emitter
+        if (iRec.meshPtr->isEmitter()) {
+            return iRec.meshPtr->getEmitter()->evaluate(ray);
+        }
 
         BSDF *bsdf = iRec.meshPtr->getBSDF();
         BSDFQueryRecord bRec {iRec.toLocal(-ray.dir)};
 
         if (!bsdf->isDiffuse()) {
-            //! bsdf * cosTheta / pdf
-            SpectrumRGB bsdfWeight = bsdf->sample(bRec, sampler->next2D());
+            //! bsdf * cosTheta
+            SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D());
             Ray3f nextRay {
                 iRec.p,
                 iRec.toWorld(bRec.wo)
             };
-            Li += bsdfWeight * getLi(scene, nextRay, sampler);
+            return bsdfVal * getLi(scene, nextRay, sampler);
         } else {
-            // just evaluate the direct light
+            // sample a point on emitter surface
+            PointQueryRecord pRec;
+            scene.sampleEmitterOnSurface(pRec, sampler);
+            // evaluate the direct illumination
+            Ray3f shadowRay (
+                iRec.p,
+                pRec.p
+            );
+            // check whether the shadowRay hit the emitter
+            if (scene.rayIntersect(shadowRay)) {
+                // no hit
+                return SpectrumRGB {.0f};
+            } else {
+                // evaluate the direct illumination
+                EmitterQueryRecord eRec (pRec, shadowRay);
+                const auto &emitter = eRec.getEmitter();
+                
+                BSDFQueryRecord bRec (
+                    iRec.toLocal(-ray.dir), iRec.toLocal(shadowRay.dir)
+                );
+                SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
+                return bsdfVal * eRec.getEmitter()->evaluate(eRec)
+                    * std::abs(dot(iRec.shdN, shadowRay.dir))
+                    * std::abs(dot(pRec.normal, shadowRay.dir))
+                    / (shadowRay.dir.length2() * pRec.pdf);
+            }
             
         }
 

@@ -92,6 +92,20 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 );
                 task->bsdfs[bsdfName].reset(newBsdf);
             }
+            // configure emitters
+            const auto emitters = (*itr).value["emitters"].GetArray();
+            for (int i = 0; i < emitters.Size(); ++i) {
+                const auto &emitter = emitters[i].GetObject();
+                const std::string &emitterType
+                    = emitter["type"].GetString();
+                const std::string &emitterName
+                    = emitter["name"].GetString();
+                Emitter *newEmitter
+                    = static_cast<Emitter *>(
+                        ObjectFactory::createInstance("area", emitter)
+                    );
+                task->emitters[emitterName].reset(newEmitter);
+            }
             
             // configure the scene object
             MeshLoader meshLoader;
@@ -115,14 +129,26 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                         std::cout << "No such a mesh : \"" << meshName << "\"" << std::endl;
                         exit(1);
                     }
-                    const std::string &bsdfRef
-                        = property["BSDFRef"].GetString();
-                    const auto &itr = task->bsdfs.find(bsdfRef);
-                    if (itr == task->bsdfs.end()) {
-                        std::cout << "No such a BSDF : \"" << bsdfRef << "\"" << std::endl;
-                        exit(1);
+                    if (property.HasMember("BSDFRef")) {
+                        const std::string &bsdfRef
+                            = property["BSDFRef"].GetString();
+                        const auto &itr = task->bsdfs.find(bsdfRef);
+                        if (itr == task->bsdfs.end()) {
+                            std::cout << "No such a BSDF : \"" << bsdfRef << "\"" << std::endl;
+                            exit(1);
+                        }
+                        targetMesh->setBSDF(itr->second.get());
                     }
-                    targetMesh->setBSDF(itr->second.get());
+                    if (property.HasMember("emitterRef")) {
+                        const std::string &emitterRef
+                            = property["emitterRef"].GetString();
+                        const auto &itr = task->emitters.find(emitterRef);
+                        if (itr == task->emitters.end()) {
+                            std::cout << "No such an Emitter : \"" << emitterRef << "\"" << std::endl; 
+                            exit(1);
+                        }
+                        targetMesh->setEmitter(itr->second.get());
+                    }
                 }
 
                 meshSet->mergeMeshSet(std::move(tmp));

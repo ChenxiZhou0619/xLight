@@ -15,6 +15,7 @@ set(XLIGHT_RENDER_SAMPLER_DIR ${PROJECT_SOURCE_DIR}/src/render/sampler)
 set(XLIGHT_RENDER_CAMERA_DIR ${PROJECT_SOURCE_DIR}/src/render/camera)
 set(XLIGHT_RENDER_TEXTURE_DIR ${PROJECT_SOURCE_DIR}/src/render/texture)
 set(XLIGHT_RENDER_BSDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bsdf)
+set(XLIGHT_RENDER_EMITTER_DIR ${PROJECT_SOURCE_DIR}/src/render/emitter)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -43,6 +44,7 @@ add_executable(test
 
     # render/integrator
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/simple.cpp
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp
@@ -55,6 +57,9 @@ add_executable(test
 
     # render/bsdf
     ${XLIGHT_RENDER_BSDF_DIR}/diffuse.cpp
+
+    # render/emitter
+    ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp
 )
 
 target_include_directories(test PRIVATE

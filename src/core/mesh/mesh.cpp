@@ -11,6 +11,22 @@ BSDF* Mesh::getBSDF() const {
     return mBSDF;
 }
 
+bool Mesh::isEmitter() const {
+    return mEmitter != nullptr;
+}
+
+Emitter* Mesh::getEmitter() const {
+    return mEmitter;
+}
+
+void Mesh::setEmitter(Emitter *_emitter) {
+    mEmitter = _emitter;
+}
+
+float Mesh::getMeshSurfaceArea() const {
+    return mTotalArea;
+}
+
 
 TriMesh::TriMesh( std::vector<Point3f> &&_mVerticesBuf, std::vector<Normal3f> &&_mNormalsBuf,
     std::vector<Point3ui> &&_mFacesBuf, std::vector<Point2f> &&_mUVsBuf, const char *_name
@@ -97,7 +113,7 @@ void TriMesh::sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const {
         .0f
     };
     barycentric[2] = std::max(.0f, 1.f - barycentric[0] - barycentric[1]);
-    pRec.point = barycentric.x * p0 + barycentric.y * p1 + barycentric.z * p2;
+    pRec.p = barycentric.x * p0 + barycentric.y * p1 + barycentric.z * p2;
     if (hasNormal()) {
         Normal3f n0 = getNmlBuf(fBuf[0]),
                  n1 = getNmlBuf(fBuf[1]),
@@ -110,5 +126,4 @@ void TriMesh::sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const {
         pRec.normal = Normal3f {normalize(cross(A, B))};
     }
     pRec.mesh = this;
-    pRec.pdf = 1.f / mTotalArea;
 }

@@ -3,6 +3,7 @@
 #include "core/render-core/sampler.h"
 #include "core/render-core/integrator.h"
 #include "core/render-core/bsdf.h"
+#include "core/render-core/emitter.h"
 class Image;
 
 struct RenderTask {
@@ -11,8 +12,10 @@ struct RenderTask {
     std::unique_ptr<Sampler>    sampler     {nullptr};
     std::unique_ptr<Camera>     camera      {nullptr};
     std::unique_ptr<Integrator> integrator  {nullptr};
+
     std::unordered_map<std::string, std::unique_ptr<Texture>> textures;
     std::unordered_map<std::string, std::unique_ptr<BSDF>> bsdfs;
+    std::unordered_map<std::string, std::unique_ptr<Emitter>> emitters;
 
     Vector2i getImgSize() const ;
 

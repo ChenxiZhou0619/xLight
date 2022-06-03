@@ -28,7 +28,7 @@ void renderBlock(ImageBlock &block, const RenderTask* task) {
                     sampler->next2D()
                 );
             
-                color += integrator->getLi(*scene, ray);
+                color += integrator->getLi(*scene, ray, sampler);
             }
             color = color / (float)task->getSpp();
             

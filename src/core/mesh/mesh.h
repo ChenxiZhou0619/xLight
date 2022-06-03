@@ -44,7 +44,13 @@ public:
 
     virtual void sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const = 0;
 
-    virtual float getMeshSurfaceArea() const = 0;
+    virtual float getMeshSurfaceArea() const;
+
+    bool isEmitter() const;
+
+    Emitter *getEmitter() const ;
+
+    void setEmitter(Emitter *_emitter) ;
     
     std::string mName;
 
@@ -88,9 +94,8 @@ public:
 
     virtual AABB3f getTriBounds(uint32_t triIdx) const;
 
-    virtual void sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const = 0;
+    virtual void sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const;
 
-    virtual float getMeshSurfaceArea() const = 0;
 
 protected:
     virtual float getTriArea(uint32_t triIdx) const;

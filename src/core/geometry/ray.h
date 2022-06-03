@@ -24,6 +24,13 @@ public:
     TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = EPSILON, T _tmax = FLOATMAX)
         : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax) { };
 
+    TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, T _time = .0f) : ori(_ori), time(_time) {
+        dir = Vector3f{_end - _ori};
+        tmin = EPSILON;
+        tmax = dir.length() - EPSILON;
+        dir = normalize(dir);        
+    }
+    
     TPoint3<T> at(T dist) const {
         return ori + dist * dir;
     }

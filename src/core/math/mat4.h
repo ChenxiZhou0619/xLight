@@ -2,6 +2,7 @@
 #include <eigen3/Eigen/Core>
 #include <assimp/scene.h>
 #include <tinyformat/tinyformat.h>
+#include "core/geometry/geometry.h"
 
 template<typename T>
 struct TMat4 {
