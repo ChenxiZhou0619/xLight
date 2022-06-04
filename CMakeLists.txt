@@ -37,6 +37,7 @@ add_executable(test
 
     # core/render-core
     ${XLIGHT_CORE_RENDER_DIR}/scene.cpp
+    ${XLIGHT_CORE_RENDER_DIR}/texture.cpp
 
     # core/utils
     ${XLIGHT_CORE_UTIL_DIR}/factory.cpp
@@ -54,6 +55,7 @@ add_executable(test
 
     # render/texture
     ${XLIGHT_RENDER_TEXTURE_DIR}/constant.cpp
+    ${XLIGHT_RENDER_TEXTURE_DIR}/bitmap.cpp
 
     # render/bsdf
     ${XLIGHT_RENDER_BSDF_DIR}/diffuse.cpp

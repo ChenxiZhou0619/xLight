@@ -125,5 +125,6 @@ void TriMesh::sampleOnSurface(PointQueryRecord &pRec, Sampler *sampler) const {
                  B = p2 - p0;
         pRec.normal = Normal3f {normalize(cross(A, B))};
     }
+    
     pRec.mesh = this;
 }

@@ -103,13 +103,23 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 const auto &emitter = emitters[i].GetObject();
                 const std::string &emitterType
                     = emitter["type"].GetString();
-                const std::string &emitterName
-                    = emitter["name"].GetString();
-                Emitter *newEmitter
-                    = static_cast<Emitter *>(
-                        ObjectFactory::createInstance("area", emitter)
+                if (strcmp(emitterType.c_str(), "envmap") == 0) {
+                    // set the texture to the envmap
+                    const std::string &textureRef
+                        = emitter["textureRef"].GetString();
+                    // TODO scene has not been construct
+                    task->scene->setEnvMap(
+                        task->getTexture(textureRef)
                     );
-                task->emitters[emitterName].reset(newEmitter);
+                } else {
+                    const std::string &emitterName
+                        = emitter["name"].GetString();
+                    Emitter *newEmitter
+                        = static_cast<Emitter *>(
+                            ObjectFactory::createInstance("area", emitter)
+                        );
+                    task->emitters[emitterName].reset(newEmitter);
+                }            
             }
             
             // configure the scene object
@@ -153,6 +163,10 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                             exit(1);
                         }
                         targetMesh->setEmitter(itr->second.get());
+                    }
+                    if (property.HasMember("isTwoSide")) {
+                        if (property["isTwoSide"].GetBool())
+                            targetMesh->setTwoSide();
                     }
                 }
 

@@ -36,3 +36,15 @@ void Scene::sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) con
     emitterList[emitterIdx]->sampleOnSurface(pRec, sampler);
     pRec.pdf = 1.f / emitterSurfaceArea;
 }
+
+void Scene::setEnvMap(Texture *_envmap) {
+    envmap = _envmap;
+}
+
+SpectrumRGB Scene::evaluateEnvironment(const Point2f &thetaPhi) const {
+    if (envmap == nullptr) {
+        return SpectrumRGB {.0f};
+    } else {
+        return envmap->evaluate(thetaPhi);
+    }
+}

@@ -11,10 +11,18 @@ public:
         RayIntersectionRec iRec;
         if (!scene.rayIntersect(ray, iRec)) {
             // TODO evaluate the environment light
-            return SpectrumRGB {.0f};
+            float cosTheta = ray.dir.y,
+                  tanPhi = ray.dir.z / ray.dir.x;
+            float theta = std::acos(cosTheta) + M_PI * .5f,
+                  phi = std::atan(tanPhi);
+            return scene.evaluateEnvironment(
+                Point2f(
+                    phi / (2 * M_PI),
+                    theta / M_PI
+                )
+            );
         }
         // hit the scene
-        // TODO evaluate the hit at emitter
         if (iRec.meshPtr->isEmitter()) {
             return iRec.meshPtr->getEmitter()->evaluate(ray);
         }

@@ -54,11 +54,20 @@ public:
     
     std::string mName;
 
+    bool isTwoSide() const {
+        return mIsTwoSide;
+    }
+
+    void setTwoSide() {
+        mIsTwoSide = true;
+    }
+
 protected:
     AABB3f mAABB;
     BSDF *mBSDF;
     Emitter *mEmitter {nullptr};
     float mTotalArea;
+    bool mIsTwoSide {false};
 };
 
 class TriMesh : public Mesh{

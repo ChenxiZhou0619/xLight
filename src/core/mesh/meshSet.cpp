@@ -150,6 +150,12 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     } else {
         iRec.shdN = iRec.geoN;
     }
+    if (meshPtr->isTwoSide()) {
+        if (dot(iRec.geoN, ray.dir) > 0)
+            iRec.geoN = -iRec.geoN;
+        if (dot(iRec.shdN, ray.dir) > 0)
+            iRec.shdN = -iRec.shdN;
+    }
     iRec.geoFrame = Frame {iRec.geoN};
     iRec.shdFrame = Frame {iRec.shdN};
     iRec.meshPtr = meshPtr.get();
