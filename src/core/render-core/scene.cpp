@@ -41,10 +41,22 @@ void Scene::setEnvMap(Texture *_envmap) {
     envmap = _envmap;
 }
 
-SpectrumRGB Scene::evaluateEnvironment(const Point2f &thetaPhi) const {
+SpectrumRGB Scene::evaluateEnvironment(const Ray3f &ray) const {
     if (envmap == nullptr) {
         return SpectrumRGB {.0f};
     } else {
-        return envmap->evaluate(thetaPhi);
+        float cosTheta = ray.dir.y,
+              tanPhi = ray.dir.z / ray.dir.x;
+        float theta = std::acos(cosTheta),
+              phi = std::atan(tanPhi);
+        if (phi < 0) 
+            phi += ray.dir.x > 0 ? 2 * M_PI : M_PI;
+        else {
+            phi += ray.dir.x > 0 ? .0f : M_PI;
+        }
+        return envmap->evaluate(Point2f(
+            phi / (2 * M_PI),
+            theta / M_PI
+        ));
     }
 }

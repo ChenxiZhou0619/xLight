@@ -10,17 +10,7 @@ public:
     virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray, Sampler *sampler) const {
         RayIntersectionRec iRec;
         if (!scene.rayIntersect(ray, iRec)) {
-            // TODO evaluate the environment light
-            float cosTheta = ray.dir.y,
-                  tanPhi = ray.dir.z / ray.dir.x;
-            float theta = std::acos(cosTheta) + M_PI * .5f,
-                  phi = std::atan(tanPhi);
-            return scene.evaluateEnvironment(
-                Point2f(
-                    phi / (2 * M_PI),
-                    theta / M_PI
-                )
-            );
+            return scene.evaluateEnvironment(ray);
         }
         // hit the scene
         if (iRec.meshPtr->isEmitter()) {

@@ -24,7 +24,7 @@ public:
 
     void setEnvMap(Texture *_envmap);
   
-    SpectrumRGB evaluateEnvironment(const Point2f &thetaPhi) const;
+    SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
 
 private:
     std::unique_ptr<Accel> accelPtr;

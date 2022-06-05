@@ -99,6 +99,7 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
             }
             // configure emitters
             const auto emitters = (*itr).value["emitters"].GetArray();
+            Texture *envmap {nullptr};
             for (int i = 0; i < emitters.Size(); ++i) {
                 const auto &emitter = emitters[i].GetObject();
                 const std::string &emitterType
@@ -108,9 +109,8 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                     const std::string &textureRef
                         = emitter["textureRef"].GetString();
                     // TODO scene has not been construct
-                    task->scene->setEnvMap(
-                        task->getTexture(textureRef)
-                    );
+                    envmap = task->getTexture(textureRef);
+                    
                 } else {
                     const std::string &emitterName
                         = emitter["name"].GetString();
@@ -173,6 +173,7 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 meshSet->mergeMeshSet(std::move(tmp));
             }
             task->scene = std::make_unique<Scene>(meshSet);
+            task->scene->setEnvMap(envmap);
             task->scene->preprocess();
 
         } else if (strcmp(itr->name.GetString(), "renderer") == 0) {
