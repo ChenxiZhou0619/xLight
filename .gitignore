@@ -1,7 +1,6 @@
 /data
-/build-release
-/build-debug
 /develop-doc.md
 /.vscode
 /.cache
-/build
+/build*
+/result

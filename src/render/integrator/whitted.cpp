@@ -22,12 +22,17 @@ public:
 
         if (!bsdf->isDiffuse()) {
             //! bsdf * cosTheta
-            SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D());
-            Ray3f nextRay {
-                iRec.p,
-                iRec.toWorld(bRec.wo)
-            };
-            return bsdfVal * getLi(scene, nextRay, sampler);
+            if (sampler->next1D() < 0.95f) {
+                SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D());
+                Ray3f nextRay {
+                    iRec.p,
+                    iRec.toWorld(bRec.wo)
+                };
+                return bsdfVal * 1.057f * getLi(scene, nextRay, sampler);
+            } else {
+                return SpectrumRGB{.0f};
+            }
+            
         } else {
             // sample a point on emitter surface
             PointQueryRecord pRec;
