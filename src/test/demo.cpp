@@ -1,13 +1,24 @@
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb/stb_image.h"
 #include <iostream>
+#include "core/math/mat4.h"
+#include "core/math/math.h"
 
 int main() {
-    std::string filename = "/mnt/renderer/xLight/data/image/studio_country_hall_1k.hdr";
-    int _x, _y ,_channels;
-    unsigned char *data = stbi_load(filename.c_str(), &_x, &_y, &_channels, 3);
-    std::cout << "width = " << _x << std::endl 
-              << "height = " << _y << std::endl
-              << "channels = " << _channels << std::endl;
+    Point3f p {-.17778f, .1f, .1f};
     
+    Mat4f perspective = Mat4f::Perspective(
+        90, 
+        1.7778f, 
+        .1f, 
+        std::numeric_limits<float>::max()
+    );
+
+    perspective = 
+    Mat4f::Scale(Vector3f {.5f, -.5f, 1.f})
+    * Mat4f::Translate(Vector3f {1.f, -1.f, .0f})
+    * perspective;
+
+    Mat4f sampleToFilm = perspective.inverse();
+    
+    
+    std::cout << sampleToFilm * Point3f {0.f, 0.f, 0.f} << std::endl;
 }
