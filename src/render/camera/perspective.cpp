@@ -4,7 +4,22 @@ class PerspectiveCamera : public Camera {
 public:
     PerspectiveCamera() = delete;
 
-    PerspectiveCamera(const rapidjson::Value &_value) : Camera(_value) { }
+    PerspectiveCamera(const rapidjson::Value &_value) : Camera(_value) {
+        distToFilm = getFloat("distToFilm", _value);
+        // configure the filmToSample
+        sampleToFilm = Mat4f::Perspective(
+            vertFov, 
+            aspectRatio, 
+            distToFilm, 
+            std::numeric_limits<float>::max()
+        );
+        sampleToFilm = 
+            Mat4f::Scale(Vector3f {.5f, -.5f, 1.f})
+            * Mat4f::Translate(Vector3f {1.f, -1.f, .0f})
+            * sampleToFilm;
+
+        sampleToFilm = sampleToFilm.inverse();
+    }
 
     PerspectiveCamera(const Point3f& pos, const Point3f lookAt, const Vector3f &up) : Camera(pos, lookAt, up) { }
 
@@ -20,22 +35,27 @@ public:
      */
     virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const Point2f &sample) const {
         // generate in the camera coordinate first
-        float halfH = std::tan(vertFov * PI / 360.f) * distToFilm,
-              halfW = halfH * aspectRatio;
+        //float halfH = std::tan(vertFov * PI / 360.f) * distToFilm,
+        //      halfW = halfH * aspectRatio;
 
-        Point2f _offset {
-            (offset.x + sample.x) / (float)resolution.x,
-            (offset.y + sample.y) / (float)resolution.y
+        //Point2f _offset {
+        //    (offset.x + sample.x) / (float)resolution.x,
+        //    (offset.y + sample.y) / (float)resolution.y
+        //};
+
+        //Point3f filmTopLeft = 
+        //    Point3f(0, 0, 0) 
+        //    + Vector3f(0, 0, 1) * distToFilm 
+        //    + Vector3f(-halfW, halfH, 0);
+
+        //Point3f pointOnFilm = 
+        //    filmTopLeft
+        //    + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
+        Point3f pointOnFilm = sampleToFilm * Point3f {
+            ((float)offset.x + sample.x) / (float)resolution.x,
+            ((float)offset.y + sample.y) / (float)resolution.y,
+            .0f
         };
-    
-        Point3f filmTopLeft = 
-            Point3f(0, 0, 0) 
-            + Vector3f(0, 0, 1) * distToFilm 
-            + Vector3f(-halfW, halfH, 0);
-
-        Point3f pointOnFilm = 
-            filmTopLeft
-            + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
 
         Vector3f rayDirLocal = normalize(pointOnFilm - Point3f(0, 0, 0));
 

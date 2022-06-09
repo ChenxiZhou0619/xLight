@@ -52,6 +52,7 @@ add_executable(test
 
     # render/camera
     ${XLIGHT_RENDER_CAMERA_DIR}/perspective.cpp
+    ${XLIGHT_RENDER_CAMERA_DIR}/thinlens.cpp
 
     # render/texture
     ${XLIGHT_RENDER_TEXTURE_DIR}/constant.cpp

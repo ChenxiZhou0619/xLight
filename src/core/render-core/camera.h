@@ -20,7 +20,10 @@ public:
             getPoint3f("position", _value),
             getPoint3f("lookAt", _value),
             getVector3f("up", _value)
-        ){ }
+        ){
+        aspectRatio = getFloat("aspectRatio", _value);
+        vertFov = getFloat("vertFov", _value);
+    }
 
     ~Camera() = default;
 
@@ -73,4 +76,6 @@ protected:
     float aspectRatio, vertFov, distToFilm;
 
     Mat4f cameraToWorld;
+
+    Mat4f sampleToFilm;
 };

@@ -97,7 +97,7 @@ std::ostream& operator<<(std::ostream &os, const TPoint2<T> &p) {
 
 template <typename T>
 TPoint2<T> operator*(T t, const TPoint2<T> &v) {
-    return TPoint2(t*v.x, t*v.y);
+    return TPoint2<T>(t*v.x, t*v.y);
 }
 
 template<>
@@ -154,7 +154,7 @@ struct TPoint3 {
     }
 
     TVector3<T> operator-(const TPoint3<T> &rhs) const {
-        return TVector3 {x - rhs.x, y - rhs.y, z - rhs.z};
+        return TVector3<T> {x - rhs.x, y - rhs.y, z - rhs.z};
     }
 
     TPoint3 operator*(T t) const {
@@ -218,7 +218,7 @@ inline std::ostream& operator<<(std::ostream &os, const TPoint3<float> &p) {
 
 template <typename T>
 TPoint3<T> operator*(T t, const TPoint3<T> &v) {
-    return TPoint3(t*v.x, t*v.y, t*v.z);
+    return TPoint3<T>(t*v.x, t*v.y, t*v.z);
 }
 
 template<>
