@@ -49,4 +49,8 @@ inline SpectrumRGB getSpectrumRGB(const std::string &name, const rapidjson::Valu
 
 inline float getFloat(const std::string &name, const rapidjson::Value &_value) {
     return _value[name.c_str()].GetFloat();
-} 
+}
+
+inline int getInt(const std::string &name, const rapidjson::Value &_value) {
+    return _value[name.c_str()].GetInt();
+}

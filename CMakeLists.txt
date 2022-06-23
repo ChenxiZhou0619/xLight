@@ -38,6 +38,7 @@ add_executable(test
     # core/render-core
     ${XLIGHT_CORE_RENDER_DIR}/scene.cpp
     ${XLIGHT_CORE_RENDER_DIR}/texture.cpp
+    ${XLIGHT_CORE_RENDER_DIR}/sampler.cpp
 
     # core/utils
     ${XLIGHT_CORE_UTIL_DIR}/factory.cpp
@@ -49,6 +50,7 @@ add_executable(test
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp
+    ${XLIGHT_RENDER_SAMPLER_DIR}/stratified.cpp
 
     # render/camera
     ${XLIGHT_RENDER_CAMERA_DIR}/perspective.cpp

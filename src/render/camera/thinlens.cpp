@@ -30,16 +30,16 @@ public:
         sampleToFilm = sampleToFilm.inverse();
     }
 
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const Point2f &sample) const {
+    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const CameraSample &_sample) const {
         Point3f pointOnFilm = sampleToFilm * Point3f {
-            ((float)offset.x + sample.x) / (float)resolution.x,
-            ((float)offset.y + sample.y) / (float)resolution.y,
+            ((float)offset.x + _sample.sampleXY.x) / (float)resolution.x,
+            ((float)offset.y + _sample.sampleXY.y) / (float)resolution.y,
             .0f
         };
         Point3f pointOnFocalPlane
             = pointOnFilm * (mFocalDistance / pointOnFilm.z);
         Point2f tmp
-            = Warp::squareToUniformDisk(sample);
+            = Warp::squareToUniformDisk(_sample.sampleLens);
         Point3f pointOnAperture
             = Point3f {tmp.x, tmp.y, .0f} * mApertureRadius;
         Vector3f rayDirLocal = normalize(pointOnFocalPlane - pointOnAperture);

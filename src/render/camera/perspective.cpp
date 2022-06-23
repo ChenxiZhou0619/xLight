@@ -33,7 +33,7 @@ public:
      * @param offset 
      * @return Ray3f 
      */
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const Point2f &sample) const {
+    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const CameraSample &sample) const {
         // generate in the camera coordinate first
         //float halfH = std::tan(vertFov * PI / 360.f) * distToFilm,
         //      halfW = halfH * aspectRatio;
@@ -52,8 +52,8 @@ public:
         //    filmTopLeft
         //    + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
         Point3f pointOnFilm = sampleToFilm * Point3f {
-            ((float)offset.x + sample.x) / (float)resolution.x,
-            ((float)offset.y + sample.y) / (float)resolution.y,
+            ((float)offset.x + sample.sampleXY.x) / (float)resolution.x,
+            ((float)offset.y + sample.sampleXY.y) / (float)resolution.y,
             .0f
         };
 

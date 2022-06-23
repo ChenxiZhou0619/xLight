@@ -13,22 +13,23 @@
 
 void renderBlock(ImageBlock &block, const RenderTask* task) {
     Integrator *integrator = task->integrator.get();
-    Sampler *sampler = task->sampler.get();
+    std::shared_ptr<Sampler> sampler = task->sampler->clone();
     Camera *camera = task->camera.get();
     Scene *scene = task->scene.get();
 
     for (int i = 0; i < block.getWidth(); ++i) {
         for (int j = 0; j < block.getHeight(); ++j) {
             SpectrumRGB color {.0f};
-
+            Point2f pixel = Point2f (i + block.getOffset().x, j + block.getOffset().y);
+            sampler->startPixel(pixel);
             for (int spp = 0; spp < task->getSpp(); ++spp) {
                 Ray3f ray = camera->sampleRay (
                     Vector2i {i + block.getOffset().x, j + block.getOffset().y},
                     task->getImgSize(),
-                    sampler->next2D()
-                );
-            
-                color += integrator->getLi(*scene, ray, sampler);
+                    sampler->getCameraSample()
+                );            
+                color += integrator->getLi(*scene, ray, sampler.get());
+                sampler->nextSample();
             }
             color = color / (float)task->getSpp();
             
