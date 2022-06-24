@@ -98,8 +98,20 @@ public:
         return *this;
     }
 
+    SpectrumRGB& operator/=(float f) {
+        this->rgb /= f;
+        return *this;
+    }
+
     float operator[](int i) const {
         return rgb[i];
+    }
+
+    bool isZero() const {
+        return 
+            rgb.x == 0 &&
+            rgb.y == 0 &&
+            rgb.z == 0;
     }
 
 private:

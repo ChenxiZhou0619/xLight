@@ -47,6 +47,7 @@ add_executable(test
     # render/integrator
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/simple.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp
