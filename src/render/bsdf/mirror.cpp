@@ -9,20 +9,21 @@ public:
     ~Mirror() = default;
 
     // delta distribution, always return .0fs
-    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const {
+    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override{
         return SpectrumRGB {.0f};
     }
 
-    virtual float pdf(const BSDFQueryRecord &bRec) const {
+    virtual float pdf(const BSDFQueryRecord &bRec) const override{
         return 1.f;
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override{
         bRec.wo = reflect(bRec.wi);
+        pdf = 1.f;
         return SpectrumRGB {1.f};
     }
 
-    virtual bool isDiffuse() const {
+    virtual bool isDiffuse() const override{
         return false;
     }
 

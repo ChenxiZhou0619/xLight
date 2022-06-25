@@ -49,7 +49,8 @@ public:
      * @param iRec 
      * @return SpectrumRGB 
      */
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample) const = 0;
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const = 0;
+
 
     virtual bool isDiffuse() const = 0;
 };

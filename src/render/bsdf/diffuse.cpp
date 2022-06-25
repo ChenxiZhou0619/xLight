@@ -13,26 +13,29 @@ public:
 
     ~Diffuse() = default;
 
-    virtual bool isDiffuse() const {
+    virtual bool isDiffuse() const{
         return true;
     }
     
-    virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const {
+    virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const override{
         if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
             return SpectrumRGB {.0f};
         return m_texture->evaluate(bRec.uv) * INV_PI;
     }
 
-    virtual float pdf (const BSDFQueryRecord &bRec) const {
+    virtual float pdf (const BSDFQueryRecord &bRec) const override{
         if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
             return .0f;
         return INV_PI * Frame::cosTheta(bRec.wo);
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample) const {
-        if (Frame::cosTheta(bRec.wi) <= 0)
-            return SpectrumRGB {.0f};
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override{
+        if (Frame::cosTheta(bRec.wi) <= 0) {
+                pdf = .0f;
+                return SpectrumRGB {.0f};
+        }
         bRec.wo = Warp::squareToCosineHemisphere(sample);
+        pdf = INV_PI * Frame::cosTheta(bRec.wo);
         return m_texture->evaluate(bRec.uv);    
     }
 };

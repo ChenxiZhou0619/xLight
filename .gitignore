@@ -1,6 +1,6 @@
 /data
 /develop-doc.md
 /.vscode
-/.cache
+.cache
 /build*
 /result

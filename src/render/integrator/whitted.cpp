@@ -23,7 +23,8 @@ public:
         if (!bsdf->isDiffuse()) {
             //! bsdf * cosTheta
             if (sampler->next1D() < 0.95f) {
-                SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D());
+                float pdf;
+                SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D(), pdf);
                 Ray3f nextRay {
                     iRec.p,
                     iRec.toWorld(bRec.wo)

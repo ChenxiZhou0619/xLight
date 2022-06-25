@@ -39,8 +39,9 @@ public:
             if (!foundIntersection || bounces >= maxDepth ) {
                 break;
             }
-
-            BSDF *bsdf = iRec.meshPtr->getBSDF();
+            if (iRec.meshPtr->isEmitter())
+                break;
+            const BSDF *bsdf = iRec.meshPtr->getBSDF();
             specularBounce = !bsdf->isDiffuse();
             // sample the direct illumination at this point
             PointQueryRecord pRec;
@@ -62,7 +63,6 @@ public:
                 SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
                 float pdf = (shadowRay.tmax * shadowRay.tmax) / std::abs(dot(pRec.normal, shadowRay.dir)) * pRec.pdf;
                 float bsdfPdf = bsdf->pdf(bRec);
-                // TODO multiple importance sampling
                 Li += beta * powerHeuristic(pdf, bsdfPdf)
                       * bsdfVal 
                       * eRec.getEmitter()->evaluate(eRec) 
@@ -70,33 +70,33 @@ public:
             }
 
             // sample the bsdf
+            float pdf;
             BSDFQueryRecord bRec(iRec.toLocal(-ray.dir));
-            SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D());
+            SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D(), pdf);
             if (bsdfVal.isZero()) {
                 break;
             }
-            Ray3f nextRay (
+            ray = Ray3f(
                 iRec.p,
                 iRec.toWorld(bRec.wo)
             );
             iRec = RayIntersectionRec();
-            foundIntersection = scene.rayIntersect(nextRay, iRec);
+            foundIntersection = scene.rayIntersect(ray, iRec);
             SpectrumRGB value(.0f);
             if (!foundIntersection) {
-                value = scene.evaluateEnvironment(nextRay);
+                value = scene.evaluateEnvironment(ray);
                 if (value.isZero())
                     break;
             } else {
                 if (iRec.meshPtr->isEmitter()) {
-                    value = iRec.meshPtr->getEmitter()->evaluate(nextRay);
+                    value = iRec.meshPtr->getEmitter()->evaluate(ray);
                 }
             }
             beta *= bsdfVal;
-            float pdf = bsdf->pdf(bRec);
-            // TODO using another method compute the lumPdf (considering the envLum)
-            float lumPdf = (iRec.t * iRec.t) / std::abs(dot(iRec.geoN, nextRay.dir)) * emitterPdf;
+            // TODO compute the lumPdf when env light matters
+            float lumPdf = specularBounce ? .0f : (iRec.t * iRec.t) / std::abs(dot(iRec.geoN, ray.dir)) * emitterPdf;
+            //float lumPdf = .0f;
             if (!value.isZero()) {
-                // TODO multiple importance sampling
                 Li += beta * value * powerHeuristic(pdf, lumPdf);
             }
 
