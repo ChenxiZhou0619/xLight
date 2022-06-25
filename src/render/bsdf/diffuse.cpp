@@ -13,7 +13,7 @@ public:
 
     ~Diffuse() = default;
 
-    virtual bool isDiffuse() const{
+    virtual bool isDiffuse() const override{
         return true;
     }
     

@@ -16,7 +16,7 @@ public:
 
     Frame(const Normal3f &normal) {
         Vector3f tmp {0, 1, 0};
-        if (dot(normal, tmp) < EPSILON) {
+        if (std::abs(dot(normal, tmp)) > 1 - EPSILON) {
             tmp = Vector3f {0, 0, 1};
         }
         _x = normalize(cross(normal, tmp));
@@ -46,4 +46,13 @@ public:
         return local.x * _x + local.y * _y + local.z * _z;
     }
 
+    friend std::ostream& operator<<(std::ostream &os, const Frame &rhs);
+
 };
+inline std::ostream& operator<<(std::ostream &os, const Frame &rhs) {
+    std::cout << "Frame is:\n"
+              << "\t" << rhs._x << "\n"
+              << "\t" << rhs._y << "\n"
+              << "\t" << rhs._z;
+    return os;
+}

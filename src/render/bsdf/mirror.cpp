@@ -18,7 +18,13 @@ public:
     }
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override{
+        if (Frame::cosTheta(bRec.wi) <= 0) {
+            pdf = .0f;
+            return SpectrumRGB{.0f};
+        }
         bRec.wo = reflect(bRec.wi);
+        //std::cout << "wi = " << bRec.wi << std::endl;
+        //std::cout << "wo = " << bRec.wo << std::endl;
         pdf = 1.f;
         return SpectrumRGB {1.f};
     }
