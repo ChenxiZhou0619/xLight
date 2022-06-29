@@ -83,18 +83,21 @@ public:
             iRec = RayIntersectionRec();
             foundIntersection = scene.rayIntersect(ray, iRec);
             SpectrumRGB value(.0f);
+            float lumPdf = .0f;
             if (!foundIntersection) {
                 value = scene.evaluateEnvironment(ray);
                 if (value.isZero())
                     break;
+                lumPdf = INV_PI;
             } else {
                 if (iRec.meshPtr->isEmitter()) {
                     value = iRec.meshPtr->getEmitter()->evaluate(ray);
+                    lumPdf = specularBounce ? .0f : (iRec.t * iRec.t) / std::abs(dot(iRec.geoN, ray.dir)) * emitterPdf;
                 }
             }
             beta *= bsdfVal;
             // TODO compute the lumPdf when env light matters
-            float lumPdf = specularBounce ? .0f : (iRec.t * iRec.t) / std::abs(dot(iRec.geoN, ray.dir)) * emitterPdf;
+            //float lumPdf = specularBounce ? .0f : (iRec.t * iRec.t) / std::abs(dot(iRec.geoN, ray.dir)) * emitterPdf;
             //float lumPdf = .0f;
             if (!value.isZero()) {
                 Li += beta * value * powerHeuristic(pdf, lumPdf);
