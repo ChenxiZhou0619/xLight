@@ -111,6 +111,10 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     Point3f p0 = meshPtr->getVtxBuf(faceBuf[0]),
             p1 = meshPtr->getVtxBuf(faceBuf[1]),
             p2 = meshPtr->getVtxBuf(faceBuf[2]);
+    Point2f uv0 = meshPtr->getUV(faceBuf[0]),
+            uv1 = meshPtr->getUV(faceBuf[1]),
+            uv2 = meshPtr->getUV(faceBuf[2]);
+            
     Vector3f edge1 = p1 - p0,
              edge2 = p2 - p0,
              h = cross(ray.dir, edge2);
@@ -150,6 +154,7 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     } else {
         iRec.shdN = iRec.geoN;
     }
+    iRec.UV  = (1.f - u - v) * uv0 + u * uv1 + v * uv2;
     if (meshPtr->isTwoSide()) {
         if (dot(iRec.geoN, ray.dir) > 0)
             iRec.geoN = -iRec.geoN;
@@ -159,6 +164,7 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     iRec.geoFrame = Frame {iRec.geoN};
     iRec.shdFrame = Frame {iRec.shdN};
     iRec.meshPtr = meshPtr.get();
+    
     return true;
 }
 

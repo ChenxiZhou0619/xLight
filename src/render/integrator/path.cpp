@@ -58,7 +58,7 @@ public:
 
                 // evaluate the direct illumination
                 BSDFQueryRecord bRec (
-                    iRec.toLocal(-ray.dir), iRec.toLocal(shadowRay.dir)
+                    iRec.toLocal(-ray.dir), iRec.toLocal(shadowRay.dir), iRec.UV
                 );
                 SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
                 float pdf = (shadowRay.tmax * shadowRay.tmax) / std::abs(dot(pRec.normal, shadowRay.dir)) * pRec.pdf;
@@ -71,7 +71,7 @@ public:
 
             // sample the bsdf
             float pdf;
-            BSDFQueryRecord bRec(iRec.toLocal(-ray.dir));
+            BSDFQueryRecord bRec(iRec.toLocal(-ray.dir), iRec.UV);
             SpectrumRGB bsdfVal = bsdf->sample(bRec, sampler->next2D(), pdf);
             if (bsdfVal.isZero()) {
                 break;

@@ -11,7 +11,10 @@ struct BSDFQueryRecord {
 
     BSDFQueryRecord() = default;
     BSDFQueryRecord(const Vector3f &_wi) : wi(_wi) { }
+    BSDFQueryRecord(const Vector3f &_wi, Point2f _uv) : wi(_wi), uv(_uv) { }
     BSDFQueryRecord(const Vector3f &_wi, const Vector3f &_wo) : wi(_wi), wo(_wo) { }
+    BSDFQueryRecord(const Vector3f &_wi, const Vector3f &_wo, Point2f _uv) : wi(_wi), wo(_wo), uv(_uv) { }
+
 
 };
 

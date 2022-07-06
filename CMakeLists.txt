@@ -60,12 +60,15 @@ add_executable(test
     # render/texture
     ${XLIGHT_RENDER_TEXTURE_DIR}/constant.cpp
     ${XLIGHT_RENDER_TEXTURE_DIR}/bitmap.cpp
+    ${XLIGHT_RENDER_TEXTURE_DIR}/checkboard.cpp
 
     # render/bsdf
     ${XLIGHT_RENDER_BSDF_DIR}/diffuse.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/mirror.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/dielectric.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/microfacet.cpp
+    ${XLIGHT_RENDER_BSDF_DIR}/roughdielectric.cpp
+    ${XLIGHT_RENDER_BSDF_DIR}/plastic.cpp
 
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp

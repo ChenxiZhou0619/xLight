@@ -12,7 +12,11 @@ public:
         m_albedo = getSpectrumRGB("albedo", _value);
     }
 
-    virtual SpectrumRGB evaluate(const Point2f &uv) const {
+    virtual SpectrumRGB evaluate(const Point2f &uv) const override {
+        return m_albedo;
+    }
+
+    virtual SpectrumRGB average() const override {
         return m_albedo;
     }
 

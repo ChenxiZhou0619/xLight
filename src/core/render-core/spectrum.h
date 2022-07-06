@@ -114,6 +114,16 @@ public:
             rgb.z == 0;
     }
 
+    float max() const {
+        return 
+            std::max(
+                rgb[0],
+                std::max(
+                    rgb[1], rgb[2]
+                )
+            );
+    }
+
 private:
     Vector3f rgb;
 };

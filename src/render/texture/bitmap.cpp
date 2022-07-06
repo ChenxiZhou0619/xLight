@@ -26,6 +26,11 @@ public:
     virtual SpectrumRGB evaluate(const Point2f &uv) const {
         return mData[int(uv.x * mWidth)][int(uv.y * mHeight)];
     }
+
+    virtual SpectrumRGB average() const override {
+        // TODO no implement
+        return SpectrumRGB{.5f};
+    }
 };
 
 REGISTER_CLASS(Bitmap, "bitmap")

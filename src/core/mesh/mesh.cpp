@@ -72,6 +72,14 @@ Normal3f TriMesh::getNmlBuf(int vtxIdx) const {
     return (*mNormalsBuf)[vtxIdx];
 }
 
+Point2f TriMesh::getUV(int vtxIdx) const {
+    if (mUVsBuf->size() == 0) {
+        std::cout << "not uv coordinate provided\n";
+        std::exit(1);
+    }
+    return (*mUVsBuf)[vtxIdx];
+}
+
 AABB3f Mesh::getAABB3() const {
     return mAABB;
 }

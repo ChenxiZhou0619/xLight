@@ -33,6 +33,10 @@ struct TPoint2 {
         return *this;
     }
 
+    TPoint2 operator+(const TPoint2<T> &rhs) const {
+        return TPoint2(x + rhs.x, y + rhs.y);
+    }
+
     TPoint2 operator-(const TVector2<T> &rhs) const {
         return TPoint2(x-rhs.x, y-rhs.y);
     }
