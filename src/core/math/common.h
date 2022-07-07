@@ -71,24 +71,21 @@ inline float FresnelDielectric(float cosThetaI, float eta) {
     return F;
 }
 
-// cos_theta_i = cos (bRec.wi, m)
-inline float FresnelDielectricAccurate(float cos_theta_i, float eta_i, float eta_t) {
-    if (cos_theta_i < 0)
-        std::swap(eta_i, eta_t);
-
-    // first, compute cos_theta_t
-    float cos_theta_t_2 = 
-        1 - (1 - cos_theta_i * cos_theta_i) * (eta_i/eta_t) * (eta_i/eta_t);
-    
-    if (cos_theta_t_2 <= 0) {
-        // totally internal reflect
+// eta = eta_t / eta_i
+inline float FresnelDielectricAccurate(float cos_theta_i, float eta) {
+    // compute the cos_theta_t first
+    float sin_theta_i = std::sqrt(std::max(0.f, 1 - cos_theta_i * cos_theta_i));
+    float sin_theta_t = sin_theta_i / eta;
+    // totally internal reflec
+    if (sin_theta_t >= 1) {
         return 1;
     }
-    float cos_theta_t = std::sqrt(cos_theta_t_2);
-
-    float rPral = (eta_t * cos_theta_i - eta_i * cos_theta_t)
-                / (eta_t * cos_theta_i + eta_i * cos_theta_t);
-    float rPerp = (eta_i * cos_theta_i - eta_t * cos_theta_t)
-                / (eta_i * cos_theta_i + eta_t * cos_theta_t);
-    return .5f * (rPral * rPral + rPerp * rPerp); 
+    // compute the fresnel term
+    cos_theta_i = std::abs(cos_theta_i);
+    float cos_theta_t = std::sqrt(std::max(.0f, 1 - sin_theta_t * sin_theta_t));
+    float r_parl = (eta * cos_theta_i - cos_theta_t) 
+                   / (eta * cos_theta_i + cos_theta_t);
+    float r_perp = (cos_theta_i - eta * cos_theta_t)
+                   / (cos_theta_i + eta * cos_theta_t);
+    return .5f * (r_perp * r_perp + r_parl * r_parl);
 }
