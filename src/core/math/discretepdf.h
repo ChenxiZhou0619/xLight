@@ -62,3 +62,11 @@ public:
     bool mNormalized;
     float mSum, mNormalization;
 };
+
+struct Distribution2D {
+
+private:
+    DiscretePDF dim_0;
+    
+    std::vector<DiscretePDF> dim_1;
+};

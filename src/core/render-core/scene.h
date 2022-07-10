@@ -22,7 +22,7 @@ public:
 
     void sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) const; 
 
-    void setEnvMap(Texture *_envmap);
+    void setEnvMap(Emitter *env_emitter);
   
     SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
 
@@ -30,8 +30,10 @@ private:
     std::unique_ptr<Accel> accelPtr;
     
     std::vector<Mesh *> emitterList;
+
     DiscretePDF emitterDistribution;
+    
     float emitterSurfaceArea;
 
-    Texture* envmap {nullptr};
+    Emitter *m_env_emitter = nullptr;
 };

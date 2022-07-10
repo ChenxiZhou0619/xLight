@@ -89,3 +89,9 @@ inline float FresnelDielectricAccurate(float cos_theta_i, float eta) {
                    / (cos_theta_i + eta * cos_theta_t);
     return .5f * (r_perp * r_perp + r_parl * r_parl);
 }
+
+inline float clamp01(float f) {
+    if (f < 0) f = .0f;
+    if (f > 1) f = 1.f;
+    return f;
+}

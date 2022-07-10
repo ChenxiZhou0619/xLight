@@ -1,105 +1,96 @@
 #include "core/render-core/bsdf.h"
+#include "core/math/math.h"
 #include "core/math/common.h"
+#include "core/math/distribution.h"
 #include "core/math/warp.h"
 
-//! lot of bugs
 class Plastic : public BSDF {
-
-    float intIOR, extIOR;
-
-    float specularReflectance;
-
-    float specularSamplingWeight;
-
 public:
-
     Plastic() = default;
 
     Plastic(const rapidjson::Value &_value) {
-        intIOR = getFloat("intIOR", _value);
-        extIOR = getFloat("extIOR", _value);
-        
-        // TODO, replace it with a texture
-        specularReflectance = 1.0f;
+        m_alpha = getFloat("alpha", _value);
 
-        // TODO, change it
-        specularSamplingWeight = specularReflectance 
-                                / (specularReflectance + 0.6f);
+        m_int_eta = getFloat("intIOR", _value);
+
+        m_ext_eta = getFloat("extIOR", _value);
     }
 
-    virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const override {
-        float cosThetaT;
-        float eta = (intIOR/extIOR);
-        float Fi = fresnelDielectric(
-            Frame::cosTheta(bRec.wi), 
-            eta, 
-            cosThetaT
-        );
-        if (std::abs(dot(reflect(bRec.wi), bRec.wo) - 1) < EPSILON) {
-            return SpectrumRGB{Fi * specularReflectance};
-        } else {
-            float Fo = fresnelDielectric(Frame::cosTheta(bRec.wo), eta, cosThetaT);
-            return
-                m_texture->evaluate(bRec.uv)
-                * Warp::squareToCosineHemispherePdf(bRec.wo)
-                * (1 - Fi)
-                / eta / eta;  
-        }
-    }
+    virtual ~Plastic() =default;
 
-    virtual float pdf(const BSDFQueryRecord &bRec) const override {
-        float cosThetaT;
-        float eta = (intIOR / extIOR);
-        float Fi = fresnelDielectric(Frame::cosTheta(bRec.wi), eta, cosThetaT);
-        float probSpecular = 
-            Fi * specularSamplingWeight
-            / (Fi * specularSamplingWeight + (1 - Fi) * (1 - specularSamplingWeight));
-    
-        if (std::abs(dot(reflect(bRec.wi), bRec.wo) - 1) < EPSILON) {
-            return probSpecular;
-        } else {
-            return Warp::squareToCosineHemispherePdf(bRec.wo) * (1 - probSpecular);
-        }
-    }
-
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
-        float eta = (intIOR / extIOR);
-        float cosThetaT;
-        float F = fresnelDielectric(Frame::cosTheta(bRec.wi), eta, cosThetaT);
-
-        float probSpecular = (F * specularSamplingWeight)
-                             / (F * specularSamplingWeight + (1 - F) * (1 - specularSamplingWeight));
-        if (sample[0] < probSpecular) {
-            bRec.wo = reflect(bRec.wi);
-            return SpectrumRGB {
-                specularReflectance * F / probSpecular
-            };
-        } else {
-            bRec.wo = Warp::squareToCosineHemisphere(
-                Point2f {
-                    (sample.x - probSpecular)/(1 - probSpecular),
-                    sample.y
-                }
-            );
-            float cosThetaT;
-            float Fo = fresnelDielectric(
-                Frame::cosTheta(bRec.wo),
-                eta,
-                cosThetaT
-            );
-            SpectrumRGB diff = m_texture->evaluate(bRec.uv);
-            pdf = (1 - probSpecular) * Warp::squareToCosineHemispherePdf(bRec.wo);
-            return diff 
-                    * ((1 / eta) * (1 / eta))
-                    *((1 - F) * (1 - Fo))
-                    / (1 - probSpecular);
-        }
+    virtual void initialize() override {
+        assert(m_texture != nullptr);
+        m_diffuse_weight = m_texture->average().max();
+        m_specular_weight = 1 - m_diffuse_weight;
     }
 
     virtual bool isDiffuse() const override {
-        return true;
+        return false;
     }
 
+    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override {
+        if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
+            return SpectrumRGB {0.f};
+        SpectrumRGB diffuse_term = 
+            m_texture->evaluate(bRec.uv) 
+            * m_diffuse_weight 
+            * INV_PI * Frame::cosTheta(bRec.wo);
+        
+        Vector3f m = normalize(bRec.wi + bRec.wo);
+        float eta = m_int_eta / m_ext_eta;
+
+        float F = FresnelDielectricAccurate(Frame::cosTheta(bRec.wi), eta);
+        float G = BeckmannDistribution::G(bRec.wi, bRec.wo, m_alpha);
+        float D = BeckmannDistribution::D(m_alpha, m);
+        SpectrumRGB specular_term = 
+            SpectrumRGB{
+                m_specular_weight * D * F * G
+                / (4 * Frame::cosTheta(bRec.wi))
+            };
+        return diffuse_term + specular_term;
+    }
+
+    virtual float pdf(const BSDFQueryRecord &bRec) const override {
+        if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0) 
+            return .0f;
+        Vector3f m = normalize(bRec.wi + bRec.wo);
+        float dwh_dho = 0.25f / dot(m, bRec.wo);
+        float specular_pdf = m_specular_weight 
+            * Warp::squareToBeckmannPdf(m, m_alpha) * dwh_dho;
+        float diffuse_pdf = m_diffuse_weight * Frame::cosTheta(bRec.wo) * INV_PI;
+        return specular_pdf + diffuse_pdf;
+    }
+
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
+        float prob = .5f * (sample[0] + sample[1]);
+        float microfacet_pdf;
+        if (prob < m_specular_weight) {
+            // sample according to specular
+            Vector3f m = BeckmannDistribution::sampleWh(m_alpha, sample, microfacet_pdf);
+            bRec.wo = 2.0f * dot(m, bRec.wi) * m - bRec.wi;
+        } else {
+            // sample according to lambertian
+            bRec.wo = Warp::squareToCosineHemisphere(sample);
+        }
+        SpectrumRGB bsdf_value = evaluate(bRec);
+        if (bsdf_value.isZero())
+            return SpectrumRGB {.0f};
+        pdf = this->pdf(bRec);
+        if (pdf == 0)
+            return SpectrumRGB {.0f};
+        return bsdf_value / pdf;
+    }
+
+private:
+    float m_alpha;  
+
+    float m_int_eta;
+
+    float m_ext_eta;
+
+    float m_specular_weight;
+
+    float m_diffuse_weight;
 
 };
 

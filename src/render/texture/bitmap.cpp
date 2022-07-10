@@ -1,4 +1,5 @@
 #include "core/render-core/texture.h"
+#include "core/math/common.h"
 
 class Bitmap : public Texture {
     SpectrumRGB **mData;
@@ -23,13 +24,22 @@ public:
         delete [] mData;
     }
 
-    virtual SpectrumRGB evaluate(const Point2f &uv) const {
-        return mData[int(uv.x * mWidth)][int(uv.y * mHeight)];
+    virtual SpectrumRGB evaluate(const Point2f &uv) const override{
+        int x = std::min(static_cast<int>(std::abs(uv.x) * mWidth), mWidth - 1);
+        int y = std::min(static_cast<int>(std::abs(uv.y) * mHeight), mHeight - 1);
+
+        return mData[x][y];
     }
 
     virtual SpectrumRGB average() const override {
         // TODO no implement
         return SpectrumRGB{.5f};
+    }
+
+    virtual Vector2i getResolution() const override {
+        return Vector2i {
+            mWidth, mHeight
+        };
     }
 };
 

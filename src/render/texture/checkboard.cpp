@@ -24,6 +24,10 @@ public:
         return SpectrumRGB(.65f);
     }
 
+    virtual Vector2i getResolution() const override {
+        std::cout << "Error, Checkboard Texture shouldn't have resolution!\n";
+        std::exit(1);
+    }
 
 private:
     SpectrumRGB m_light;

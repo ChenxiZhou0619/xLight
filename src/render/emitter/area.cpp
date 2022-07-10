@@ -1,6 +1,7 @@
 #include "core/render-core/emitter.h"
 
 class AreaEmitter : public Emitter {
+    // TODO, replace it with texture
     SpectrumRGB m_lightEnergy;
 public:
     AreaEmitter() = default;
@@ -9,12 +10,24 @@ public:
     }
     ~AreaEmitter() = default;
 
-    virtual SpectrumRGB evaluate(const EmitterQueryRecord &eRec) const {
+    virtual SpectrumRGB evaluate(const EmitterQueryRecord &eRec) const override{
         return m_lightEnergy;
     }
 
-    virtual SpectrumRGB evaluate(const Ray3f &ray) const {
+    virtual SpectrumRGB evaluate(const Ray3f &ray) const override{
         return m_lightEnergy;
+    }
+
+    virtual void sample(PointQueryRecord *pRec, Point2f sample) const override {
+        //! no implement
+        std::cout << "AreaEmitter::sample no implement!\n";
+        std::exit(1);
+    }
+
+    virtual void setTexture(Texture *texture) override {
+        //! no implement
+        std::cout << "AreaEmitter::setTexture no implement!\n";
+        std::exit(1);
     }
 };
 

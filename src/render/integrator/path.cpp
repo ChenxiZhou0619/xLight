@@ -65,7 +65,7 @@ public:
                 float bsdfPdf = bsdf->pdf(bRec);
                 Li += beta * powerHeuristic(pdf, bsdfPdf)
                       * bsdfVal 
-                      * eRec.getEmitter()->evaluate(eRec) 
+                      * emitter->evaluate(eRec) 
                       / pdf;
             }
 

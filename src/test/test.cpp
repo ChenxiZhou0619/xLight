@@ -17,6 +17,7 @@ void renderBlock(ImageBlock &block, const RenderTask* task) {
     Camera *camera = task->camera.get();
     Scene *scene = task->scene.get();
 
+    float percentage = .0f;
     for (int i = 0; i < block.getWidth(); ++i) {
         for (int j = 0; j < block.getHeight(); ++j) {
             SpectrumRGB color {.0f};
@@ -34,7 +35,7 @@ void renderBlock(ImageBlock &block, const RenderTask* task) {
             color = color / (float)task->getSpp();
             
             block.setPixel(Vector2i {i, j}, color);
-        } 
+        }
     }
 }
 
@@ -43,6 +44,7 @@ void render(const RenderTask* task) {
     auto start = std::chrono::high_resolution_clock::now();
 
     ImageBlockManager blcMng(task->getImgSize());
+    int finished = 0;
 
     tbb::parallel_for(
         tbb::blocked_range2d<size_t>(0, blcMng.getSize().x, 0, blcMng.getSize().y), 
@@ -55,6 +57,8 @@ void render(const RenderTask* task) {
                         ); 
                         task->image->putBlock(blcMng.at(rows, cols));
                     }
+                ++finished;
+                std::cout << tfm::format("Finish : %.2f\n", (float)finished / (blcMng.getSize().x * blcMng.getSize().y));
             }
     );
     
@@ -71,7 +75,7 @@ int main(int argc, char **argv) {
         exit(1);
     }
     std::unique_ptr<RenderTask> task = RenderTaskParser::createTask(argv[1]);
-    
+    std::cout << "Start to render\n";
     render(task.get());
 
 }

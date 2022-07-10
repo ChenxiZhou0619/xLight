@@ -24,10 +24,14 @@ protected:
 public:
     BSDF() = default;
     BSDF(const rapidjson::Value &_value);
-    ~BSDF() = default;
+    virtual ~BSDF() = default;
 
     void setTexture(Texture *texture) {
         m_texture = texture;
+    }
+
+    virtual void initialize() {
+        // do nothing
     }
 
     /**

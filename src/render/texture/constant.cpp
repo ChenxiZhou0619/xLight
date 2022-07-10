@@ -20,6 +20,11 @@ public:
         return m_albedo;
     }
 
+    virtual Vector2i getResolution() const override {
+        std::cout << "Error, Constant Texture shouldn't have resolution!\n";
+        std::exit(1);
+    }
+
 };
 
 REGISTER_CLASS(Constant, "constant")

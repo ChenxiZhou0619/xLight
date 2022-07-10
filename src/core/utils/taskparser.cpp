@@ -94,22 +94,28 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 } else {
                     newBsdf->setTexture(nullptr);
                 }
-                
+                newBsdf->initialize();                
                 task->bsdfs[bsdfName].reset(newBsdf);
             }
             // configure emitters
             const auto emitters = (*itr).value["emitters"].GetArray();
-            Texture *envmap {nullptr};
+            Emitter *env_emitter = nullptr;
             for (int i = 0; i < emitters.Size(); ++i) {
                 const auto &emitter = emitters[i].GetObject();
                 const std::string &emitterType
                     = emitter["type"].GetString();
-                if (strcmp(emitterType.c_str(), "envmap") == 0) {
+                if (strcmp(emitterType.c_str(), "envemitter") == 0) {
                     // set the texture to the envmap
                     const std::string &textureRef
                         = emitter["textureRef"].GetString();
                     // TODO scene has not been construct
-                    envmap = task->getTexture(textureRef);
+                    Texture *env_texture = task->getTexture(textureRef);
+                    env_emitter
+                        = static_cast<Emitter *>(
+                            ObjectFactory::createInstance("envemitter", emitter)
+                        );
+                    env_emitter->setTexture(env_texture);
+                    env_emitter->initialize();
                     
                 } else {
                     const std::string &emitterName
@@ -173,7 +179,7 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 meshSet->mergeMeshSet(std::move(tmp));
             }
             task->scene = std::make_unique<Scene>(meshSet);
-            task->scene->setEnvMap(envmap);
+            task->scene->setEnvMap(env_emitter);
             task->scene->preprocess();
 
         } else if (strcmp(itr->name.GetString(), "renderer") == 0) {

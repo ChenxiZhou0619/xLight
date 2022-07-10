@@ -72,6 +72,7 @@ add_executable(test
 
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp
+    ${XLIGHT_RENDER_EMITTER_DIR}/environment.cpp
 )
 
 target_include_directories(test PRIVATE

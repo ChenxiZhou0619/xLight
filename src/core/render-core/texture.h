@@ -15,6 +15,8 @@ public:
     virtual SpectrumRGB evaluate(const Point2f &uv) const = 0; 
 
     virtual SpectrumRGB average() const = 0;
+
+    virtual Vector2i getResolution() const = 0;
     
 };
 

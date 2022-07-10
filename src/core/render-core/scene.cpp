@@ -31,32 +31,28 @@ bool Scene::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
     return accelPtr->rayIntersect(ray, iRec);
 }
 
+// TODO, when emitter and envmap both exist, solve the problem
 void Scene::sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) const {
-    size_t emitterIdx = emitterDistribution.sample(sampler->next1D());
-    emitterList[emitterIdx]->sampleOnSurface(pRec, sampler);
-    pRec.pdf = 1.f / emitterSurfaceArea;
+    if (emitterList.size() != 0) {
+        // TODO, pdf should add to sample & sampleOnSurface function 
+        size_t emitterIdx = emitterDistribution.sample(sampler->next1D());
+        emitterList[emitterIdx]->sampleOnSurface(pRec, sampler);
+        pRec.pdf = 1.f / emitterSurfaceArea;
+    } else {
+        //! No area emitter in scene, sample the environment
+        m_env_emitter->sample(&pRec, sampler->next2D());
+    }
 }
 
-void Scene::setEnvMap(Texture *_envmap) {
-    envmap = _envmap;
+void Scene::setEnvMap(Emitter *env_emitter) {
+    assert(env_emitter != nullptr);
+    m_env_emitter = env_emitter;
 }
 
 SpectrumRGB Scene::evaluateEnvironment(const Ray3f &ray) const {
-    if (envmap == nullptr) {
+    if (m_env_emitter == nullptr) {
         return SpectrumRGB {.0f};
     } else {
-        float cosTheta = ray.dir.y,
-              tanPhi = ray.dir.z / ray.dir.x;
-        float theta = std::acos(cosTheta),
-              phi = std::atan(tanPhi);
-        if (phi < 0) 
-            phi += ray.dir.x > 0 ? 2 * M_PI : M_PI;
-        else {
-            phi += ray.dir.x > 0 ? .0f : M_PI;
-        }
-        return envmap->evaluate(Point2f(
-            phi / (2 * M_PI),
-            theta / M_PI
-        ));
+        return m_env_emitter->evaluate(ray);
     }
 }
