@@ -168,6 +168,44 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     return true;
 }
 
+bool MeshSet::rayIntersectTri(const Ray3f &ray, uint32_t _triIdx) const {
+        const auto &idxPair = idxConvert(_triIdx);
+    uint32_t meshIdx = idxPair.first,
+             triIdx = idxPair.second;
+
+    const auto &meshPtr = mMeshes[meshIdx];
+    Point3ui faceBuf = meshPtr->getFBuf(triIdx);
+    
+    Point3f p0 = meshPtr->getVtxBuf(faceBuf[0]),
+            p1 = meshPtr->getVtxBuf(faceBuf[1]),
+            p2 = meshPtr->getVtxBuf(faceBuf[2]);
+    Point2f uv0 = meshPtr->getUV(faceBuf[0]),
+            uv1 = meshPtr->getUV(faceBuf[1]),
+            uv2 = meshPtr->getUV(faceBuf[2]);
+            
+    Vector3f edge1 = p1 - p0,
+             edge2 = p2 - p0,
+             h = cross(ray.dir, edge2);
+    float a = dot(edge1, h);
+    if (a > -EPSILON && a < EPSILON) return false;
+    
+    Vector3f s = ray.ori - p0;
+    float f = 1.0 / a,
+          u = f * dot(s, h);
+    if (u < .0f || u > 1.f) return false;
+    
+    Vector3f q = cross(s, edge1);
+    float v = f * dot(ray.dir, q);
+    if (v < .0f || u + v > 1.f) return false;
+
+    // yes, hit the triangle
+    // check the t range
+    float t = f * dot(edge2, q);
+    if (t <= ray.tmin || t >= ray.tmax) return false;
+    // yes, fit the range
+    return true;
+}
+
 
 std::string MeshSet::toString() const {
     std::string result;

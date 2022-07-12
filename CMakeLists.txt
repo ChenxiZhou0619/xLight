@@ -84,6 +84,16 @@ target_link_directories(test PRIVATE
     /usr/local/lib
 )
 
+add_executable(demo
+    # test
+    ${XLIGHT_TEST_DIR}/demo.cpp
+)
+
+target_include_directories(demo PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/dependencies
+)
+
 target_link_libraries(test
     assimp tbb 
 )

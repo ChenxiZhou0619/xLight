@@ -27,6 +27,16 @@ struct EmitterQueryRecord {
     }
 };
 
+struct DirectIlluminationRecord {
+    enum class EmitterType {
+        EArea = 0,
+        EEnvironment
+    } emitter_type;
+    Point3f point_on_emitter;
+    SpectrumRGB energy;
+    float pdf;
+};
+
 // TODO, setTexture method, and maybe Emitter holds a mesh / entity is a good choice
 class Emitter : public Configurable {
 public:
@@ -42,9 +52,14 @@ public:
 
     virtual SpectrumRGB evaluate(const Ray3f &ray) const = 0;
 
+    //TODO, old function
     virtual void sample (PointQueryRecord* pRec, Point2f sample) const = 0;
 
     virtual void setTexture(Texture *envmap) = 0;
+
+    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample) const = 0;
+
+    virtual float pdf(const Ray3f &ray) const = 0;
 protected:
     Mesh *m_mesh = nullptr;
 };

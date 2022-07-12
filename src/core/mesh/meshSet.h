@@ -21,6 +21,8 @@ public:
 
     bool rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _triIdx) const ;
 
+    bool rayIntersectTri(const Ray3f &ray, uint32_t _triIdx) const;
+    
     uint32_t getMeshNum() const;
 
     // temporily

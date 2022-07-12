@@ -19,8 +19,10 @@ struct OcNode : public AccelNode {
             delete subNodes[i];
     }
 
-    virtual bool rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const;
+    virtual bool rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const override;
     
+    virtual bool rayIntersect(const Ray3f &ray, const MeshSet &meshSet) const override;
+
     bool isLeaf() const;
 
     AABB3f bounds;

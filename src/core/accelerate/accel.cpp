@@ -52,3 +52,7 @@ bool Accel::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
     Ray3f _ray {ray};
     return root->rayIntersect(_ray, iRec, *meshSetPtr);
 }
+
+bool Accel::rayIntersect(const Ray3f &ray) const {
+    return root->rayIntersect(ray, *meshSetPtr);
+}

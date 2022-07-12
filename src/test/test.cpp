@@ -77,5 +77,4 @@ int main(int argc, char **argv) {
     std::unique_ptr<RenderTask> task = RenderTaskParser::createTask(argv[1]);
     std::cout << "Start to render\n";
     render(task.get());
-
 }

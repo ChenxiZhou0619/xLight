@@ -29,6 +29,18 @@ public:
         std::cout << "AreaEmitter::setTexture no implement!\n";
         std::exit(1);
     }
+
+    virtual float pdf(const Ray3f &ray) const override {
+        //! no implement
+        std::cout << "Error, area pdf not implement!\n";
+        std::exit(1);
+    }
+
+    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample) const override{
+        //! no implement
+        std::cout << "AreaEmitter::sample2 no implement!\n";
+        std::exit(1);
+    }
 };
 
 REGISTER_CLASS(AreaEmitter, "area")

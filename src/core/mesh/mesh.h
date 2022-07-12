@@ -118,7 +118,7 @@ protected:
     std::unique_ptr<std::vector<Point3ui>> mFacesBuf;      // mesh faces
     std::unique_ptr<std::vector<Point2f>>  mUVsBuf;        // uv coordinates
 
-    DiscretePDF mTriDistribution;
+    Distribution1D mTriDistribution;
 
 
 };

@@ -1,12 +1,13 @@
 #pragma once
 #include <vector>
+#include "core/geometry/geometry.h"
 
-struct DiscretePDF {
-    DiscretePDF() : DiscretePDF(0) {
+struct Distribution1D {
+    Distribution1D() : Distribution1D(0) {
 
     }
 
-    explicit DiscretePDF(std::size_t nEntries) {
+    explicit Distribution1D(std::size_t nEntries) {
         mCdf.reserve(nEntries + 1);
         clear();
     }
@@ -57,6 +58,17 @@ struct DiscretePDF {
         return std::min(index, mCdf.size()-2);
     }
 
+    std::size_t sample(float sampleValue, float *pdf) const {
+        auto index = sample(sampleValue);
+        *pdf = mCdf[index + 1] - mCdf[index];
+        return index;
+    }
+
+    float pdf(int index) const {
+        index = std::min((size_t)index, mCdf.size()-2);
+        return mCdf[index + 1] - mCdf[index];
+    }
+
 public:
     std::vector<float> mCdf;
     bool mNormalized;
@@ -64,9 +76,56 @@ public:
 };
 
 struct Distribution2D {
+    Distribution2D() = default;
+
+    Distribution2D(const Distribution2D &rhs) = delete;
+
+    Distribution2D& operator=(const Distribution2D &rhs) = delete;
+
+    Distribution2D(int dim_x, int dim_y) : m_dim_x(dim_x), m_dim_y(dim_y), m_distribution_x(dim_x) {
+        for (int i = 0; i < dim_x; ++i) {
+            m_distribution_y.emplace_back(Distribution1D(dim_y));
+        }
+    }
+    
+    void appendAtX(int x, float pdf) {
+        m_distribution_y[x].append(pdf);
+    }
+
+    float normalize() {
+        for (int i = 0; i < m_distribution_y.size(); ++i) {
+            m_distribution_x.append(m_distribution_y[i].normalize());
+        }
+        m_sum = m_distribution_x.normalize();
+        m_normalized = true;
+        return m_sum;
+    }
+
+    Vector2i sample(Point2f sample, float *pdf) const {
+        float tmp_pdf;
+        int x = m_distribution_x.sample(sample[0], &tmp_pdf);
+        int y = m_distribution_y[x].sample(sample[1], pdf);
+        *pdf *= tmp_pdf;
+        return Vector2i{x, y};
+    }
+
+    float pdf(Vector2i position) const {
+        int x = position[0],
+            y = position[1];
+        float pdf1 = m_distribution_x.pdf(x),
+              pdf2 = m_distribution_y[x].pdf(y);
+        return pdf1 * pdf2;
+    }
+
+public:
+    bool m_normalized;
+    
+    float m_sum;
 
 private:
-    DiscretePDF dim_0;
-    
-    std::vector<DiscretePDF> dim_1;
+    Distribution1D m_distribution_x;
+
+    std::vector<Distribution1D> m_distribution_y;
+
+    int m_dim_x, m_dim_y;
 };

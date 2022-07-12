@@ -3,6 +3,7 @@
 #include "core/geometry/geometry.h"
 #include "core/accelerate/accel.h"
 #include "core/math/discretepdf.h"
+#include "emitter.h"
 #include "texture.h"
 #include "camera.h"
 #include <memory>
@@ -20,18 +21,25 @@ public:
 
     bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const ;
 
+    // TODO, old method
     void sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) const; 
 
     void setEnvMap(Emitter *env_emitter);
   
     SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
 
+    float pdfEnvironment(const Ray3f &ray) const;
+
+    float pdfArea(const RayIntersectionRec &i_rec, const Ray3f &ray) const;
+
+    void sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler) const;
+
 private:
     std::unique_ptr<Accel> accelPtr;
     
     std::vector<Mesh *> emitterList;
 
-    DiscretePDF emitterDistribution;
+    Distribution1D emitterDistribution;
     
     float emitterSurfaceArea;
 

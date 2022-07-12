@@ -23,8 +23,10 @@ void Scene::preprocess() {
 }
 
 bool Scene::rayIntersect(const Ray3f &ray) const {
-    RayIntersectionRec iRec;
-    return accelPtr->rayIntersect(ray, iRec);
+    //* old
+    //* RayIntersectionRec iRec;
+    //* return accelPtr->rayIntersect(ray, iRec);
+    return accelPtr->rayIntersect(ray);
 }
 
 bool Scene::rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const {
@@ -55,4 +57,23 @@ SpectrumRGB Scene::evaluateEnvironment(const Ray3f &ray) const {
     } else {
         return m_env_emitter->evaluate(ray);
     }
+}
+
+float Scene::pdfEnvironment(const Ray3f &ray) const {
+    
+    return m_env_emitter->pdf(ray);
+}
+
+float Scene::pdfArea(const RayIntersectionRec &i_rec, const Ray3f &ray) const {
+    return (1 / emitterSurfaceArea) *
+           i_rec.t * i_rec.t 
+           / std::abs(dot(i_rec.geoN, ray.dir));
+
+}
+
+void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler) const {
+    //TODO, a weight specify when to sample env or area
+    //* env for now
+    m_env_emitter->sample(d_rec, sampler->next2D());
+
 }

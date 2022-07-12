@@ -92,4 +92,8 @@ struct RayIntersectionRec {
     Vector3f toLocal(const Vector3f &world) const {
         return shdFrame.toLocal(world);
     }
+
+    void clear() {
+        *this = RayIntersectionRec();
+    }
 };

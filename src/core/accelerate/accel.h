@@ -10,6 +10,8 @@ struct AccelNode {
     virtual ~AccelNode() = default; 
 
     virtual bool rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &meshSet) const = 0;
+
+    virtual bool rayIntersect(const Ray3f &ray, const MeshSet &meshSet) const = 0;
 };
 struct Accel {
     Accel() = default;
@@ -25,6 +27,9 @@ struct Accel {
     void init();
 
     bool rayIntersect(const Ray3f &ray, RayIntersectionRec &iRec) const ;
+    
+    bool rayIntersect(const Ray3f &ray) const;
+
     /*data*/
     std::unique_ptr<MeshSet> meshSetPtr;
 

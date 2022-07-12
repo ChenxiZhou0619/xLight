@@ -87,3 +87,23 @@ bool OcNode::rayIntersect(Ray3f &ray, RayIntersectionRec &iRec, const MeshSet &m
     return iRec.isValid;
 
 }
+
+bool OcNode::rayIntersect(const Ray3f &ray, const MeshSet &meshSet) const {
+    if (bounds.rayIntersect(ray)) return false;
+
+    if (isLeaf()) {
+        for (uint32_t _triIdx : *faceBufPtr) {
+            if (meshSet.rayIntersectTri(ray, _triIdx))
+                return true;
+        }
+    } else {
+        for (int i = 0; i <nSubs; ++i) {
+            if (subNodes[i] != nullptr) {
+                if (subNodes[i]->rayIntersect(ray, meshSet))
+                    return true;
+            }
+        }
+    }
+
+    return false;
+}
