@@ -34,7 +34,7 @@ private:
 
     SpectrumRGB m_dark;
 
-    float m_grid = 0.1; // default
+    float m_grid = 0.05; // default
 
 };
 

@@ -45,7 +45,7 @@ void render(const RenderTask* task) {
 
     ImageBlockManager blcMng(task->getImgSize());
     int finished = 0;
-
+    
     tbb::parallel_for(
         tbb::blocked_range2d<size_t>(0, blcMng.getSize().x, 0, blcMng.getSize().y), 
         [&](const tbb::blocked_range2d<size_t> &r){

@@ -24,8 +24,8 @@ void Scene::preprocess() {
 
 bool Scene::rayIntersect(const Ray3f &ray) const {
     //* old
-    //* RayIntersectionRec iRec;
-    //* return accelPtr->rayIntersect(ray, iRec);
+    //RayIntersectionRec iRec;
+    //return accelPtr->rayIntersect(ray, iRec);
     return accelPtr->rayIntersect(ray);
 }
 
@@ -71,9 +71,24 @@ float Scene::pdfArea(const RayIntersectionRec &i_rec, const Ray3f &ray) const {
 
 }
 
-void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler) const {
-    //TODO, a weight specify when to sample env or area
-    //* env for now
-    m_env_emitter->sample(d_rec, sampler->next2D());
+void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from) const {
+    // TODO, just sample area light now
+    if (!emitterList.empty()) {
+        PointQueryRecord p_rec;
+        size_t emitterIdx = emitterDistribution.sample(sampler->next1D());
+        emitterList[emitterIdx]->sampleOnSurface(p_rec, sampler);
+        p_rec.emitter = emitterList[emitterIdx]->getEmitter();
+        Ray3f shadow_ray {from, p_rec.p};
+        EmitterQueryRecord e_rec {p_rec, shadow_ray};
+
+        d_rec->point_on_emitter = p_rec.p;
+        d_rec->shadow_ray = shadow_ray;
+        d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
+        d_rec->energy = p_rec.emitter->evaluate(e_rec);
+        d_rec->pdf = 1 / emitterSurfaceArea;
+    } else {
+        std::cout << "No area light!\n";
+        std::exit(1);
+    }
 
 }

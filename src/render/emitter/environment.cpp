@@ -30,7 +30,11 @@ public:
             for (int u = 0; u < width; ++u) {
                 float up = (float) u / width;
                 SpectrumRGB energy = m_envmap->evaluate(Point2f(up, vp));
-                float value = (energy[0] + energy[1] + energy[2]) * sin_theta;
+                float value = (
+                    energy[0]   * 0.212671f 
+                    + energy[1] * 0.715160f
+                    + energy[2] * 0.072169f
+                ) * sin_theta;
                 m_env_distribution->appendAtX(v, value);
             }
         }
@@ -139,7 +143,7 @@ public:
             std::sin(theta) * std::cos(phi),
             std::cos(theta),
             std::sin(theta) * std::sin(phi)
-        };
+        } * m_envshpere_radius;
         d_rec->energy = m_envmap->evaluate(Point2f {u, v});
         d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EEnvironment;
         d_rec->pdf = pdf / (2 * M_PI * M_PI * std::sin(theta));

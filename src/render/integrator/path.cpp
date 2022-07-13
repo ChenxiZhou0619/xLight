@@ -149,8 +149,8 @@ public:
             SpectrumRGB direct_illumination {.0f};
             for (int i = 0; i < m_shadowray_nums; ++i) {
                 DirectIlluminationRecord d_rec;
-                scene.sampleDirectIllumination(&d_rec, sampler);
-                Ray3f shadow_ray {i_rec.p, d_rec.point_on_emitter};
+                scene.sampleDirectIllumination(&d_rec, sampler, i_rec.p);
+                Ray3f shadow_ray = d_rec.shadow_ray;
                 if (!scene.rayIntersect(shadow_ray)) {
                     // hit the emitter
                     Vector3f wo = i_rec.toLocal(shadow_ray.dir);
@@ -163,7 +163,8 @@ public:
                         / d_rec.pdf * powerHeuristic(d_rec.pdf, bsdf_pdf);
                 }
             }
-            Li += (direct_illumination / m_shadowray_nums);
+            if (m_shadowray_nums != 0)
+                Li += (direct_illumination / m_shadowray_nums);
 
             //*------------------------------------------------------
             //*------------    Sampling BSDF       ------------------
@@ -184,8 +185,10 @@ public:
 
             if (!found_intersection) {
                 //* hit the environment, evaluate the Li and terminate
+                //* Cause not sample the environment, the pdf should be 0
                 lumion_energy = scene.evaluateEnvironment(ray);
-                lumion_pdf = scene.pdfEnvironment(ray);
+                //lumion_pdf = scene.pdfEnvironment(ray);
+                lumion_pdf = .0f;
             } else {
                 //* hit the scene
                 if (i_rec.meshPtr->isEmitter()) {

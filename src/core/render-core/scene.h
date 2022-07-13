@@ -32,7 +32,7 @@ public:
 
     float pdfArea(const RayIntersectionRec &i_rec, const Ray3f &ray) const;
 
-    void sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler) const;
+    void sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from) const;
 
 private:
     std::unique_ptr<Accel> accelPtr;

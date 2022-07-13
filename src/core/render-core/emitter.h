@@ -33,6 +33,7 @@ struct DirectIlluminationRecord {
         EEnvironment
     } emitter_type;
     Point3f point_on_emitter;
+    Ray3f shadow_ray;
     SpectrumRGB energy;
     float pdf;
 };

@@ -42,10 +42,11 @@ public:
         float F = FresnelDielectricAccurate(Frame::cosTheta(bRec.wi), eta);
         float G = BeckmannDistribution::G(bRec.wi, bRec.wo, m_alpha);
         float D = BeckmannDistribution::D(m_alpha, m);
+        // TODO, hack, multiple it by 2
         SpectrumRGB specular_term = 
             SpectrumRGB{
                 m_specular_weight * D * F * G
-                / (4 * Frame::cosTheta(bRec.wi))
+                / (4 * Frame::cosTheta(bRec.wi)) * 2
             };
         return diffuse_term + specular_term;
     }
