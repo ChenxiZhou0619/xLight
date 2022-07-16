@@ -30,7 +30,7 @@ public:
         sampleToFilm = sampleToFilm.inverse();
     }
 
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const CameraSample &_sample) const {
+    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const CameraSample &_sample) const override{
         Point3f pointOnFilm = sampleToFilm * Point3f {
             ((float)offset.x + _sample.sampleXY.x) / (float)resolution.x,
             ((float)offset.y + _sample.sampleXY.y) / (float)resolution.y,
@@ -48,6 +48,13 @@ public:
             cameraToWorld * pointOnAperture,
             rayDirWorld
         };
+    }
+
+    virtual Ray3f sampleRayDifferential (const Vector2i &offset,
+                                         const Vector2i &resolution,
+                                         const CameraSample &sample) const override {
+        std::cout << "Thinlens::sampleRayDifferential not implement!\n";
+        std::exit(1);
     }
 
     

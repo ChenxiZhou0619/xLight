@@ -12,7 +12,7 @@ public:
 
     virtual ~Texture() = default;
 
-    virtual SpectrumRGB evaluate(const Point2f &uv) const = 0; 
+    virtual SpectrumRGB evaluate(const Point2f &uv, float du = 0, float dv = 0) const = 0; 
 
     virtual SpectrumRGB average() const = 0;
 

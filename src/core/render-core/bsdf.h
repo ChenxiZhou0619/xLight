@@ -7,7 +7,7 @@ struct BSDFQueryRecord {
     // ! both point from the origin in local
     Vector3f wi, wo;
     Point2f uv;
-
+    float du, dv;
 
     BSDFQueryRecord() = default;
     BSDFQueryRecord(const Vector3f &_wi) : wi(_wi) { }
@@ -15,7 +15,28 @@ struct BSDFQueryRecord {
     BSDFQueryRecord(const Vector3f &_wi, const Vector3f &_wo) : wi(_wi), wo(_wo) { }
     BSDFQueryRecord(const Vector3f &_wi, const Vector3f &_wo, Point2f _uv) : wi(_wi), wo(_wo), uv(_uv) { }
 
+    BSDFQueryRecord(const RayIntersectionRec &i_rec, const Ray3f &ri) {
+        wi = i_rec.toLocal(-ri.dir);
+        uv = i_rec.UV;
+        if (ri.is_ray_differential && i_rec.can_diff) {
+            du = i_rec.dudx + i_rec.dudy;
+            dv = i_rec.dvdx + i_rec.dvdy;
+        } else {
+            du = dv = .0f;
+        }
+    }
 
+    BSDFQueryRecord(const RayIntersectionRec &i_rec, const Ray3f &ri, const Ray3f &ro) {
+        wi = i_rec.toLocal(-ri.dir);
+        wo = i_rec.toLocal(ro.dir);
+        uv = i_rec.UV;
+        if (ri.is_ray_differential && i_rec.can_diff) {
+            du = i_rec.dudx + i_rec.dudy;
+            dv = i_rec.dvdx + i_rec.dvdy;
+        } else {
+            du = dv = .0f;
+        }
+    }
 };
 
 class BSDF : public Configurable{

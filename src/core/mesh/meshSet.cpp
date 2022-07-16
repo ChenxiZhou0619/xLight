@@ -164,7 +164,18 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     iRec.geoFrame = Frame {iRec.geoN};
     iRec.shdFrame = Frame {iRec.shdN};
     iRec.meshPtr = meshPtr.get();
-    
+
+    //* compute the dpdu & dpdv
+    float u0 = uv0[0], u1 = uv1[0], u2 = uv2[0],
+          v0 = uv0[1], v1 = uv1[1], v2 = uv2[1];
+    float det = (u0 - u2) * (v1 - v2) - (v0 - v2) * (u1 - u2);
+    if (std::abs(det) > 1e-8) {
+        iRec.dpdu = (p0 - p2) * (v1 - v2) + (p1 - p2) * (v2 - v0);
+        iRec.dpdv = (p0 - p2) * (u2 - u1) + (p1 - p2) * (u0 - u2);
+        iRec.dpdu /= det;
+        iRec.dpdv /= det;
+        iRec.can_diff = true;
+    }
     return true;
 }
 

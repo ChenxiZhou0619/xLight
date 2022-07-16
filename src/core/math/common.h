@@ -95,3 +95,13 @@ inline float clamp01(float f) {
     if (f > 1) f = 1.f;
     return f;
 }
+
+inline bool solveLinearSys2X2(const float A[2][2], const float B[2],
+                              float *x0, float *x1) {
+    float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+    if (std::abs(det) < 1e-10) return false;
+    *x0 = (A[1][1] * B[0] - A[0][1] * B[1]) / det;
+    *x1 = (A[0][0] * B[1] - A[0][1] * B[0]) / det;
+    if (std::isnan(*x0) || std::isnan(*x1)) return false;
+    return true;   
+}

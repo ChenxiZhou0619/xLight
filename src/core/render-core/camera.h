@@ -69,7 +69,13 @@ public:
         pos = Point3f {_cameraToWorld(0, 3), _cameraToWorld(1, 3),_cameraToWorld(2, 3)};
     }
 
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution, const CameraSample &sample) const = 0;
+    virtual Ray3f sampleRay (const Vector2i &offset, 
+                             const Vector2i &resolution, 
+                             const CameraSample &sample) const = 0;
+
+    virtual Ray3f sampleRayDifferential (const Vector2i &offset,
+                                         const Vector2i &resolution,
+                                         const CameraSample &sample) const = 0;
 
 protected:
     Point3f pos;

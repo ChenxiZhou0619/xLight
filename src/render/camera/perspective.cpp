@@ -33,24 +33,10 @@ public:
      * @param offset 
      * @return Ray3f 
      */
-    virtual Ray3f sampleRay (const Vector2i &offset, const Vector2i &resolution,  const CameraSample &sample) const {
-        // generate in the camera coordinate first
-        //float halfH = std::tan(vertFov * PI / 360.f) * distToFilm,
-        //      halfW = halfH * aspectRatio;
+    virtual Ray3f sampleRay (const Vector2i &offset, 
+                             const Vector2i &resolution, 
+                             const CameraSample &sample) const override{
 
-        //Point2f _offset {
-        //    (offset.x + sample.x) / (float)resolution.x,
-        //    (offset.y + sample.y) / (float)resolution.y
-        //};
-
-        //Point3f filmTopLeft = 
-        //    Point3f(0, 0, 0) 
-        //    + Vector3f(0, 0, 1) * distToFilm 
-        //    + Vector3f(-halfW, halfH, 0);
-
-        //Point3f pointOnFilm = 
-        //    filmTopLeft
-        //    + Vector3f(2 * halfW * _offset.x, - 2 * halfH * _offset.y, 0);
         Point3f pointOnFilm = sampleToFilm * Point3f {
             ((float)offset.x + sample.sampleXY.x) / (float)resolution.x,
             ((float)offset.y + sample.sampleXY.y) / (float)resolution.y,
@@ -66,6 +52,44 @@ public:
             pos,
             rayDirWorld
         };
+    }
+
+    virtual Ray3f sampleRayDifferential (const Vector2i &offset,
+                                         const Vector2i &resolution,
+                                         const CameraSample &sample) const override {
+        Point3f pointOnFilm = sampleToFilm * Point3f {
+            ((float)offset.x + sample.sampleXY.x) / (float)resolution.x,
+            ((float)offset.y + sample.sampleXY.y) / (float)resolution.y,
+            .0f
+        };
+
+        Vector3f rayDirLocal = normalize(pointOnFilm - Point3f(0, 0, 0));
+
+        // turn to the world coordinate
+        Vector3f rayDirWorld = cameraToWorld.rotate(rayDirLocal);
+        
+        Ray3f ray{
+            pos,
+            rayDirWorld
+        };
+
+        //* set the ray differential part
+        Point3f point_on_film_dx = sampleToFilm * Point3f {
+            ((float)offset.x + sample.sampleXY.x + 1) / (float)resolution.x,
+            ((float)offset.y + sample.sampleXY.y) / (float)resolution.y,
+            .0f
+        };
+        ray.direction_dx = cameraToWorld.rotate(normalize(point_on_film_dx - Point3f(0, 0, 0)));
+
+        Point3f point_on_film_dy = sampleToFilm * Point3f {
+            ((float)offset.x + sample.sampleXY.x) / (float)resolution.x,
+            ((float)offset.y + sample.sampleXY.y + 1) / (float)resolution.y,
+            .0f
+        };
+        ray.direction_dy = cameraToWorld.rotate(normalize(point_on_film_dy - Point3f(0, 0, 0)));
+        
+        ray.is_ray_differential = true;
+        return ray; 
     }
 };
 

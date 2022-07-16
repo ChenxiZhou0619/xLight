@@ -10,13 +10,25 @@ public:
         m_dark  = SpectrumRGB(0.4f);
     }
 
-    virtual SpectrumRGB evaluate(const Point2f &uv) const override {
-        int x = static_cast<int>(uv.x / m_grid) % 2,
-            y = static_cast<int>(uv.y / m_grid) % 2;
-        if ((x + y) % 2 == 1)
-            return m_light;
+    virtual SpectrumRGB evaluate(const Point2f &uv, float du, float dv) const override {
+        int u = static_cast<int>(uv.x / m_grid) % 2,
+            v = static_cast<int>(uv.y / m_grid) % 2,
+            u_ = static_cast<int>((uv.x + du) / m_grid) % 2,
+            v_ = static_cast<int>((uv.y + dv) / m_grid) % 2;
+        SpectrumRGB value {.0f};
+        if ((u + v) % 2 == 1)
+            value += m_light;
         else
-            return m_dark;
+            value += m_dark;
+        if (( u_ + v) % 2 == 1)
+            value += m_light;
+        else 
+            value += m_dark;
+        if ((u + v_) % 2 == 1)
+            value += m_light;
+        else 
+            value += m_dark;
+        return value / 3;
     }
 
     virtual SpectrumRGB average() const override {
@@ -34,7 +46,7 @@ private:
 
     SpectrumRGB m_dark;
 
-    float m_grid = 0.05; // default
+    float m_grid = 0.01; // default
 
 };
 

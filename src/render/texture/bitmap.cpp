@@ -24,7 +24,7 @@ public:
         delete [] mData;
     }
 
-    virtual SpectrumRGB evaluate(const Point2f &uv) const override{
+    virtual SpectrumRGB evaluate(const Point2f &uv, float du, float dv) const override{
         int x = std::min(static_cast<int>(std::abs(uv.x) * mWidth), mWidth - 1);
         int y = std::min(static_cast<int>(std::abs(uv.y) * mHeight), mHeight - 1);
 

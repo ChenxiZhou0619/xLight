@@ -24,11 +24,11 @@ void renderBlock(ImageBlock &block, const RenderTask* task) {
             Point2f pixel = Point2f (i + block.getOffset().x, j + block.getOffset().y);
             sampler->startPixel(pixel);
             for (int spp = 0; spp < task->getSpp(); ++spp) {
-                Ray3f ray = camera->sampleRay (
+                Ray3f ray = camera->sampleRayDifferential (
                     Vector2i {i + block.getOffset().x, j + block.getOffset().y},
                     task->getImgSize(),
                     sampler->getCameraSample()
-                );            
+                );  
                 color += integrator->getLi(*scene, ray, sampler.get());
                 sampler->nextSample();
             }
