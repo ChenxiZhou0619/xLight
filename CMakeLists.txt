@@ -36,6 +36,7 @@ add_executable(test
     ${XLIGHT_CORE_MESH_DIR}/mesh.cpp
 
     # core/render-core
+    ${XLIGHT_CORE_RENDER_DIR}/bsdf.cpp
     ${XLIGHT_CORE_RENDER_DIR}/scene.cpp
     ${XLIGHT_CORE_RENDER_DIR}/texture.cpp
     ${XLIGHT_CORE_RENDER_DIR}/sampler.cpp

@@ -94,6 +94,17 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                 } else {
                     newBsdf->setTexture(nullptr);
                 }
+
+                if (bsdf.HasMember("bumpmapRef")) {
+                    const std::string &bumpmapRef
+                        = bsdf["bumpmapRef"].GetString();
+                    newBsdf->setBumpmap(
+                        task->getTexture(bumpmapRef)
+                    );
+                } else {
+                    newBsdf->setBumpmap(nullptr);
+                }
+
                 newBsdf->initialize();                
                 task->bsdfs[bsdfName].reset(newBsdf);
             }

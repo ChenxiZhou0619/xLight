@@ -44,7 +44,10 @@ public:
             //*------------     Direct Illumination     -------------
             //*------------------------------------------------------
             const BSDF *bsdf = i_rec.meshPtr->getBSDF();
+            
             i_rec.computeRayDifferential(ray);
+            bsdf->bumpComputeShadingNormal(&i_rec);
+            
             SpectrumRGB direct_illumination {.0f};
             for (int i = 0; i < m_shadowray_nums; ++i) {
                 DirectIlluminationRecord d_rec;
@@ -70,6 +73,7 @@ public:
             //*------------    Sampling BSDF       ------------------
             //*------------------------------------------------------
             //BSDFQueryRecord b_rec {wi, i_rec.UV};
+            
             BSDFQueryRecord b_rec {i_rec, ray};
             float bsdf_pdf = .0f;
             SpectrumRGB bsdf_weight = bsdf->sample(b_rec, sampler->next2D(), bsdf_pdf);
@@ -78,7 +82,9 @@ public:
                 break;
             //! Update the ray
             ray = Ray3f {i_rec.p, i_rec.toWorld(b_rec.wo)};
+            
             i_rec.clear();
+
             found_intersection = scene.rayIntersect(ray, i_rec);
             
             SpectrumRGB lumion_energy {.0f};

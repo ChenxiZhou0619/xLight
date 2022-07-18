@@ -20,7 +20,7 @@ public:
     virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const override{
         if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
             return SpectrumRGB {.0f};
-        return m_texture->evaluate(bRec.uv) * INV_PI;
+        return m_texture->evaluate(bRec.uv, bRec.du, bRec.dv) * INV_PI;
     }
 
     virtual float pdf (const BSDFQueryRecord &bRec) const override{
@@ -36,7 +36,7 @@ public:
         }
         bRec.wo = Warp::squareToCosineHemisphere(sample);
         pdf = INV_PI * Frame::cosTheta(bRec.wo);
-        return m_texture->evaluate(bRec.uv);    
+        return m_texture->evaluate(bRec.uv, bRec.du, bRec.dv);    
     }
 };
 

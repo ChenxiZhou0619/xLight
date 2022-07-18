@@ -28,7 +28,10 @@ public:
         int x = std::min(static_cast<int>(std::abs(uv.x) * mWidth), mWidth - 1);
         int y = std::min(static_cast<int>(std::abs(uv.y) * mHeight), mHeight - 1);
 
-        return mData[x][y];
+        int x_ = std::min(static_cast<int>(std::abs(uv.x + du) * mWidth), mWidth - 1);
+        int y_ = std::min(static_cast<int>(std::abs(uv.y + dv) * mHeight), mHeight - 1);
+
+        return (mData[x][y] + mData[x][y_] + mData[x_][y]) / 3;
     }
 
     virtual SpectrumRGB average() const override {
@@ -40,6 +43,24 @@ public:
         return Vector2i {
             mWidth, mHeight
         };
+    }
+
+    virtual SpectrumRGB dfdu(Point2f uv) const override {
+        int x = std::min(static_cast<int>(std::abs(uv.x) * mWidth), mWidth - 1);
+        int y = std::min(static_cast<int>(std::abs(uv.y) * mHeight), mHeight - 1);
+
+        int x_ = std::min(static_cast<int>(std::abs(uv.x + 1) * mWidth), mWidth - 1);
+        
+        return mData[x_][y] - mData[x][y];
+    }
+
+    virtual SpectrumRGB dfdv(Point2f uv) const override {
+        int x = std::min(static_cast<int>(std::abs(uv.x) * mWidth), mWidth - 1);
+        int y = std::min(static_cast<int>(std::abs(uv.y) * mHeight), mHeight - 1);
+
+        int y_ = std::min(static_cast<int>(std::abs(uv.y + 1) * mHeight), mHeight - 1);
+        
+        return mData[x][y_] - mData[x][y];
     }
 };
 

@@ -25,6 +25,16 @@ public:
         std::exit(1);
     }
 
+    virtual SpectrumRGB dfdu(Point2f uv) const override {
+        std::cout << "Constant::dfdu always zero!\n";
+        return SpectrumRGB{.0f};
+    }
+
+    virtual SpectrumRGB dfdv(Point2f uv) const override {
+        std::cout << "Constant::dfdv always zero!\n";
+        return SpectrumRGB{.0f};
+    }
+
 };
 
 REGISTER_CLASS(Constant, "constant")
