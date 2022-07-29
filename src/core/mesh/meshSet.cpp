@@ -172,6 +172,7 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     if (std::abs(det) > 1e-8) {
         iRec.dpdu = (p0 - p2) * (v1 - v2) + (p1 - p2) * (v2 - v0);
         iRec.dpdv = (p0 - p2) * (u2 - u1) + (p1 - p2) * (u0 - u2);
+        //det = -det;
         iRec.dpdu /= det;
         iRec.dpdv /= det;
         iRec.can_diff = true;

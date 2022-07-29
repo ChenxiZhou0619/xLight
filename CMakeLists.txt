@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.12)
 
 project(XLight LANGUAGES CXX)
 
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/lib)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/bin)
+
 set(XLIGHT_TEST_DIR ${PROJECT_SOURCE_DIR}/src/test)
 
 set(XLIGHT_CORE_MESH_DIR ${PROJECT_SOURCE_DIR}/src/core/mesh)
@@ -16,6 +20,8 @@ set(XLIGHT_RENDER_CAMERA_DIR ${PROJECT_SOURCE_DIR}/src/render/camera)
 set(XLIGHT_RENDER_TEXTURE_DIR ${PROJECT_SOURCE_DIR}/src/render/texture)
 set(XLIGHT_RENDER_BSDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bsdf)
 set(XLIGHT_RENDER_EMITTER_DIR ${PROJECT_SOURCE_DIR}/src/render/emitter)
+
+set(XLIGHT_GUI_DIR ${PROJECT_SOURCE_DIR}/src/gui)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -85,16 +91,26 @@ target_link_directories(test PRIVATE
     /usr/local/lib
 )
 
-add_executable(demo
-    # test
-    ${XLIGHT_TEST_DIR}/demo.cpp
-)
-
-target_include_directories(demo PRIVATE
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/dependencies
-)
-
 target_link_libraries(test
     assimp tbb 
+)
+
+add_subdirectory(./dependencies)
+
+add_executable( gui-demo
+    ${XLIGHT_GUI_DIR}/gui-demo.cpp
+)
+
+target_include_directories(gui-demo PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/dependencies   
+)
+
+target_link_directories(gui-demo PRIVATE
+    ${PROJECT_SOURCE_DIR}/target/lib
+    /usr/local/lib
+)
+
+target_link_libraries(gui-demo
+    imgui GL
 )

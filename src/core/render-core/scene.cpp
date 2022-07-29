@@ -47,7 +47,7 @@ void Scene::sampleEmitterOnSurface(PointQueryRecord &pRec, Sampler *sampler) con
 }
 
 void Scene::setEnvMap(Emitter *env_emitter) {
-    assert(env_emitter != nullptr);
+    //assert(env_emitter != nullptr);
     m_env_emitter = env_emitter;
 }
 
@@ -86,6 +86,7 @@ void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *s
         d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
         d_rec->energy = p_rec.emitter->evaluate(e_rec);
         d_rec->pdf = 1 / emitterSurfaceArea;
+        d_rec->pdf *= shadow_ray.tmax * shadow_ray.tmax / std::abs(dot(p_rec.normal, shadow_ray.dir));
     } else {
         std::cout << "No area light!\n";
         std::exit(1);

@@ -41,12 +41,12 @@ public:
         std::exit(1);
     }
 
-    virtual SpectrumRGB dfdu(Point2f uv) const override {
+    virtual SpectrumRGB dfdu(Point2f uv, float du, float dv) const override {
         std::cout << "Checkboard::dfdu not implemet!\n";
         std::exit(1);
     }
 
-    virtual SpectrumRGB dfdv(Point2f uv) const override {
+    virtual SpectrumRGB dfdv(Point2f uv, float du, float dv) const override {
         std::cout << "Checkboard::dfdv not implement!\n";
         std::exit(1);
     }
@@ -56,7 +56,7 @@ private:
 
     SpectrumRGB m_dark;
 
-    float m_grid = 0.01; // default
+    float m_grid = 0.1; // default
 
 };
 

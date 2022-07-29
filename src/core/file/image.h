@@ -117,6 +117,10 @@ public:
     uint32_t getSpp() const {
         return spp;
     }
+
+    SpectrumRGB at(Vector2i pos) const {
+        return screen.pixels[pos.x][pos.y];
+    }
     
     friend std::ostream& operator<<(std::ostream &os, const Image &img);
 
@@ -141,19 +145,19 @@ inline std::ostream& operator<<(std::ostream &os, const Image &img) {
 }
 
 
-constexpr size_t BLOCKSIZE = 32;
+constexpr int BLOCKSIZE = 32;
 class ImageBlockManager {
-    size_t x, y;
+    int x, y;
     ImageBlock ***blocks;
 public:
     ImageBlockManager() = delete;
     ImageBlockManager(const Vector2i &imgSize) : x(imgSize.x / BLOCKSIZE), y(imgSize.y / BLOCKSIZE) {
         blocks = new ImageBlock**[x];
-        for (size_t _x = 0; _x < x; ++_x) {
+        for (int _x = 0; _x < x; ++_x) {
             blocks[_x] = new ImageBlock*[y];
         }
-        for (size_t _x = 0; _x < x; ++_x)
-            for (size_t _y = 0; _y < y; ++_y) {
+        for (int _x = 0; _x < x; ++_x)
+            for (int _y = 0; _y < y; ++_y) {
                 blocks[_x][_y] = new ImageBlock(
                     Vector2i {_x * BLOCKSIZE, _y * BLOCKSIZE},
                     Vector2i {BLOCKSIZE, BLOCKSIZE}
@@ -177,5 +181,4 @@ public:
 
     ImageBlock& at(size_t _x, size_t _y) {return *blocks[_x][_y];}
     
-
 };

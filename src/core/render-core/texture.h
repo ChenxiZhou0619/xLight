@@ -18,9 +18,9 @@ public:
 
     virtual Vector2i getResolution() const = 0;
     
-    virtual SpectrumRGB dfdu(Point2f uv) const = 0;
+    virtual SpectrumRGB dfdu(Point2f uv, float du = 0, float dv = 0) const = 0;
 
-    virtual SpectrumRGB dfdv(Point2f uv) const = 0;
+    virtual SpectrumRGB dfdv(Point2f uv, float du = 0, float dv = 0) const = 0;
 };
 
 class TextureLoader {

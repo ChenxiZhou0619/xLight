@@ -61,9 +61,10 @@ public:
                     //* Evaluate the direct illumination
                     SpectrumRGB bsdf_value = bsdf->evaluate(b_rec);
                     float bsdf_pdf = bsdf->pdf(b_rec);
-                    direct_illumination += 
-                        throughput * bsdf_value * d_rec.energy
-                        / d_rec.pdf * powerHeuristic(d_rec.pdf, bsdf_pdf);
+                    if (!bsdf_value.isZero())
+                        direct_illumination += 
+                            throughput * bsdf_value * d_rec.energy
+                            / d_rec.pdf * powerHeuristic(d_rec.pdf, bsdf_pdf);
                 }
             }
             if (m_shadowray_nums != 0)
@@ -77,7 +78,7 @@ public:
             BSDFQueryRecord b_rec {i_rec, ray};
             float bsdf_pdf = .0f;
             SpectrumRGB bsdf_weight = bsdf->sample(b_rec, sampler->next2D(), bsdf_pdf);
-
+            is_specular_bounce = !bsdf->isDiffuse();
             if (bsdf_weight.isZero())
                 break;
             //! Update the ray
