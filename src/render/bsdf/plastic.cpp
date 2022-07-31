@@ -9,6 +9,8 @@ public:
     Plastic() = default;
 
     Plastic(const rapidjson::Value &_value) {
+        m_type = EBSDFType::EGlossy;
+
         m_alpha = getFloat("alpha", _value);
 
         m_int_eta = getFloat("intIOR", _value);

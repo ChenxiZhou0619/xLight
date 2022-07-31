@@ -5,6 +5,7 @@ public:
     Mirror() = default;
     Mirror(const rapidjson::Value &_value) {
         // do nothing
+        m_type = EBSDFType::EGlossy;
     }
     ~Mirror() = default;
 

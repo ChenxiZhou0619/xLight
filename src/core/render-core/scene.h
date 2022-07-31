@@ -34,6 +34,8 @@ public:
 
     void sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from) const;
 
+    void sampleAttenuatedDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from, SpectrumRGB *transmittance) const;
+
 private:
     std::unique_ptr<Accel> accelPtr;
     

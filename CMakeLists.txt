@@ -76,6 +76,7 @@ add_executable(test
     ${XLIGHT_RENDER_BSDF_DIR}/microfacet.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/roughdielectric.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/plastic.cpp
+    ${XLIGHT_RENDER_BSDF_DIR}/empty.cpp
 
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp

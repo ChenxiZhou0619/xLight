@@ -1,5 +1,5 @@
 #include "meshSet.h"
-
+#include "core/render-core/bsdf.h"
 void MeshSet::addMesh(std::unique_ptr<Mesh> meshPtr) {
     mAABB.expands(meshPtr->getAABB3());
     if (count.empty()) {
@@ -186,6 +186,9 @@ bool MeshSet::rayIntersectTri(const Ray3f &ray, uint32_t _triIdx) const {
              triIdx = idxPair.second;
 
     const auto &meshPtr = mMeshes[meshIdx];
+    const BSDF *bsdf = meshPtr->getBSDF();
+    if (bsdf && bsdf->m_type == BSDF::EBSDFType::EEmpty)
+        return false;
     Point3ui faceBuf = meshPtr->getFBuf(triIdx);
     
     Point3f p0 = meshPtr->getVtxBuf(faceBuf[0]),

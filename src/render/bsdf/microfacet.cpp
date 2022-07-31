@@ -21,6 +21,8 @@ public:
     Microfacet() = default;
 
     Microfacet(const rapidjson::Value &_value) {
+        m_type = EBSDFType::EDiffuse;
+
         alpha = getFloat("alpha", _value);
     }
 

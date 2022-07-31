@@ -12,6 +12,8 @@ public:
     Dielectric() = default;
     
     Dielectric(const rapidjson::Value &_value) {
+        m_type = EBSDFType::EGlossy;
+
         extIOR = getFloat("extIOR", _value);
         intIOR = getFloat("intIOR", _value);
         // TODO transmittance/reflectance

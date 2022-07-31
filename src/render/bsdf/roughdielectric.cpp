@@ -7,6 +7,7 @@ public:
     RoughDielectric() = default;
 
     RoughDielectric(const rapidjson::Value &_value) {
+        m_type = EBSDFType::EDiffuse;
         m_alpha = getFloat("alpha", _value);
         m_eta_i = getFloat("extIOR", _value);
         m_eta_t = getFloat("intIOR", _value);

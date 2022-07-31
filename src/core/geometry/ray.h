@@ -13,10 +13,15 @@
 #include "vector.h"
 #include "point.h"
 #include "frame.h"
+#include <stack>
 #include <memory>
 #include <cmath>
 #include "common.h"
 #include "core/math/common.h"
+
+//* fwd
+class Medium;
+
 template<typename T>
 struct TRay3 {
 public:
@@ -37,6 +42,15 @@ public:
         return ori + dist * dir;
     }
 
+    bool inMedium() const {
+        return !m_medium.empty();
+    }
+
+    Medium* getMedium() const {
+        if (!inMedium()) return nullptr;
+        return m_medium.top();
+    }
+
     TPoint3<T> ori;
     TVector3<T> dir;
     T time, tmin, tmax;
@@ -44,6 +58,9 @@ public:
     //* data for ray differential
     bool is_ray_differential = false;   // set to true when camera generate ray-differential
     Vector3f direction_dx, direction_dy;
+
+    //* data for volume rendering
+    std::stack<Medium *> m_medium;
 };
 
 template<typename T>

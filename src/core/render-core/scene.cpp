@@ -93,3 +93,35 @@ void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *s
     }
 
 }
+
+void Scene::sampleAttenuatedDirectIllumination(
+    DirectIlluminationRecord *d_rec, 
+    Sampler *sampler, Point3f from, 
+    SpectrumRGB *transmittance) const 
+{
+    // TODO, just sample area light now
+    if (!emitterList.empty()) {
+        PointQueryRecord p_rec;
+        size_t emitterIdx = emitterDistribution.sample(sampler->next1D());
+        emitterList[emitterIdx]->sampleOnSurface(p_rec, sampler);
+        p_rec.emitter = emitterList[emitterIdx]->getEmitter();
+        Ray3f shadow_ray {from, p_rec.p};
+        EmitterQueryRecord e_rec {p_rec, shadow_ray};
+
+        d_rec->point_on_emitter = p_rec.p;
+        d_rec->shadow_ray = shadow_ray;
+
+        //* Shadowray intersect test
+        
+
+
+
+        d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
+        d_rec->energy = p_rec.emitter->evaluate(e_rec);
+        d_rec->pdf = 1 / emitterSurfaceArea;
+        d_rec->pdf *= shadow_ray.tmax * shadow_ray.tmax / std::abs(dot(p_rec.normal, shadow_ray.dir));
+    } else {
+        std::cout << "No area light!\n";
+        std::exit(1);
+    }
+}

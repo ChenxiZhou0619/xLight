@@ -87,4 +87,10 @@ public:
     virtual void bumpComputeShadingNormal(RayIntersectionRec *i_rec) const;
 
     virtual bool isDiffuse() const = 0;
+
+    enum class EBSDFType {
+        EEmpty = 0,
+        EGlossy,
+        EDiffuse
+    } m_type;
 };

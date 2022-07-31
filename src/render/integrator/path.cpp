@@ -3,10 +3,9 @@
 
 class PathTracing : public Integrator {
 public:
-    PathTracing() : m_max_depth(5), m_rr_threshold(3), m_shadowray_nums(1) { };
+    PathTracing() : m_max_depth(5), m_rr_threshold(3), m_shadowray_nums(1) { }
 
     PathTracing(const rapidjson::Value &_value) {
-        // do nothing
         m_max_depth = getInt("maxDepth", _value);
         m_rr_threshold = getInt("rrThreshold", _value);
         m_shadowray_nums = getInt("shadowRayNums", _value);
@@ -40,10 +39,16 @@ public:
             if (i_rec.meshPtr->isEmitter())
                 break;
             
+            const BSDF *bsdf = i_rec.meshPtr->getBSDF();
+            if (bsdf->m_type == BSDF::EBSDFType::EEmpty) {
+                //! just continue the ray
+                ray = Ray3f(i_rec.p, ray.dir);
+                continue;
+            }
+
             //*------------------------------------------------------
             //*------------     Direct Illumination     -------------
             //*------------------------------------------------------
-            const BSDF *bsdf = i_rec.meshPtr->getBSDF();
             
             i_rec.computeRayDifferential(ray);
             bsdf->bumpComputeShadingNormal(&i_rec);

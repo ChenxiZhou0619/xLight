@@ -8,7 +8,7 @@ public:
     
     Diffuse(const rapidjson::Value &_value) {
         // do nothing
-
+        m_type = EBSDFType::EDiffuse;
     }
 
     ~Diffuse() = default;
