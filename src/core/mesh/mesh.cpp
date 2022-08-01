@@ -23,6 +23,14 @@ void Mesh::setEmitter(Emitter *_emitter) {
     mEmitter = _emitter;
 }
 
+Medium* Mesh::getMedium() const {
+    return medium;
+}
+
+void Mesh::setMedium(Medium *medium) {
+    this->medium = medium;
+}
+
 float Mesh::getMeshSurfaceArea() const {
     return mTotalArea;
 }

@@ -112,7 +112,8 @@ void Scene::sampleAttenuatedDirectIllumination(
         d_rec->shadow_ray = shadow_ray;
 
         //* Shadowray intersect test
-        
+        //std::cout << "Compute the transimattance!\n";
+        //std::exit(1);
 
 
 

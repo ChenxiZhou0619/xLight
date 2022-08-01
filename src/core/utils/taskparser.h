@@ -4,6 +4,7 @@
 #include "core/render-core/integrator.h"
 #include "core/render-core/bsdf.h"
 #include "core/render-core/emitter.h"
+#include "core/render-core/medium.h"
 class Image;
 
 struct RenderTask {
@@ -16,6 +17,7 @@ struct RenderTask {
     std::unordered_map<std::string, std::unique_ptr<Texture>> textures;
     std::unordered_map<std::string, std::unique_ptr<BSDF>> bsdfs;
     std::unordered_map<std::string, std::unique_ptr<Emitter>> emitters;
+    std::unordered_map<std::string, std::unique_ptr<Medium>> mediums;
 
     Vector2i getImgSize() const ;
 

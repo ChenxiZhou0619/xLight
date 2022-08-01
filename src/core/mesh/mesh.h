@@ -53,6 +53,10 @@ public:
     Emitter *getEmitter() const ;
 
     void setEmitter(Emitter *_emitter) ;
+
+    Medium *getMedium() const;
+
+    void setMedium(Medium *medium);
     
     std::string mName;
 
@@ -66,7 +70,8 @@ public:
 
 protected:
     AABB3f mAABB;
-    BSDF *mBSDF;
+    BSDF *mBSDF {nullptr};
+    Medium *medium {nullptr};
     Emitter *mEmitter {nullptr};
     float mTotalArea;
     bool mIsTwoSide {false};

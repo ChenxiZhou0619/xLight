@@ -20,6 +20,7 @@ set(XLIGHT_RENDER_CAMERA_DIR ${PROJECT_SOURCE_DIR}/src/render/camera)
 set(XLIGHT_RENDER_TEXTURE_DIR ${PROJECT_SOURCE_DIR}/src/render/texture)
 set(XLIGHT_RENDER_BSDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bsdf)
 set(XLIGHT_RENDER_EMITTER_DIR ${PROJECT_SOURCE_DIR}/src/render/emitter)
+set(XLIGHT_RENDER_MEDIUM_DIR ${PROJECT_SOURCE_DIR}/src/render/medium)
 
 set(XLIGHT_GUI_DIR ${PROJECT_SOURCE_DIR}/src/gui)
 
@@ -55,6 +56,7 @@ add_executable(test
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/simple.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/vpath.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp
@@ -81,6 +83,9 @@ add_executable(test
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp
     ${XLIGHT_RENDER_EMITTER_DIR}/environment.cpp
+
+    # render/medium
+    ${XLIGHT_RENDER_MEDIUM_DIR}/beerslaw.cpp
 )
 
 target_include_directories(test PRIVATE

@@ -132,3 +132,4 @@ static inline std::ostream& operator<<(std::ostream &os, const SpectrumRGB &rgb)
     os << rgb.toString();
     return os;
 }
+

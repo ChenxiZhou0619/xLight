@@ -138,6 +138,20 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                     task->emitters[emitterName].reset(newEmitter);
                 }            
             }
+
+            const auto mediums = (*itr).value["mediums"].GetArray();
+            for (int i = 0; i < mediums.Size(); ++i) {
+                const auto &medium = mediums[i].GetObject();
+                const std::string &mediumType
+                    = medium["type"].GetString();
+                const std::string &mediumName 
+                    = medium["name"].GetString();
+                Medium *newMedium 
+                    = static_cast<Medium *>(
+                        ObjectFactory::createInstance(mediumType, medium)
+                    );
+                task->mediums[mediumName].reset(newMedium);
+            }
             
             // configure the scene object
             MeshLoader meshLoader;
@@ -181,6 +195,18 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                         }
                         targetMesh->setEmitter(itr->second.get());
                     }
+
+                    if (property.HasMember("mediumRef")) {
+                        const std::string &mediumRef
+                            = property["mediumRef"].GetString();
+                        const auto &itr = task->mediums.find(mediumRef);
+                        if (itr == task->mediums.end()) {
+                            std::cout << "No such an medium : \"" << mediumRef << "\"" << std::endl; 
+                            exit(1);
+                        }
+                        targetMesh->setMedium(itr->second.get());
+                    }
+
                     if (property.HasMember("isTwoSide")) {
                         if (property["isTwoSide"].GetBool())
                             targetMesh->setTwoSide();
