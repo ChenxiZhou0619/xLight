@@ -186,9 +186,12 @@ bool MeshSet::rayIntersectTri(const Ray3f &ray, uint32_t _triIdx) const {
              triIdx = idxPair.second;
 
     const auto &meshPtr = mMeshes[meshIdx];
+    
+    //* Add
     const BSDF *bsdf = meshPtr->getBSDF();
     if (bsdf && bsdf->m_type == BSDF::EBSDFType::EEmpty)
         return false;
+    
     Point3ui faceBuf = meshPtr->getFBuf(triIdx);
     
     Point3f p0 = meshPtr->getVtxBuf(faceBuf[0]),

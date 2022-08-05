@@ -32,7 +32,7 @@ public:
 
     TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, T _time = .0f) : ori(_ori), time(_time) {
         dir = Vector3f{_end - _ori};
-        tmin = EPSILON;
+        tmin = EPSILON * 10;
         tmax = dir.length() - EPSILON;
         dir = normalize(dir);        
     }

@@ -2,6 +2,8 @@
 #include "core/mesh/meshSet.h" 
 #include "sampler.h"
 #include "emitter.h"
+#include "medium.h"
+#include <stack>
 /**
  * @brief build the accelaration structure
  * 
@@ -111,12 +113,42 @@ void Scene::sampleAttenuatedDirectIllumination(
         d_rec->point_on_emitter = p_rec.p;
         d_rec->shadow_ray = shadow_ray;
 
+        
+
         //* Shadowray intersect test
-        //std::cout << "Compute the transimattance!\n";
-        //std::exit(1);
-
-
-
+        //* 1. If occlude
+        if (rayIntersect(shadow_ray)) { 
+            *transmittance = SpectrumRGB{.0f};
+            return;
+        } else {
+            //* 2. Evaluate the possible transmittance
+            std::stack<Medium *> mediums;
+            RayIntersectionRec i_rec;
+            Ray3f transimattance_ray = shadow_ray;
+            *transmittance = SpectrumRGB{1.0f};
+            while(rayIntersect(transimattance_ray, i_rec)) {
+                //* If in volume
+                if (!mediums.empty()) {
+                    Medium *medium = mediums.top();
+                    *transmittance *= medium->transmittance(*this, transimattance_ray.ori, i_rec.p);
+                }
+                //* If enter the volume
+                if(dot(i_rec.geoN, transimattance_ray.dir) < 0) {
+                    if (i_rec.meshPtr->getMedium())
+                        mediums.push(i_rec.meshPtr->getMedium());
+                }
+                //* If escape the volume
+                if (dot(i_rec.geoN, transimattance_ray.dir) > 0) {
+                    if (i_rec.meshPtr->getMedium() && !mediums.empty())
+                        mediums.pop();
+                }
+                //* Update transimattance ray
+                transimattance_ray = Ray3f{i_rec.p, d_rec->point_on_emitter};
+                //* Clear the i_rec
+                i_rec.clear();
+            }
+        }
+        
         d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
         d_rec->energy = p_rec.emitter->evaluate(e_rec);
         d_rec->pdf = 1 / emitterSurfaceArea;

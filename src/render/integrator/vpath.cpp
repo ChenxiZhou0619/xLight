@@ -134,7 +134,7 @@ public:
                         SpectrumRGB bsdf_value = bsdf->evaluate(b_rec);
                         float bsdf_pdf = bsdf->pdf(b_rec);
                         if (!bsdf_value.isZero()) {
-                            direct_illumination += throughput *
+                            direct_illumination += transimattance * throughput *
                                 bsdf_value * d_rec.energy / d_rec.pdf 
                                 * powerHeuristic(d_rec.pdf, bsdf_pdf);
                         }
