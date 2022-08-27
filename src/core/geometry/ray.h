@@ -17,7 +17,7 @@
 #include <cmath>
 #include "common.h"
 #include "core/math/common.h"
-
+#include <embree3/rtcore_ray.h>
 //* fwd
 class Medium;
 
@@ -27,7 +27,7 @@ public:
 
     TRay3() = default;
 
-    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = EPSILON, T _tmax = FLOATMAX)
+    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = EPSILON * 2, T _tmax = FLOATMAX)
         : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax) { };
 
     TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, T _time = .0f) : ori(_ori), time(_time) {
@@ -48,6 +48,25 @@ public:
     //* data for ray differential
     bool is_ray_differential = false;   // set to true when camera generate ray-differential
     Vector3f direction_dx, direction_dy;
+
+    RTCRay toRTC() const {
+        RTCRay rtcRay;
+        rtcRay.org_x = ori.x;
+        rtcRay.org_y = ori.y;
+        rtcRay.org_z = ori.z;
+
+        rtcRay.dir_x = dir.x;
+        rtcRay.dir_y = dir.y;
+        rtcRay.dir_z = dir.z;
+
+        rtcRay.tnear = tmin;
+        rtcRay.tfar  = tmax;
+
+        rtcRay.mask = -1;
+        rtcRay.flags = 0;
+
+        return rtcRay;
+    }
 
 };
 
@@ -84,6 +103,10 @@ struct RayIntersectionRec {
     // the normal at hit point
     // geometryNormal and shadingNormal respectively
     Normal3f geoN, shdN;
+
+    // tangent
+    bool hasTangent = false;
+    Vector3f tangent;
 
     // the two local frame using normals as Y axis
     Frame geoFrame, shdFrame;

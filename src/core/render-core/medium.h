@@ -7,6 +7,8 @@ struct MediumSampleRecord {
 
     float pdf;
 
+    bool isValid;
+
     SpectrumRGB transmittance;
 
     SpectrumRGB sigmaS;
@@ -33,6 +35,14 @@ public:
     virtual float pdfPhase(Vector3f wi, Vector3f wo) const = 0;
 
     //* Given two point, return the transmittance between them
-    virtual SpectrumRGB transmittance(const Scene& scene, Point3f p0, Point3f p1) const = 0;
+    virtual SpectrumRGB transmittance(Point3f p0, Point3f p1) const = 0;
 
+    virtual void sampleLs (const Scene &scene, SpectrumRGB *Ls) const = 0;
+
+
+    //* refer to pbrt
+    virtual void sample(Sampler *sampler, 
+                        MediumSampleRecord *mRec,
+                        Point3f ori, 
+                        Point3f end) const = 0;
 };

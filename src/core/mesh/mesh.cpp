@@ -37,11 +37,12 @@ float Mesh::getMeshSurfaceArea() const {
 
 
 TriMesh::TriMesh( std::vector<Point3f> &&_mVerticesBuf, std::vector<Normal3f> &&_mNormalsBuf,
-    std::vector<Point3ui> &&_mFacesBuf, std::vector<Point2f> &&_mUVsBuf, const char *_name
+    std::vector<Point3ui> &&_mFacesBuf, std::vector<Point2f> &&_mUVsBuf, std::vector<Vector3f> &&_mTangentBuf, const char *_name
 ): mVerticesBuf(std::make_unique<std::vector<Point3f>>(_mVerticesBuf)),
    mNormalsBuf(std::make_unique<std::vector<Normal3f>>(_mNormalsBuf)),
    mFacesBuf(std::make_unique<std::vector<Point3ui>>(_mFacesBuf)),
-   mUVsBuf(std::make_unique<std::vector<Point2f>>(_mUVsBuf)) {
+   mUVsBuf(std::make_unique<std::vector<Point2f>>(_mUVsBuf)),
+   mTangentsBuf(std::make_unique<std::vector<Vector3f>>(_mTangentBuf)) {
     mName = std::string(_name);
     // initialize for aabb
     for (const Point3f &p : *mVerticesBuf) {
@@ -82,10 +83,23 @@ Normal3f TriMesh::getNmlBuf(int vtxIdx) const {
 
 Point2f TriMesh::getUV(int vtxIdx) const {
     if (mUVsBuf->size() == 0) {
-        std::cout << "not uv coordinate provided\n";
-        std::exit(1);
+        //std::cout << "not uv coordinate provided\n";
+        //std::exit(1);
+        return Point2f(.0f);
     }
     return (*mUVsBuf)[vtxIdx];
+}
+
+Vector3f TriMesh::getTangent(int vtxIdx) const {
+    if (mTangentsBuf->size() == 0) {
+        std::cout << "no tangents!\n";
+        std::exit(1);
+    }
+    return (*mTangentsBuf)[vtxIdx];
+}
+
+bool TriMesh::hasTangent() const {
+    return mTangentsBuf->size() != 0;
 }
 
 AABB3f Mesh::getAABB3() const {

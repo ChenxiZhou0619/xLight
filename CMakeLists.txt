@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(XLight LANGUAGES CXX)
-
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/bin)
@@ -13,6 +13,8 @@ set(XLIGHT_CORE_RENDER_DIR ${PROJECT_SOURCE_DIR}/src/core/render-core)
 set(XLIGHT_CORE_ACCEL_DIR ${PROJECT_SOURCE_DIR}/src/core/accelerate)
 set(XLIGHT_CORE_UTIL_DIR ${PROJECT_SOURCE_DIR}/src/core/utils)
 set(XLIGHT_CORE_FILE_DIR ${PROJECT_SOURCE_DIR}/src/core/file)
+set(XLIGHT_CORE_SHAPE_DIR ${PROJECT_SOURCE_DIR}/src/core/shape)
+set(XLIGHT_CORE_SCENE_DIR ${PROJECT_SOURCE_DIR}/src/core/scene)
 
 set(XLIGHT_RENDER_INTEGRATOR_DIR ${PROJECT_SOURCE_DIR}/src/render/integrator)
 set(XLIGHT_RENDER_SAMPLER_DIR ${PROJECT_SOURCE_DIR}/src/render/sampler)
@@ -119,4 +121,24 @@ target_link_directories(gui-demo PRIVATE
 
 target_link_libraries(gui-demo
     imgui GL
+)
+
+add_executable(
+    demo    ${XLIGHT_TEST_DIR}/demo.cpp
+    ${XLIGHT_CORE_SHAPE_DIR}/mesh.cpp
+    ${XLIGHT_CORE_SCENE_DIR}/scene.cpp
+)
+
+target_include_directories(demo PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/dependencies 
+)
+
+target_link_directories(demo PRIVATE
+    ${PROJECT_SOURCE_DIR}/target/lib
+    /usr/local/lib
+)
+
+target_link_libraries(demo
+    assimp embree3
 )

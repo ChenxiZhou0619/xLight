@@ -2,6 +2,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <memory>
+#include <vector>
 // forward decleration
 class Mesh;
 class MeshSet;

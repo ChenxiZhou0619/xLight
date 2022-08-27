@@ -6,8 +6,11 @@
 #include "emitter.h"
 #include "texture.h"
 #include "camera.h"
+#include <stack>
 #include <memory>
 
+
+#include <embree3/rtcore.h>
 
 class Scene {
 public:
@@ -34,7 +37,9 @@ public:
 
     void sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from) const;
 
-    void sampleAttenuatedDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from, SpectrumRGB *transmittance) const;
+    void sampleAttenuatedDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *sampler, Point3f from, SpectrumRGB *transmittance, const std::stack<Medium *> cur_stack) const;
+
+    SpectrumRGB getTransmittance(const std::stack<Medium *> &medium_stack , Point3f from, Point3f to) const;
 
 private:
     std::unique_ptr<Accel> accelPtr;

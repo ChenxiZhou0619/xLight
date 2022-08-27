@@ -105,6 +105,16 @@ std::unique_ptr<RenderTask> RenderTaskParser::createTask(const std::string &json
                     newBsdf->setBumpmap(nullptr);
                 }
 
+                if (bsdf.HasMember("normalmapRef")) {
+                    const std::string &normalmapRef
+                        = bsdf["normalmapRef"].GetString();
+                    newBsdf->setNormalmap(
+                        task->getTexture(normalmapRef)
+                    );
+                } else {
+                    newBsdf->setNormalmap(nullptr);
+                }
+
                 newBsdf->initialize();                
                 task->bsdfs[bsdfName].reset(newBsdf);
             }

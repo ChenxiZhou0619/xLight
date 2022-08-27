@@ -43,6 +43,7 @@ class BSDF : public Configurable{
 protected:
     Texture *m_texture;
     Texture *m_bumpmap;
+    Texture *m_normalmap;
 public:
     BSDF() = default;
     BSDF(const rapidjson::Value &_value);
@@ -54,6 +55,10 @@ public:
 
     void setBumpmap(Texture *texture) {
         m_bumpmap = texture;
+    }
+
+    void setNormalmap(Texture *texture) {
+        m_normalmap = texture;
     }
 
     virtual void initialize() {
@@ -85,6 +90,8 @@ public:
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const = 0;
 
     virtual void bumpComputeShadingNormal(RayIntersectionRec *i_rec) const;
+
+    void computeShadingNormal (RayIntersectionRec *i_rec) const;
 
     virtual bool isDiffuse() const = 0;
 

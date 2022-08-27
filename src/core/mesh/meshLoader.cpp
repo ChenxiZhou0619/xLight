@@ -13,9 +13,9 @@ MeshSet* MeshLoader::loadFromFile(const std::string &filePath) const {
     
     Assimp::Importer importer;
     const aiScene *scene = importer.ReadFile( filePath, 
-//        aiProcess_CalcTangentSpace      |
+        aiProcess_CalcTangentSpace      |
 //        aiProcess_Triangulate           |
-//        aiProcess_JoinIdenticalVertices |
+        aiProcess_JoinIdenticalVertices |
 //        aiProcess_SortByPType
           aiProcess_Triangulate           |
           aiProcess_ConvertToLeftHanded
@@ -77,6 +77,7 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
     std::vector<Normal3f> normals;
     std::vector<Point3ui> faces;
     std::vector<Point2f>  UVs;
+    std::vector<Vector3f> tangents;
 
     // the two optional data
     bool hasNormals = true, hasUVs = true;
@@ -146,11 +147,26 @@ std::unique_ptr<Mesh> MeshLoader::convertFromAIMesh (const aiMesh &_aiMesh) cons
         exit(1);
     }
 
+    // load the tangents
+    if (_aiMesh.HasTangentsAndBitangents()) {
+        //std::cerr << "Fatal : Currently not support for mesh without tangents!\n";
+        //std::exit(1);
+        tangents.reserve(_aiMesh.mNumVertices);
+        for (int i = 0; i < _aiMesh.mNumVertices; ++i) {
+            auto t = _aiMesh.mTangents[i];
+            tangents.emplace_back(Vector3f{
+                t.x, t.y, t.z
+        });
+    }
+    
+    }
+
     std::unique_ptr<TriMesh> meshPtr = std::make_unique<TriMesh>(
         std::move(vertices),
         std::move(normals),
         std::move(faces),
         std::move(UVs),
+        std::move(tangents),
         _aiMesh.mName.C_Str()        
     );
 

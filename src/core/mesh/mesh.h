@@ -1,7 +1,6 @@
 #pragma once
 #include <memory>
 #include <vector>
-
 #include <assimp/scene.h>
 
 #include "core/geometry/geometry.h"
@@ -37,6 +36,10 @@ public:
     virtual int getFaceNum() const = 0;
 
     virtual Point2f getUV(int vtxIdx) const = 0;
+
+    virtual Vector3f getTangent(int vtxIdx) const = 0;
+
+    virtual bool hasTangent() const = 0;
 
     virtual AABB3f getTriBounds(uint32_t triIdx) const = 0;
 
@@ -91,6 +94,7 @@ public:
         std::vector<Normal3f> &&_mNormalsBuf,
         std::vector<Point3ui> &&_mFacesBuf,
         std::vector<Point2f> &&_mUVsBuf,
+        std::vector<Vector3f> &&_mTangentBuf,
         const char *_name
     );
 
@@ -103,6 +107,10 @@ public:
     virtual Normal3f getNmlBuf(int vtxIdx) const;
 
     virtual Point2f getUV(int vtxIdx) const;
+
+    virtual Vector3f getTangent(int vtxIdx) const;
+
+    virtual bool hasTangent() const;
 
     virtual std::string toString() const;
 
@@ -122,6 +130,7 @@ protected:
     std::unique_ptr<std::vector<Normal3f>> mNormalsBuf;    // normals per vertex
     std::unique_ptr<std::vector<Point3ui>> mFacesBuf;      // mesh faces
     std::unique_ptr<std::vector<Point2f>>  mUVsBuf;        // uv coordinates
+    std::unique_ptr<std::vector<Vector3f>> mTangentsBuf;   // tangents
 
     Distribution1D mTriDistribution;
 

@@ -24,6 +24,12 @@ public:
         _z = cross(_x, _y);
     }
 
+    Frame(Normal3f N, Vector3f T, Vector3f B) {
+        _x = T;
+        _y = Vector3f {N};
+        _z = B;
+    }
+
     static float cosTheta(const Vector3f &localV) {
         return localV[1];
     }

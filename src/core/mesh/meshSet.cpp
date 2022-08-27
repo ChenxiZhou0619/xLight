@@ -154,6 +154,16 @@ bool MeshSet::rayIntersectTri(Ray3f &ray, RayIntersectionRec &iRec, uint32_t _tr
     } else {
         iRec.shdN = iRec.geoN;
     }
+
+    if (meshPtr->hasTangent()) {
+        iRec.tangent = normalize(
+            (1.f - u - v) * meshPtr->getTangent(faceBuf[0]) +
+            u * meshPtr->getTangent(faceBuf[1]) +
+            v * meshPtr->getTangent(faceBuf[2])
+        );
+        iRec.hasTangent = true;
+    }
+
     iRec.UV  = (1.f - u - v) * uv0 + u * uv1 + v * uv2;
     if (meshPtr->isTwoSide()) {
         if (dot(iRec.geoN, ray.dir) > 0)

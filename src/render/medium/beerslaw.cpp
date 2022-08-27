@@ -35,7 +35,7 @@ public:
     }
 
     //* Given two point, return the transmittance between them
-    virtual SpectrumRGB transmittance(const Scene& scene, Point3f p0, Point3f p1) const override {
+    virtual SpectrumRGB transmittance(Point3f p0, Point3f p1) const override {
         float length = (p0 - p1).length();
         SpectrumRGB res = SpectrumRGB{
             std::exp(m_absorbtion[0] * -length),
@@ -43,6 +43,21 @@ public:
             std::exp(m_absorbtion[2] * -length)
         };
         return res;
+    }
+
+    virtual void sampleLs (const Scene &scene, SpectrumRGB *Ls) const override {
+        *Ls = SpectrumRGB {.0f};        
+    }
+
+    virtual void sample(Sampler *sampler, 
+                        MediumSampleRecord *mRec, 
+                        Point3f ori,
+                        Point3f end) const override 
+    {
+        mRec->pathLength = std::numeric_limits<float>::max();
+        mRec->pdf = 1.f;   
+        mRec->transmittance = transmittance(ori, end);
+        mRec->isValid = false;     
     }
 
 private:

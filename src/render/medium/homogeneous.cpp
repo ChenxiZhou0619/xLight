@@ -8,17 +8,7 @@ public:
     }
     virtual ~Homogeneous() = default;
 
-    // TODO
-    virtual float propagate() const override {
-
-    }
-
-    // TODO
-    virtual SpectrumRGB transmittance(const Scene &scene, Point3f p0, Point3f p1) const override {
-
-    }
-
-
+    
 
 };
 

@@ -99,7 +99,8 @@ void Scene::sampleDirectIllumination(DirectIlluminationRecord *d_rec, Sampler *s
 void Scene::sampleAttenuatedDirectIllumination(
     DirectIlluminationRecord *d_rec, 
     Sampler *sampler, Point3f from, 
-    SpectrumRGB *transmittance) const 
+    SpectrumRGB *transmittance,
+    const std::stack<Medium *> cur_stack) const 
 {
     // TODO, just sample area light now
     if (!emitterList.empty()) {
@@ -122,7 +123,7 @@ void Scene::sampleAttenuatedDirectIllumination(
             return;
         } else {
             //* 2. Evaluate the possible transmittance
-            std::stack<Medium *> mediums;
+            std::stack<Medium *> mediums = cur_stack;
             RayIntersectionRec i_rec;
             Ray3f transimattance_ray = shadow_ray;
             *transmittance = SpectrumRGB{1.0f};
@@ -130,7 +131,7 @@ void Scene::sampleAttenuatedDirectIllumination(
                 //* If in volume
                 if (!mediums.empty()) {
                     Medium *medium = mediums.top();
-                    *transmittance *= medium->transmittance(*this, transimattance_ray.ori, i_rec.p);
+                    *transmittance *= medium->transmittance(transimattance_ray.ori, i_rec.p);
                 }
                 //* If enter the volume
                 if(dot(i_rec.geoN, transimattance_ray.dir) < 0) {
@@ -156,5 +157,42 @@ void Scene::sampleAttenuatedDirectIllumination(
     } else {
         std::cout << "No area light!\n";
         std::exit(1);
+    }
+}
+
+SpectrumRGB Scene::getTransmittance(const std::stack<Medium *> &medium_stack, Point3f from, Point3f to) const {
+    Ray3f transimattance_ray {from, to};
+
+    //* Shadowray intersect test
+    //* 1. If occlude
+    if (rayIntersect(transimattance_ray)) { 
+        return SpectrumRGB{.0f};
+    } else {
+        //* 2. Evaluate the possible return       
+        std::stack<Medium *> mediums = medium_stack;
+        RayIntersectionRec i_rec;
+        SpectrumRGB res {1.f};
+        while(rayIntersect(transimattance_ray, i_rec)) {
+            //* If in volume
+            if (!mediums.empty()) {
+                Medium *medium = mediums.top();
+                res *= medium->transmittance(transimattance_ray.ori, i_rec.p);
+            }
+            //* If enter the volume
+            if(dot(i_rec.geoN, transimattance_ray.dir) < 0) {
+                if (i_rec.meshPtr->getMedium())
+                    mediums.push(i_rec.meshPtr->getMedium());
+            }
+            //* If escape the volume
+            if (dot(i_rec.geoN, transimattance_ray.dir) > 0) {
+                if (i_rec.meshPtr->getMedium() && !mediums.empty())
+                    mediums.pop();
+            }
+            //* Update transimattance ray
+            transimattance_ray = Ray3f{i_rec.p, to};
+            //* Clear the i_rec
+            i_rec.clear();
+        }
+        return res;
     }
 }

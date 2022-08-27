@@ -51,8 +51,9 @@ public:
             //*------------------------------------------------------
             
             i_rec.computeRayDifferential(ray);
-            bsdf->bumpComputeShadingNormal(&i_rec);
-            
+            //! bsdf->bumpComputeShadingNormal(&i_rec);
+            bsdf->computeShadingNormal(&i_rec);
+
             SpectrumRGB direct_illumination {.0f};
             for (int i = 0; i < m_shadowray_nums; ++i) {
                 DirectIlluminationRecord d_rec;
