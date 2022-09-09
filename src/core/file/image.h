@@ -29,6 +29,13 @@ public:
         pixels[pos.x][pos.y] = rgb;
     }
 
+    void setAll(SpectrumRGB rgb) {
+        for (int i = 0; i < size.x; ++i) {
+            for (int j = 0; j < size.y; ++j)
+                pixels[i][j] = rgb;
+        }
+    }
+
     Vector2i getSize() const {
         return size;
     }
@@ -181,4 +188,25 @@ public:
 
     ImageBlock& at(size_t _x, size_t _y) {return *blocks[_x][_y];}
     
+};
+
+class BlockManager {
+public:
+    BlockManager() = delete;
+    BlockManager(Vector2i imgResolution, int _blockSize) {
+        blockSize = _blockSize;
+        auto [_x, _y] = imgResolution;
+        x = _x / blockSize;
+        y = _y / blockSize;
+    }
+
+    std::shared_ptr<ImageBlock> getBlock(int _x, int _y) const ;
+
+    Vector2i getSize() const {
+        return Vector2i{x, y};
+    }
+
+private:
+    int x, y;
+    int blockSize;
 };

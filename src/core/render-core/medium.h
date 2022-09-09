@@ -1,6 +1,7 @@
 #pragma once
 #include "core/utils/configurable.h"
-#include "scene.h"
+#include "sampler.h"
+class Scene;
 
 struct MediumSampleRecord {
     float pathLength;

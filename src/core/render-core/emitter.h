@@ -1,16 +1,20 @@
 #pragma once
 #include "core/utils/configurable.h"
-#include "core/mesh/mesh.h"
 #include "core/render-core/texture.h"
+#include "core/mesh/mesh.h"
 
 class Emitter;
+class ShapeInterface;
 
 struct PointQueryRecord {
     Point3f p;
     Normal3f normal;
     float pdf;
+    // TODO delete this
     const Mesh *mesh;
     const Emitter *emitter;
+
+    std::shared_ptr<ShapeInterface> shape;
 };
 
 struct EmitterQueryRecord {

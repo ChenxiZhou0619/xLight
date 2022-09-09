@@ -1,9 +1,11 @@
 #pragma once
 #include "core/utils/configurable.h"
-#include "core/core.h"
 #include "bsdf.h"
 #include "sampler.h"
 #include "emitter.h"
+//#include "core/render-core/scene.h"
+#include "core/scene/scene.h"
+class Scene;
 
 class Integrator : public Configurable {
 public:

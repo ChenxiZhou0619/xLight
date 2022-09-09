@@ -1,8 +1,11 @@
 #include "mesh.h"
+#include "core/render-core/sampler.h"
 
-std::vector<std::shared_ptr<ShapeInterface>>
+std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
 loadObjFile(const std::string &filePath) {
-    std::vector<std::shared_ptr<ShapeInterface>> result;
+    std::unordered_map<
+        std::string, 
+        std::shared_ptr<ShapeInterface>> result;
 
     Assimp::Importer importer;
     const aiScene *ai_scene = importer.ReadFile(
@@ -42,6 +45,7 @@ loadObjFile(const std::string &filePath) {
         //*---------- Parsing faces -------------
         int numFaces = ai_mesh->mNumFaces;
         triMesh->m_faces.reserve(numFaces);
+        triMesh->m_triangles_distribution = std::make_shared<Distribution1D>(numFaces);
         for (int j = 0; j < ai_mesh->mNumFaces; ++j) {
             auto face = ai_mesh->mFaces[j].mIndices;
             triMesh->m_faces.emplace_back(
@@ -89,7 +93,7 @@ loadObjFile(const std::string &filePath) {
                 );
             }
         }
-        result.emplace_back(triMesh);
+        result[ai_mesh->mName.C_Str()] = triMesh;
     }
     return result;
 }
@@ -122,12 +126,17 @@ void TriangleMesh::initEmbreeGeometry(RTCDevice device) {
         m_faces.size()
     );
 
+
     // brute-force copy
+    //* compute the triangle distribution
     for(int i = 0; i < m_faces.size(); ++i) {
         faces[i * 3 + 0] = m_faces[i].x;
         faces[i * 3 + 1] = m_faces[i].y;
         faces[i * 3 + 2] = m_faces[i].z;
+
+        m_triangles_distribution->append(getTriArea(i));
     }
+    m_surface_area = m_triangles_distribution->normalize();
 
     rtcCommitGeometry(this->embreeGeometry);   
 }
@@ -152,6 +161,14 @@ Normal3f TriangleMesh::getNormal(int idx) const {
 
 Point2f TriangleMesh::getUV(int idx) const {
     return m_UVs[idx];
+}
+
+float TriangleMesh::getTriArea(int idx) const {
+    auto triangle = this->getFace(idx);
+    auto p0 = this->getVertex(triangle.x),
+         p1 = this->getVertex(triangle.y),
+         p2 = this->getVertex(triangle.z);
+    return 0.5 * cross((p0 - p1), (p0 - p2)).length();
 }
 
 Point3f TriangleMesh::getHitPoint(int triIdx, Point2f uv) const {
@@ -181,4 +198,23 @@ Point2f TriangleMesh::getHitTextureCoordinate(int triIdx, Point2f uv) const {
          uv1 = this->getUV(triangle.y),
          uv2 = this->getUV(triangle.z);
     return (1 - u - v) * uv0 + u * uv1 + v * uv2;
+}
+
+void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec, 
+                                   Sampler *sampler) const
+{
+    int triIdx = m_triangles_distribution->sample(sampler->next1D());
+    auto triangle = getFace(triIdx);
+    auto p0 = this->getVertex(triangle.x),
+         p1 = this->getVertex(triangle.y),
+         p2 = this->getVertex(triangle.z);
+    auto [x, y] = sampler->next2D();
+    auto w0 = 1 - std::sqrt(1 - x),
+         w1 = y * std::sqrt(1 - x),
+         w2 = std::max(.0f, 1 - w0 - w1);
+    
+    pRec->p = p0 * w0 + p1 * w1 + p2 * w2;
+    pRec->normal = getNormal(triangle.x) * w0
+                   + getNormal(triangle.y) * w1
+                   + getNormal(triangle.z) * w2;
 }

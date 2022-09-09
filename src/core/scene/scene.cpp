@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "core/render-core/sampler.h"
 
 Scene::Scene() {
     device = rtcNewDevice(nullptr);
@@ -14,6 +15,13 @@ void Scene::addShape(std::shared_ptr<ShapeInterface> shape) {
 
 void Scene::postProcess() {
     rtcCommitScene(scene);
+    for (auto shape : shapes) {
+        if (shape->isEmitter()) {
+            areaEmitters.emplace_back(shape);
+            emittersDistribution.append(shape->getSurfaceArea());
+        }
+    }
+    emittersSurfaceArea = emittersDistribution.normalize();
 }
 
 std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
@@ -43,6 +51,60 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
     };        
     its.hitPoint = shape->getHitPoint(triangleIndex, uv); 
     its.shadingN = its.geometryN = shape->getHitNormal(triangleIndex, uv);
+    its.geometryF = Frame{its.geometryN};
+    its.shadingF = Frame{its.shadingN};
     its.uv = shape->getHitTextureCoordinate(triangleIndex, uv);
     return std::make_optional(its);
+}
+
+bool Scene::occlude(const Ray3f &ray) const {
+    // TODO, replace this
+    auto its = intersect(ray);
+    return its.has_value();
+}
+
+SpectrumRGB Scene::evaluateEnvironment(const Ray3f &ray) const {
+    if (environment == nullptr) {
+        return SpectrumRGB{.0f};
+    } else {
+        return environment->evaluate(ray);
+    }
+}
+
+void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
+                                   Point3f from,
+                                   Sampler *sampler) const 
+{
+    // TODO, just sample area light now
+    if (!areaEmitters.empty()) {
+        PointQueryRecord pRec;
+        int emitterIdx = emittersDistribution.sample(sampler->next1D());
+        areaEmitters[emitterIdx]->sampleOnSurface(&pRec, sampler);
+        pRec.shape = areaEmitters[emitterIdx];
+        pRec.pdf = 1 / emittersSurfaceArea;
+        // TODO, replace the raw pointer
+        pRec.emitter = pRec.shape->getEmitter().get();
+
+        Ray3f shadowRay {from, pRec.p};
+        EmitterQueryRecord eRec{pRec, shadowRay};
+        
+        dRec->energy = pRec.shape->getEmitter()->evaluate(shadowRay);
+        dRec->point_on_emitter = pRec.p;
+        dRec->shadow_ray = shadowRay;
+        dRec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
+        dRec->pdf = 1 / emittersSurfaceArea;
+        dRec->pdf *= shadowRay.tmax * shadowRay.tmax 
+            / std::abs(dot(pRec.normal, shadowRay.dir));
+    } else {
+        std::cerr << "No area light!\n";
+        std::exit(1);
+    }
+}
+
+float Scene::pdfAreaIllumination(const ShapeIntersection& its, 
+                                 const Ray3f &ray) const 
+{
+    return (1 / emittersSurfaceArea) * 
+        its.distance * its.distance
+        / std::abs(dot(its.shadingN, ray.dir));
 }

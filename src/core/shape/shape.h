@@ -1,11 +1,14 @@
 #pragma once
 #include <core/geometry/geometry.h>
-
 #include <embree3/rtcore.h>
-
+#include <core/render-core/emitter.h>
+class Emitter;
+class BSDF;
 
 class ShapeInterface {
 public:
+    friend class Scene;
+    
     ShapeInterface() = default;
     
     virtual ~ShapeInterface() = default;
@@ -25,7 +28,39 @@ public:
 
     bool HasTangent() const {return hasTangent;}
 
-    friend class Scene;
+    bool isEmitter() const {return emitter != nullptr;}
+
+    std::shared_ptr<Emitter> getEmitter() const {
+        return emitter;
+    }
+
+    std::shared_ptr<BSDF> getBSDF() const {
+        return bsdf;
+    }
+
+    virtual void sampleOnSurface(PointQueryRecord *pRec,
+                                 Sampler *sampler) const = 0;
+
+    float getSurfaceArea() const {
+        return m_surface_area;
+    }
+
+    void setBSDF(std::shared_ptr<BSDF> bsdf) {
+        this->bsdf = bsdf;
+    }
+
+    void setEmitter(std::shared_ptr<Emitter> emitter) {
+        this->emitter = emitter;
+    }
+
+    std::shared_ptr<Medium> getMedium() const {
+        return medium;
+    }
+
+    void setMedium(std::shared_ptr<Medium> medium) {
+        this->medium = medium;
+    } 
+
 protected:
    
     virtual Point3f getVertex(int idx) const = 0;
@@ -41,6 +76,14 @@ protected:
     bool hasUV;
     
     bool hasTangent;
+
+    float m_surface_area;
+
+    std::shared_ptr<Emitter> emitter;
+
+    std::shared_ptr<BSDF> bsdf;  
+
+    std::shared_ptr<Medium> medium;  
 };
 
 struct ShapeIntersection {

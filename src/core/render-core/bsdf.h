@@ -2,6 +2,7 @@
 #include "core/utils/configurable.h"
 #include "spectrum.h"
 #include "texture.h"
+#include "core/shape/shape.h"
 
 struct BSDFQueryRecord {
     // ! both point from the origin in local
@@ -37,11 +38,23 @@ struct BSDFQueryRecord {
             du = dv = .0f;
         }
     }
+
+    BSDFQueryRecord(const ShapeIntersection &its, Ray3f ri, Ray3f ro) {
+        wi = its.toLocal(-ri.dir);
+        wo = its.toLocal(ro.dir);
+        uv = its.uv;
+        du = dv = 0;
+    }
+    BSDFQueryRecord(const ShapeIntersection &its, Ray3f ri) {
+        wi = its.toLocal(-ri.dir);
+        uv = its.uv;
+        du = dv = 0;
+    }
 };
 
 class BSDF : public Configurable{
 protected:
-    Texture *m_texture;
+    std::shared_ptr<Texture> m_texture;
     Texture *m_bumpmap;
     Texture *m_normalmap;
 public:
@@ -49,7 +62,12 @@ public:
     BSDF(const rapidjson::Value &_value);
     virtual ~BSDF() = default;
 
-    void setTexture(Texture *texture) {
+    //TODO delete it
+    void setTexture(Texture* texture) {
+        m_texture.reset(texture);
+    }
+
+    void setTexture(std::shared_ptr<Texture> texture) {
         m_texture = texture;
     }
 
