@@ -151,6 +151,8 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                 *trans = SpectrumRGB{.0f};
                 return;    
             } else if (its->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
+                if (medium)
+                    *trans *= medium->getTrans(shadowRay.ori, its->hitPoint);
                 auto shape = its->shape;
                 if (shape->hasMedium()) {
                     //* Enter or escape
