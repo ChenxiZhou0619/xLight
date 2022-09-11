@@ -57,6 +57,10 @@ public:
         return medium;
     }
 
+    bool hasMedium() const {
+        return medium != nullptr;
+    }
+
     void setMedium(std::shared_ptr<Medium> medium) {
         this->medium = medium;
     } 

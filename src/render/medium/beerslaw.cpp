@@ -10,55 +10,35 @@ public:
     virtual ~Beerslaw() = default;
 
     //* Sample the path length before next scatter
-    virtual void sampleDistance(MediumSampleRecord *m_rec) const override{
+    virtual bool sampleDistance(MediumSampleRecord *m_rec,
+                                const Ray3f &ray,
+                                Sampler *sampler) const override
+    {
         // only scatter, so distance is infinity
         m_rec->pathLength = std::numeric_limits<float>::max();
         m_rec->pdf = 1;
+        m_rec->transmittance = getTrans(ray.ori, ray.at(ray.tmax));
+        m_rec->medium = this;
+        return false;
     }
 
-    //* Sample the phase function
-    virtual Vector3f sampleDirection(Vector3f wi, Vector3f *wo, float *pdf) const override{
-        std::cout << "Beerslaw::sampleDirection not implement!\n";
-        std::exit(1);
-    }
-
-    //* Evaluate the phase function
-    virtual SpectrumRGB evaluatePhase(Vector3f wi, Vector3f wo) const override {
-        std::cout << "Beerslaw::evaluateDirection not implement!\n";
-        std::exit(1);
-    }
-
-    //* Return the pdf
-    virtual float pdfPhase(Vector3f wi, Vector3f wo) const override{
-        std::cout << "Beerslaw::pdfPhase not implement!\n";
-        std::exit(1);
-    }
-
-    //* Given two point, return the transmittance between them
-    virtual SpectrumRGB transmittance(Point3f p0, Point3f p1) const override {
-        float length = (p0 - p1).length();
-        SpectrumRGB res = SpectrumRGB{
-            std::exp(m_absorbtion[0] * -length),
-            std::exp(m_absorbtion[1] * -length),
-            std::exp(m_absorbtion[2] * -length)
-        };
-        return res;
-    }
-
-    virtual void sampleLs (const Scene &scene, SpectrumRGB *Ls) const override {
-        *Ls = SpectrumRGB {.0f};        
-    }
-
-    virtual void sample(Sampler *sampler, 
-                        MediumSampleRecord *mRec, 
-                        Point3f ori,
-                        Point3f end) const override 
+    virtual SpectrumRGB getTrans(Point3f start,
+                                 Point3f end) const override
     {
-        mRec->pathLength = std::numeric_limits<float>::max();
-        mRec->pdf = 1.f;   
-        mRec->transmittance = transmittance(ori, end);
-        mRec->isValid = false;     
+        auto r = m_absorbtion.r(),
+             g = m_absorbtion.g(),
+             b = m_absorbtion.b();
+        
+        auto dist = (end - start).length();
+
+        return SpectrumRGB{
+            std::exp(-dist * r),
+            std::exp(-dist * g),
+            std::exp(-dist * b)
+        };
+
     }
+
 
 private:
     SpectrumRGB m_absorbtion;

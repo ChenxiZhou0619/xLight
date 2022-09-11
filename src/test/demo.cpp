@@ -50,7 +50,8 @@ void render(std::shared_ptr<RenderTask> task) {
     std::vector<std::shared_ptr<ImageBlock>> resultBlocks;
     resultBlocks.reserve(x * y);
 
-
+    double i = 0;
+    double total = x * y;
     tbb::parallel_for(
         tbb::blocked_range2d<size_t>(0, x, 0, y), 
         [&](const tbb::blocked_range2d<size_t> &r){
@@ -61,8 +62,11 @@ void render(std::shared_ptr<RenderTask> task) {
                             blc, 
                             task
                         ); 
-
                         resultBlocks.emplace_back(blc);
+                        i++;
+                        if ((int)i % 10 == 0) {
+                            std::cout << "Finish " << (int)(i * 100/total) << "%\n";
+                        }
                     }
             }
     );

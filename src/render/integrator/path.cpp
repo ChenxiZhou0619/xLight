@@ -1,132 +1,120 @@
 #include "core/render-core/integrator.h"
 #include "core/math/common.h"
 
-class PathTracing : public Integrator {
+class PathTracer : public Integrator {
 public:
-    PathTracing() : m_max_depth(5), m_rr_threshold(3), m_shadowray_nums(1) { }
+    PathTracer() : 
+        mMaxDepth(5), mRRThresHold(3), mShadowrayNums(1) { }
 
-    PathTracing(const rapidjson::Value &_value) {
-        m_max_depth = getInt("maxDepth", _value);
-        m_rr_threshold = getInt("rrThreshold", _value);
-        m_shadowray_nums = getInt("shadowRayNums", _value);
+    PathTracer(const rapidjson::Value &_value) {
+        mMaxDepth = getInt("maxDepth", _value);
+        mRRThresHold = getInt("rrThreshold", _value);
+        mShadowrayNums = getInt("shadowRayNums", _value);
     }
 
-    virtual SpectrumRGB getLi(const Scene &scene, 
-                              const Ray3f &r, 
-                              Sampler *sampler) const override {
-        SpectrumRGB Li {.0f}, throughput {1.0f};
-        int path_length = 0;
-        bool is_specular_bounce = false;
-        Ray3f ray{r};
+    virtual SpectrumRGB getLi(const Scene &scene,
+                              const Ray3f &_ray,
+                              Sampler *sampler) const override
+    {
+        SpectrumRGB Li{.0f}, beta{1.f};
+        Ray3f ray{_ray};
+        int bounces = 0;
+        bool isSpecularBounce = false;
 
-        while(true) {
-            RayIntersectionRec i_rec;
-            bool found_intersection = scene.rayIntersect(ray, i_rec);
+        while (true) {
+            auto its = scene.intersect(ray);
+            bool foundIntersection = its.has_value();
 
-            if (path_length == 0 || is_specular_bounce) {
-                if (found_intersection) {
-                    if (i_rec.meshPtr->isEmitter()) {
-                        Li += throughput * i_rec.meshPtr->getEmitter()->evaluate(ray);
+
+            if (bounces == 0 || isSpecularBounce) {
+                if (foundIntersection) {
+                    if (its->shape->isEmitter()) {
+                        Li += beta * its->shape->getEmitter()->evaluate(ray);
                     }
                 } else {
-                    Li += throughput * scene.evaluateEnvironment(ray);
+                    Li += beta * scene.evaluateEnvironment(ray);
+                    break;
                 }
             }
 
-            if (!found_intersection || path_length >= m_max_depth)
+            if (!foundIntersection || bounces >= mMaxDepth)
                 break;
-            
-            if (i_rec.meshPtr->isEmitter())
+
+            if (its->shape->isEmitter())
                 break;
-            
-            const BSDF *bsdf = i_rec.meshPtr->getBSDF();
-            if (bsdf->m_type == BSDF::EBSDFType::EEmpty) {
-                //! just continue the ray
-                ray = Ray3f(i_rec.p, ray.dir);
+
+            //* Handle the special surface intersection
+            auto bsdf = its->shape->getBSDF();
+            if (bsdf && bsdf->m_type == BSDF::EBSDFType::EEmpty) {
+                ray = Ray3f{its->hitPoint, ray.dir};
                 continue;
             }
 
-            //*------------------------------------------------------
-            //*------------     Direct Illumination     -------------
-            //*------------------------------------------------------
-            
-            i_rec.computeRayDifferential(ray);
-            //! bsdf->bumpComputeShadingNormal(&i_rec);
-            bsdf->computeShadingNormal(&i_rec);
+            //TODO ray differentials and normal map etc.
 
-            SpectrumRGB direct_illumination {.0f};
-            for (int i = 0; i < m_shadowray_nums; ++i) {
-                DirectIlluminationRecord d_rec;
-                scene.sampleDirectIllumination(&d_rec, sampler, i_rec.p);
-                Ray3f shadow_ray = d_rec.shadow_ray;
-                if (!scene.rayIntersect(shadow_ray)) {
-                    // hit the emitter
-                    Vector3f wo = i_rec.toLocal(shadow_ray.dir);
-                    //BSDFQueryRecord b_rec {wi, wo, i_rec.UV};
-                    BSDFQueryRecord b_rec {i_rec, ray, shadow_ray};
-                    //* Evaluate the direct illumination
-                    SpectrumRGB bsdf_value = bsdf->evaluate(b_rec);
-                    float bsdf_pdf = bsdf->pdf(b_rec);
-                    if (!bsdf_value.isZero())
-                        direct_illumination += 
-                            throughput * bsdf_value * d_rec.energy
-                            / d_rec.pdf * powerHeuristic(d_rec.pdf, bsdf_pdf);
+            SpectrumRGB directIllumination{.0f};
+            for (int i = 0; i < mShadowrayNums; ++i) {
+                DirectIlluminationRecord dRec;
+                scene.sampleAreaIllumination(&dRec,its->hitPoint ,sampler);
+                auto shadowRay = dRec.shadow_ray;
+                if (!scene.occlude(shadowRay)) {
+                    BSDFQueryRecord bRec{its.value(), ray, shadowRay};
+                    SpectrumRGB bsdf_value = bsdf->evaluate(bRec);
+                    float bsdf_pdf = bsdf->pdf(bRec);
+                    directIllumination += beta *
+                        bsdf_value * dRec.energy / dRec.pdf * 
+                        powerHeuristic(dRec.pdf, bsdf_pdf);
                 }
             }
-            if (m_shadowray_nums != 0)
-                Li += (direct_illumination / m_shadowray_nums);
+            if (mShadowrayNums != 0) 
+                Li += directIllumination / (float)mShadowrayNums;
 
-            //*------------------------------------------------------
-            //*------------    Sampling BSDF       ------------------
-            //*------------------------------------------------------
-            //BSDFQueryRecord b_rec {wi, i_rec.UV};
-            
-            BSDFQueryRecord b_rec {i_rec, ray};
+
+            BSDFQueryRecord bRec{its.value(), ray};
             float bsdf_pdf = .0f;
-            SpectrumRGB bsdf_weight = bsdf->sample(b_rec, sampler->next2D(), bsdf_pdf);
-            is_specular_bounce = !bsdf->isDiffuse();
-            if (bsdf_weight.isZero())
-                break;
-            //! Update the ray
-            ray = Ray3f {i_rec.p, i_rec.toWorld(b_rec.wo)};
-            
-            i_rec.clear();
+            SpectrumRGB bsdf_weight = bsdf->sample(bRec, sampler->next2D(), bsdf_pdf);
+            isSpecularBounce = !bsdf->isDiffuse();
 
-            found_intersection = scene.rayIntersect(ray, i_rec);
+            if(bsdf_weight.isZero())
+                break;
             
-            SpectrumRGB lumion_energy {.0f};
+            ray = Ray3f{its->hitPoint, its->toWorld(bRec.wo)};
+            
+            its = scene.intersect(ray);
+            foundIntersection = its.has_value();
+
+            SpectrumRGB lumion_energy{.0f};
             float lumion_pdf = .0f;
 
-            if (!found_intersection) {
-                //* hit the environment, evaluate the Li and terminate
-                //* Cause not sample the environment, the pdf should be 0
+            if (!foundIntersection) {
                 lumion_energy = scene.evaluateEnvironment(ray);
-                //lumion_pdf = scene.pdfEnvironment(ray);
-                lumion_pdf = .0f;
             } else {
-                //* hit the scene
-                if (i_rec.meshPtr->isEmitter()) {
-                    //* hit emitter, evaluate the Li and terminate
-                    lumion_energy = i_rec.meshPtr->getEmitter()->evaluate(ray);
-                    lumion_pdf = scene.pdfArea(i_rec, ray);
+                if (its->shape->isEmitter()) {
+                    lumion_energy = its->shape->getEmitter()->evaluate(ray);
+                    lumion_pdf = scene.pdfAreaIllumination(its.value(), ray);
                 }
             }
-            throughput *= bsdf_weight;
+
+            beta *= bsdf_weight;
             if (!lumion_energy.isZero())
-                Li += throughput * lumion_energy * powerHeuristic(bsdf_pdf, lumion_pdf);
+                Li += beta * lumion_energy * powerHeuristic(bsdf_pdf, lumion_pdf);
             
-            if (!i_rec.isValid)
+            if (!foundIntersection)
                 break;
-            if (path_length++ > m_rr_threshold) {
+            
+            if (bounces++ > mRRThresHold) {
                 if (sampler->next1D() > 0.95f) break;
-                throughput /= 0.95f;
+                beta /= 0.95;
             }
+
         }
         return Li;
     }
-private:
-    int m_max_depth, m_rr_threshold, m_shadowray_nums;
 
+private:
+    int mMaxDepth;
+    int mRRThresHold;
+    int mShadowrayNums;
 };
 
-REGISTER_CLASS(PathTracing, "path")
+REGISTER_CLASS(PathTracer, "path")

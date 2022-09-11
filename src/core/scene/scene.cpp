@@ -1,5 +1,8 @@
 #include "scene.h"
 #include "core/render-core/sampler.h"
+#include "core/render-core/bsdf.h"
+#include "core/render-core/medium.h"
+#include <stack>
 
 Scene::Scene() {
     device = rtcNewDevice(nullptr);
@@ -99,6 +102,74 @@ void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
         std::cerr << "No area light!\n";
         std::exit(1);
     }
+}
+
+void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec, 
+                                             SpectrumRGB *trans, 
+                                             Point3f from,
+                                             const std::stack<std::shared_ptr<Medium>> mediums, 
+                                             Sampler *sampler) const 
+{
+    //TODO, just sample area light now
+    if (!areaEmitters.empty()) {
+        PointQueryRecord pRec;
+        int emitterIdx = emittersDistribution.sample(sampler->next1D());
+        areaEmitters[emitterIdx]->sampleOnSurface(&pRec, sampler);
+        pRec.shape = areaEmitters[emitterIdx];
+        pRec.pdf = 1 / emittersSurfaceArea;
+        pRec.emitter = pRec.shape->getEmitter().get();
+
+        Ray3f shadowRay {from, pRec.p};
+        EmitterQueryRecord eRec{pRec, shadowRay};
+
+        dRec->energy = pRec.emitter->evaluate(shadowRay);
+        dRec->point_on_emitter = pRec.p;
+        dRec->shadow_ray = shadowRay;
+        dRec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
+        dRec->pdf = 1 / emittersSurfaceArea;
+        dRec->pdf *= shadowRay.tmax * shadowRay.tmax
+            / std::abs(dot(pRec.normal, shadowRay.dir));
+
+        //* Caculate the transmittance, if occulude, trans = SpectrumRGB{.0f}
+        bool isOcculude = false;
+        std::stack<std::shared_ptr<Medium>> mediumStack = mediums;
+        while(true) {
+            auto its = this->intersect(shadowRay);
+            auto medium = mediumStack.empty()? nullptr : mediumStack.top();
+            if (!its.has_value()) {
+                //* No occulude
+                if (medium) {
+                    *trans *= medium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
+                }
+                return;
+            } else if (its.has_value() &&
+                       (its->shape->getBSDF() == nullptr || 
+                        its->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty)) 
+            {
+                //todo, maybe consider the dielectric
+                //* Occulude
+                *trans = SpectrumRGB{.0f};
+                return;    
+            } else if (its->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
+                auto shape = its->shape;
+                if (shape->hasMedium()) {
+                    //* Enter or escape
+                    if (dot(its->geometryN, shadowRay.dir) < 0) {
+                        //* Enter
+                        mediumStack.push(shape->getMedium());
+                    } else if (dot(its->geometryN, shadowRay.dir) > 0 && !mediumStack.empty()) {
+                        mediumStack.pop();
+                    }
+                }
+                shadowRay = Ray3f{its->hitPoint, pRec.p};
+            }
+        }
+        
+    } else {
+        std::cerr << "No area light!\n";
+        std::exit(1);
+    }
+
 }
 
 float Scene::pdfAreaIllumination(const ShapeIntersection& its, 

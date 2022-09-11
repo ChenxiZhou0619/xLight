@@ -2,7 +2,7 @@
 #include <memory>
 #include <vector>
 #include <optional>
-
+#include <stack>
 #include <embree3/rtcore.h>
 #include <core/shape/shape.h>
 
@@ -25,6 +25,12 @@ public:
     void sampleAreaIllumination(DirectIlluminationRecord *dRec,
                                 Point3f from,
                                 Sampler *sampler) const;
+
+    void sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
+                                          SpectrumRGB *trans,
+                                          Point3f from,
+                                          const std::stack<std::shared_ptr<Medium>> mediums,
+                                          Sampler *sampler) const;
 
     float pdfAreaIllumination (const ShapeIntersection &its,
                                const Ray3f &ray) const;
