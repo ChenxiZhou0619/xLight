@@ -178,6 +178,7 @@ add_executable(
 
     # render/medium
     ${XLIGHT_RENDER_MEDIUM_DIR}/beerslaw.cpp
+    ${XLIGHT_RENDER_MEDIUM_DIR}/homogeneous.cpp
 )
 
 target_include_directories(demo PRIVATE

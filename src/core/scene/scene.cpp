@@ -163,7 +163,7 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                         mediumStack.pop();
                     }
                 }
-                shadowRay = Ray3f{its->hitPoint, pRec.p};
+                shadowRay = Ray3f{its->hitPoint + shadowRay.dir * 0.001, pRec.p};
             }
         }
         

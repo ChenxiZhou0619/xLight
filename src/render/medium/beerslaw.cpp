@@ -39,6 +39,10 @@ public:
 
     }
 
+    virtual SpectrumRGB Le(const Ray3f &ray) const override {
+        return SpectrumRGB{0};
+    }
+
 
 private:
     SpectrumRGB m_absorbtion;
