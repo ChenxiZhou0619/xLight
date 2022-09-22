@@ -29,11 +29,19 @@ public:
     void sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                                           SpectrumRGB *trans,
                                           Point3f from,
-                                          const std::stack<std::shared_ptr<Medium>> mediums,
+                                          const std::stack<std::shared_ptr<Medium>>& mediums,
                                           Sampler *sampler) const;
 
     float pdfAreaIllumination (const ShapeIntersection &its,
                                const Ray3f &ray) const;
+
+    SpectrumRGB evaluateTrans(const std::stack<std::shared_ptr<Medium>> &mediums,
+                              Point3f from,
+                              Point3f end) const;
+
+    std::optional<ShapeIntersection> intersect(const Ray3f &ray,
+                                               const std::stack<std::shared_ptr<Medium>>& mediums, 
+                                               SpectrumRGB *trans) const;
 private:
     //* Embree 
     RTCDevice device;

@@ -21,6 +21,8 @@ public:
     //* Only for mesh like shape
     virtual Normal3f getHitNormal(int triIdx, Point2f uv) const = 0;
 
+    virtual Normal3f getHitNormal(int triIdx) const = 0;
+
     //* Only for mesh like shape
     virtual Point2f getHitTextureCoordinate(int triIdx, Point2f) const = 0;
 
@@ -102,6 +104,8 @@ struct ShapeIntersection {
     Point2f uv;
 
     std::shared_ptr<ShapeInterface> shape;
+
+    int primID = -1;
 
      Vector3f toWorld(const Vector3f &local) const {
         return shadingF.toWorld(local);

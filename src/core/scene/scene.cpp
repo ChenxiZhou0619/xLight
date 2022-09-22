@@ -47,13 +47,19 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
     //* Fill the intersection
     its.shape = shape;
     int triangleIndex = rayhit.hit.primID;
+    its.primID = triangleIndex;
     its.distance = rayhit.ray.tfar;
     
     Point2f uv {
         rayhit.hit.u, rayhit.hit.v
     };        
     its.hitPoint = shape->getHitPoint(triangleIndex, uv); 
-    its.shadingN = its.geometryN = shape->getHitNormal(triangleIndex, uv);
+    its.shadingN = shape->getHitNormal(triangleIndex, uv);
+    its.geometryN = shape->getHitNormal(triangleIndex);
+//    std::cout << "=========================\n";
+//    std::cout << its.shadingN << std::endl;
+//    std::cout << its.geometryN << std::endl;
+
     its.geometryF = Frame{its.geometryN};
     its.shadingF = Frame{its.shadingN};
     its.uv = shape->getHitTextureCoordinate(triangleIndex, uv);
@@ -107,7 +113,7 @@ void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
 void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec, 
                                              SpectrumRGB *trans, 
                                              Point3f from,
-                                             const std::stack<std::shared_ptr<Medium>> mediums, 
+                                             const std::stack<std::shared_ptr<Medium>> &mediums, 
                                              Sampler *sampler) const 
 {
     //TODO, just sample area light now
@@ -163,7 +169,7 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                         mediumStack.pop();
                     }
                 }
-                shadowRay = Ray3f{its->hitPoint + shadowRay.dir * 0.001, pRec.p};
+                shadowRay = Ray3f{its->hitPoint , pRec.p};
             }
         }
         
@@ -174,10 +180,81 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
 
 }
 
+SpectrumRGB Scene::evaluateTrans(const std::stack<std::shared_ptr<Medium>> &mediums, 
+                                 Point3f from, 
+                                 Point3f end) const 
+{
+    Ray3f shadowRay {from, end};
+    SpectrumRGB result {1.f};
+    auto mediumStack = mediums;
+
+    while(true) {
+        auto its = this->intersect(shadowRay);
+        auto medium = mediumStack.empty()? nullptr : mediumStack.top();
+        if (!its.has_value()) {
+            //* No occulude
+            if (medium) {
+                result *= medium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
+            }
+            return result;
+        } else if (its.has_value() &&
+                   (its->shape->getBSDF() == nullptr || 
+                    its->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty)) 
+        {
+            //todo, maybe consider the dielectric
+            //* Occulude
+            return SpectrumRGB{.0f};    
+        } else if (its->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
+            if (medium)
+                result *= medium->getTrans(shadowRay.ori, its->hitPoint);
+            auto shape = its->shape;
+            if (shape->hasMedium()) {
+                //* Enter or escape
+                if (dot(its->geometryN, shadowRay.dir) < 0) {
+                    //* Enter
+                    mediumStack.push(shape->getMedium());
+                } else if (dot(its->geometryN, shadowRay.dir) > 0 && !mediumStack.empty()) {
+                    mediumStack.pop();
+                }
+            }
+            shadowRay = Ray3f{its->hitPoint , end};
+        }
+    }
+    return result;
+}
+
 float Scene::pdfAreaIllumination(const ShapeIntersection& its, 
                                  const Ray3f &ray) const 
 {
     return (1 / emittersSurfaceArea) * 
         its.distance * its.distance
         / std::abs(dot(its.shadingN, ray.dir));
+}
+
+std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
+                                                  const std::stack<std::shared_ptr<Medium>>& mediums,
+                                                  SpectrumRGB *trans) const 
+{
+    Point3f from = ray.ori;
+    Ray3f _ray = ray;
+    while (true) {
+        auto its = intersect(_ray);
+        if (its.has_value()) {
+            auto bsdf = its->shape->getBSDF();
+            if (!bsdf ||
+                bsdf->m_type != BSDF::EBSDFType::EEmpty)
+            {
+                *trans = evaluateTrans(mediums, from, its->hitPoint);
+                return its;
+            } else {
+                //* Continue the ray
+                _ray = Ray3f {its->hitPoint, _ray.dir};
+            }
+        } else {
+            //* No intersection
+            *trans = SpectrumRGB{.0f};
+            return std::nullopt;
+        }
+    }
+    return std::nullopt;
 }

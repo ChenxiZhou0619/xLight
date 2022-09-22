@@ -3,6 +3,7 @@
 #include "core/math/common.h"
 #include <stack>
 
+
 class VolPathTracer : public Integrator {
 public:
     VolPathTracer() : mMaxDepth(5), mRRThresHold(3), mShadowrayNums(1) { }
@@ -205,7 +206,7 @@ public:
         int bounces = 0;
         bool isSpecularBounce = false;
         std::stack<std::shared_ptr<Medium>> mediumStack;
-        float prevBSDFPdf = 1.0f;
+        float prevBSDFPdf = .0f;
 
         while(bounces <= mMaxDepth) {
             auto its = scene.intersect(ray);
@@ -228,17 +229,50 @@ public:
                         scatterPoint , 
                         mediumStack, sampler
                     );
+                    PhaseQueryRecord pRec{scatterPoint, ray.dir, dRec.shadow_ray.dir};
+                    float phasePdf = medium->pdfPhase(pRec);
+                    SpectrumRGB phaseValue = medium->evaluatePhase(pRec);
+
                     if (!trans.isZero()) 
-                        Li += beta * trans * mRec.sigmaS * dRec.energy / dRec.pdf / mShadowrayNums;
+                        Li += beta * trans * mRec.sigmaS * phaseValue 
+                        * dRec.energy 
+                        / dRec.pdf / mShadowrayNums * powerHeuristic(dRec.pdf, phasePdf)
+                        * mRec.albedo;
                 }
+                Li += beta * mRec.sigmaA * (1 - mRec.albedo) * medium->Le(ray);
 
                 PhaseQueryRecord pRec{scatterPoint, ray.dir};
                 medium->samplePhase(&pRec, sampler->next2D());
                 beta *= medium->evaluatePhase(pRec) / pRec.pdf;
                 ray = Ray3f{scatterPoint, pRec.localFrame.toWorld(pRec.wo)};
+
+                SpectrumRGB trans {1.f};
+                its = scene.intersect(ray, mediumStack, &trans);
+                foundIntersection = its.has_value();
+
+                SpectrumRGB lumionEnergy {.0f};
+                float lumionPdf = .0f;
+
+                if (!foundIntersection) {
+                    lumionEnergy = scene.evaluateEnvironment(ray);
+                } else {
+                    if (its->shape->isEmitter()) {
+                        lumionEnergy = its->shape->getEmitter()->evaluate(ray);
+                        lumionPdf = scene.pdfAreaIllumination(its.value(), ray);
+                    }
+                }
+
+                if (!lumionEnergy.isZero() && !trans.isZero()) {
+                    Li += trans * beta * lumionEnergy * powerHeuristic(pRec.pdf, lumionPdf);
+                    break;
+                }
+                if (!foundIntersection)
+                    break;
+
             } else {
-                if (medium)
+                if (medium){
                     beta *= mRec.transmittance / mRec.pdf;
+                }
                 if (beta.isZero())
                     break;
                 if (bounces == 0 || isSpecularBounce) {
@@ -271,17 +305,45 @@ public:
                     //* Handle the medium
                     auto flag = dot(ray.dir, its->geometryN);
                     //* Enter
-                    if (flag < -EPSILON) {
-                        if (shape->hasMedium())
+                    if (flag < 0) {
+                        if (shape->hasMedium()){
                             mediumStack.push(shape->getMedium());
+//#define LOG
+#ifdef LOG
+                            std::cout << "========== Enter medium ==========\n";
+                            std::cout << "Flag : " << flag << "\n";
+                            std::cout << "Bounces : " << bounces << "\n";
+                            std::cout << "Enter point : " << its->hitPoint << "\n";
+                            std::cout << "Enter tri : " << its->primID << "\n";
+                            std::cout << ray << "\n";
+                            std::cout << "Hitdistance : " << its->distance << "\n";
+                            std::cout << "Stack size : " << mediumStack.size() << "\n";
+                            std::cout << "\n";
+                            if (mediumStack.size() != 1)
+                                std::exit(1);
+#endif
+
+                        }                    
                     }
                     //* Escape 
-                    else if (flag > EPSILON) {
-                        if (shape->hasMedium() && !mediumStack.empty())
+                    else if (flag > 0) 
+                    {
+                        if (shape->hasMedium() && !mediumStack.empty()) {
+#ifdef LOG
+                            std::cout << "=========== Exit medium ==========\n";
+                            std::cout << "Flag : " << flag << "\n";
+                            std::cout << "Bounces : " << bounces << "\n";
+                            std::cout << "Enter point : " << its->hitPoint << "\n";
+                            std::cout << "Enter tri : " << its->primID << "\n";
+                            std::cout << ray << "\n";
+                            std::cout << "Hitdistance : " << its->distance << "\n";
+                            std::cout << "\n";
+#endif
                             mediumStack.pop();
+
+                        }
                     }
-                    //ray = Ray3f{its->hitPoint + ray.dir * 0.0000001  , ray.dir};
-                    ray = Ray3f{its->hitPoint + ray.dir * 0.00001 , ray.dir};
+                    ray = Ray3f{its->hitPoint, ray.dir};
                     continue;
                 }
 

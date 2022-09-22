@@ -27,6 +27,8 @@ public:
     //* Only for mesh like shape
     virtual Normal3f getHitNormal(int triIdx, Point2f uv) const override;
 
+    virtual Normal3f getHitNormal(int triIdx) const override;
+
     //* Only for mesh like shape
     virtual Point2f getHitTextureCoordinate(int triIdx, Point2f) const override;
 

@@ -12,7 +12,7 @@ loadObjFile(const std::string &filePath) {
         filePath,
         aiProcess_ConvertToLeftHanded |
         aiProcess_JoinIdenticalVertices |
-        aiProcess_CalcTangentSpace | 
+//        aiProcess_CalcTangentSpace | 
         aiProcess_Triangulate
     );
 
@@ -23,6 +23,7 @@ loadObjFile(const std::string &filePath) {
 
     for (int i = 0; i < ai_scene->mNumMeshes; ++i) {
         auto ai_mesh = ai_scene->mMeshes[i];
+        std::cout << "Mesh : " << ai_mesh->mName.C_Str() << std::endl;
         std::shared_ptr<TriangleMesh> triMesh = std::make_shared<TriangleMesh>();
         
         if(!ai_mesh->HasPositions()) {
@@ -187,6 +188,14 @@ Normal3f TriangleMesh::getHitNormal(int triIdx, Point2f uv) const {
          n1 = this->getNormal(triangle.y),
          n2 = this->getNormal(triangle.z);
     return (1 - u - v) * n0 + u * n1 + v * n2;
+}
+
+Normal3f TriangleMesh::getHitNormal(int triIdx) const {
+    auto triangle = this->getFace(triIdx);
+    auto p0 = this->getVertex(triangle.x),
+         p1 = this->getVertex(triangle.y),
+         p2 = this->getVertex(triangle.z);
+    return cross(p1 - p0, p2 - p0);
 }
 
 Point2f TriangleMesh::getHitTextureCoordinate(int triIdx, Point2f uv) const {

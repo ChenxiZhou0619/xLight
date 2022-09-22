@@ -8,6 +8,18 @@
 #include <tbb/tbb.h>
 #include <mutex>
 
+#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
+#define PBWIDTH 60
+
+void printProgress(double percentage) {
+    int val = (int) (percentage * 100);
+    int lpad = (int) (percentage * PBWIDTH);
+    int rpad = PBWIDTH - lpad;
+    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
+    fflush(stdout);
+}
+
+
 void renderBlock(std::shared_ptr<ImageBlock> block, std::shared_ptr<RenderTask> task) {
     //Integrator *integrator = task->integrator.get();
     auto integrator = task->integrator;
@@ -52,6 +64,8 @@ void render(std::shared_ptr<RenderTask> task) {
 
     double i = 0;
     double total = x * y;
+#define MULTITHREADS
+#ifdef MULTITHREADS
     tbb::parallel_for(
         tbb::blocked_range2d<size_t>(0, x, 0, y), 
         [&](const tbb::blocked_range2d<size_t> &r){
@@ -64,19 +78,35 @@ void render(std::shared_ptr<RenderTask> task) {
                         ); 
                         resultBlocks.emplace_back(blc);
                         i++;
-                        if ((int)i % 10 == 0) {
-                            std::cout << "Finish " << (int)(i * 100/total) << "%\n";
+                        if ((int)i % 5 == 0) {
+                            printProgress(i/total);
                         }
                     }
             }
     );
-
+#endif
+#ifndef MULTITHREADS
+    for (int k = 0; k < x; ++k) {
+        for (int j = 0; j < y; ++j) {
+            auto blc = bm.getBlock(k, j);
+            renderBlock(
+                blc, task
+            );
+            resultBlocks.emplace_back(blc);
+            ++i;
+//            if ((int)i%5==0) {
+//                printProgress(i/total);
+//            }
+        }
+    }
+#endif
+    printProgress(1);
     for (auto i : resultBlocks) {
         task->image->putBlock(*i);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
-    std::cout << tfm::format("Rendering costs : %.2f seconds\n",
+    std::cout << tfm::format("\nRendering costs : %.2f seconds\n",
         (float)std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.f);
     task->image->savePNG();
 }
