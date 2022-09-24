@@ -113,7 +113,7 @@ void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
 void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec, 
                                              SpectrumRGB *trans, 
                                              Point3f from,
-                                             const std::stack<std::shared_ptr<Medium>> &mediums, 
+                                             std::shared_ptr<Medium> medium, 
                                              Sampler *sampler) const 
 {
     //TODO, just sample area light now
@@ -138,14 +138,13 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
 
         //* Caculate the transmittance, if occulude, trans = SpectrumRGB{.0f}
         bool isOcculude = false;
-        std::stack<std::shared_ptr<Medium>> mediumStack = mediums;
+        auto currentMedium = medium;
         while(true) {
             auto its = this->intersect(shadowRay);
-            auto medium = mediumStack.empty()? nullptr : mediumStack.top();
             if (!its.has_value()) {
                 //* No occulude
-                if (medium) {
-                    *trans *= medium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
+                if (currentMedium) {
+                    *trans *= currentMedium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
                 }
                 return;
             } else if (its.has_value() &&
@@ -157,18 +156,9 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                 *trans = SpectrumRGB{.0f};
                 return;    
             } else if (its->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
-                if (medium)
-                    *trans *= medium->getTrans(shadowRay.ori, its->hitPoint);
-                auto shape = its->shape;
-                if (shape->hasMedium()) {
-                    //* Enter or escape
-                    if (dot(its->geometryN, shadowRay.dir) < 0) {
-                        //* Enter
-                        mediumStack.push(shape->getMedium());
-                    } else if (dot(its->geometryN, shadowRay.dir) > 0 && !mediumStack.empty()) {
-                        mediumStack.pop();
-                    }
-                }
+                if (currentMedium)
+                    *trans *= currentMedium->getTrans(shadowRay.ori, its->hitPoint);
+                currentMedium = getTargetMedium(shadowRay.dir, its.value());
                 shadowRay = Ray3f{its->hitPoint , pRec.p};
             }
         }
@@ -180,21 +170,21 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
 
 }
 
-SpectrumRGB Scene::evaluateTrans(const std::stack<std::shared_ptr<Medium>> &mediums, 
+SpectrumRGB Scene::evaluateTrans(std::shared_ptr<Medium> medium, 
                                  Point3f from, 
                                  Point3f end) const 
 {
     Ray3f shadowRay {from, end};
     SpectrumRGB result {1.f};
-    auto mediumStack = mediums;
+    auto currentMedium = medium;
 
     while(true) {
         auto its = this->intersect(shadowRay);
-        auto medium = mediumStack.empty()? nullptr : mediumStack.top();
+
         if (!its.has_value()) {
             //* No occulude
-            if (medium) {
-                result *= medium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
+            if (currentMedium) {
+                result *= currentMedium->getTrans(shadowRay.ori, shadowRay.at(shadowRay.tmax));
             }
             return result;
         } else if (its.has_value() &&
@@ -205,18 +195,9 @@ SpectrumRGB Scene::evaluateTrans(const std::stack<std::shared_ptr<Medium>> &medi
             //* Occulude
             return SpectrumRGB{.0f};    
         } else if (its->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
-            if (medium)
-                result *= medium->getTrans(shadowRay.ori, its->hitPoint);
-            auto shape = its->shape;
-            if (shape->hasMedium()) {
-                //* Enter or escape
-                if (dot(its->geometryN, shadowRay.dir) < 0) {
-                    //* Enter
-                    mediumStack.push(shape->getMedium());
-                } else if (dot(its->geometryN, shadowRay.dir) > 0 && !mediumStack.empty()) {
-                    mediumStack.pop();
-                }
-            }
+            if (currentMedium)
+                result *= currentMedium->getTrans(shadowRay.ori, its->hitPoint);
+            currentMedium = getTargetMedium(shadowRay.dir, its.value());
             shadowRay = Ray3f{its->hitPoint , end};
         }
     }
@@ -232,7 +213,7 @@ float Scene::pdfAreaIllumination(const ShapeIntersection& its,
 }
 
 std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
-                                                  const std::stack<std::shared_ptr<Medium>>& mediums,
+                                                  std::shared_ptr<Medium> medium,
                                                   SpectrumRGB *trans) const 
 {
     Point3f from = ray.ori;
@@ -244,7 +225,7 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
             if (!bsdf ||
                 bsdf->m_type != BSDF::EBSDFType::EEmpty)
             {
-                *trans = evaluateTrans(mediums, from, its->hitPoint);
+                *trans = evaluateTrans(medium, from, its->hitPoint);
                 return its;
             } else {
                 //* Continue the ray
@@ -252,9 +233,21 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
             }
         } else {
             //* No intersection
-            *trans = SpectrumRGB{.0f};
+            // *trans = SpectrumRGB{.0f};
             return std::nullopt;
         }
     }
     return std::nullopt;
+}
+
+std::shared_ptr<Medium> Scene::getTargetMedium(Vector3f wo, 
+                                               const ShapeIntersection &its) const 
+{
+    if (dot(its.geometryN, wo) > 0) {
+        return its.shape->getOutsideMedium();
+    }
+    if (dot(its.geometryN, wo) < 0) {
+        return its.shape->getInsideMedium();
+    }
+    return nullptr;
 }

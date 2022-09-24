@@ -55,8 +55,12 @@ public:
         this->emitter = emitter;
     }
 
-    std::shared_ptr<Medium> getMedium() const {
+    std::shared_ptr<Medium> getInsideMedium() const {
         return medium;
+    }
+
+    std::shared_ptr<Medium> getOutsideMedium() const {
+        return nullptr;
     }
 
     bool hasMedium() const {

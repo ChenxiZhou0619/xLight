@@ -205,7 +205,7 @@ public:
         Ray3f ray{_ray};
         int bounces = 0;
         bool isSpecularBounce = false;
-        std::stack<std::shared_ptr<Medium>> mediumStack;
+        std::shared_ptr<Medium> medium = nullptr;
         float prevBSDFPdf = .0f;
 
         while(bounces <= mMaxDepth) {
@@ -213,13 +213,10 @@ public:
             bool foundIntersection = its.has_value();
 
             MediumSampleRecord mRec;
-            auto medium = mediumStack.empty() ? nullptr : mediumStack.top();
             if (medium &&
                 medium->sampleDistance(&mRec, Ray3f{ray.ori, its->hitPoint}, sampler))
             {
-                beta *= mRec.transmittance / mRec.pdf;
-                if (beta.isZero())
-                    break;
+                beta *= mRec.transmittance * mRec.sigmaS / mRec.pdf;
                 Point3f scatterPoint = ray.at(mRec.pathLength);
                 for (int i = 0; i < mShadowrayNums; ++i) {
                     DirectIlluminationRecord dRec;
@@ -227,19 +224,17 @@ public:
                     scene.sampleAttenuatedAreaIllumination(
                         &dRec, &trans,
                         scatterPoint , 
-                        mediumStack, sampler
+                        medium, sampler
                     );
                     PhaseQueryRecord pRec{scatterPoint, ray.dir, dRec.shadow_ray.dir};
                     float phasePdf = medium->pdfPhase(pRec);
                     SpectrumRGB phaseValue = medium->evaluatePhase(pRec);
 
                     if (!trans.isZero()) 
-                        Li += beta * trans * mRec.sigmaS * phaseValue 
-                        * dRec.energy 
-                        / dRec.pdf / mShadowrayNums * powerHeuristic(dRec.pdf, phasePdf)
-                        * mRec.albedo;
+                        Li += beta * trans * phaseValue * dRec.energy 
+                        / dRec.pdf * powerHeuristic(dRec.pdf, phasePdf)
+                        / mShadowrayNums ;
                 }
-                Li += beta * mRec.sigmaA * (1 - mRec.albedo) * medium->Le(ray);
 
                 PhaseQueryRecord pRec{scatterPoint, ray.dir};
                 medium->samplePhase(&pRec, sampler->next2D());
@@ -247,7 +242,7 @@ public:
                 ray = Ray3f{scatterPoint, pRec.localFrame.toWorld(pRec.wo)};
 
                 SpectrumRGB trans {1.f};
-                its = scene.intersect(ray, mediumStack, &trans);
+                its = scene.intersect(ray, medium, &trans);
                 foundIntersection = its.has_value();
 
                 SpectrumRGB lumionEnergy {.0f};
@@ -302,47 +297,8 @@ public:
                 auto shape = its->shape;
                 auto bsdf = shape->getBSDF();
                 if (bsdf->m_type == BSDF::EBSDFType::EEmpty) {
-                    //* Handle the medium
-                    auto flag = dot(ray.dir, its->geometryN);
-                    //* Enter
-                    if (flag < 0) {
-                        if (shape->hasMedium()){
-                            mediumStack.push(shape->getMedium());
-//#define LOG
-#ifdef LOG
-                            std::cout << "========== Enter medium ==========\n";
-                            std::cout << "Flag : " << flag << "\n";
-                            std::cout << "Bounces : " << bounces << "\n";
-                            std::cout << "Enter point : " << its->hitPoint << "\n";
-                            std::cout << "Enter tri : " << its->primID << "\n";
-                            std::cout << ray << "\n";
-                            std::cout << "Hitdistance : " << its->distance << "\n";
-                            std::cout << "Stack size : " << mediumStack.size() << "\n";
-                            std::cout << "\n";
-                            if (mediumStack.size() != 1)
-                                std::exit(1);
-#endif
+                        medium = scene.getTargetMedium(ray.dir, its.value());
 
-                        }                    
-                    }
-                    //* Escape 
-                    else if (flag > 0) 
-                    {
-                        if (shape->hasMedium() && !mediumStack.empty()) {
-#ifdef LOG
-                            std::cout << "=========== Exit medium ==========\n";
-                            std::cout << "Flag : " << flag << "\n";
-                            std::cout << "Bounces : " << bounces << "\n";
-                            std::cout << "Enter point : " << its->hitPoint << "\n";
-                            std::cout << "Enter tri : " << its->primID << "\n";
-                            std::cout << ray << "\n";
-                            std::cout << "Hitdistance : " << its->distance << "\n";
-                            std::cout << "\n";
-#endif
-                            mediumStack.pop();
-
-                        }
-                    }
                     ray = Ray3f{its->hitPoint, ray.dir};
                     continue;
                 }
@@ -352,7 +308,7 @@ public:
                     SpectrumRGB trans{1.f};
                     scene.sampleAttenuatedAreaIllumination(
                         &dRec, &trans, 
-                        its->hitPoint, mediumStack, 
+                        its->hitPoint, medium, 
                         sampler
                     );
                     BSDFQueryRecord bRec{its.value(), ray, dRec.shadow_ray};
