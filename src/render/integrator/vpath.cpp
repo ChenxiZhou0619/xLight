@@ -297,9 +297,8 @@ public:
                 auto shape = its->shape;
                 auto bsdf = shape->getBSDF();
                 if (bsdf->m_type == BSDF::EBSDFType::EEmpty) {
-                        medium = scene.getTargetMedium(ray.dir, its.value());
-
-                    ray = Ray3f{its->hitPoint, ray.dir};
+                    medium = scene.getTargetMedium(ray.dir, its.value());
+                    ray = Ray3f{its->hitPoint , ray.dir};
                     continue;
                 }
 

@@ -130,6 +130,7 @@ add_executable(
     ${XLIGHT_CORE_UTIL_DIR}/factory.cpp
     
     ${XLIGHT_CORE_SHAPE_DIR}/mesh.cpp
+    ${XLIGHT_CORE_SHAPE_DIR}/gridmedium.cpp
     
     ${XLIGHT_CORE_SCENE_DIR}/scene.cpp
     
@@ -192,5 +193,5 @@ target_link_directories(demo PRIVATE
 )
 
 target_link_libraries(demo
-    assimp embree3 tbb
+    assimp embree3 tbb openvdb
 )

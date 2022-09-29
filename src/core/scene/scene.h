@@ -45,6 +45,10 @@ public:
 
     std::shared_ptr<Medium> getTargetMedium(Vector3f wo,
                                             const ShapeIntersection &its) const;
+
+    void setEnvMap(std::shared_ptr<Emitter> _environment) {
+        environment = _environment;
+    }
 private:
     //* Embree 
     RTCDevice device;

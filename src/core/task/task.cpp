@@ -1,6 +1,7 @@
 #include "task.h"
 #include "core/utils/configurable.h"
 #include "core/shape/mesh.h"
+#include "core/shape/gridmedium.h"
 #include "rapidjson/document.h"
 
 #include <fstream>
@@ -143,7 +144,15 @@ void configureScene(std::shared_ptr<RenderTask> task,
         if (std::strcmp(emitterType, "envemitter") == 0) {
             const auto &textureRef = 
                 emitter["textureRef"].GetString();
-            // TODO set envmap            
+            auto texture = task->getTexture(textureRef);
+            // TODO set envmap
+            std::shared_ptr<Emitter> envEmitter {
+                static_cast<Emitter *>(
+                    ObjectFactory::createInstance("envemitter", emitter)
+                )
+            };
+            envEmitter->setTexture(texture.get());
+            task->scene->setEnvMap(envEmitter);            
         } else {
             const auto &emitterName = 
                 emitter["name"].GetString();
@@ -185,36 +194,48 @@ void configureScene(std::shared_ptr<RenderTask> task,
             entities[i].GetObject();
         const auto &filepath = 
             entity["filepath"].GetString();
-        const auto &meshes = loadObjFile(filepath);
-        for (auto mesh : meshes) {
-            task->scene->addShape(mesh.second);
+        const auto &fileType = 
+            entity["type"].GetString();
+        if (std::strcmp("geometry-mesh", fileType) == 0) {
+            const auto &meshes = loadObjFile(filepath);
+            for (auto mesh : meshes) {
+                task->scene->addShape(mesh.second);
+            }
+            const auto meshProperties = entity["meshProperties"].GetArray();
+            for (int i = 0; i < meshProperties.Size(); ++i) {
+                const auto &property = meshProperties[i].GetObject();
+                const auto &meshName 
+                    = property["meshName"].GetString();
+                auto mesh = meshes.find(meshName);
+                if (mesh == meshes.end()) {
+                    std::cerr << "No such a mesh : \"" << meshName <<"\"\n";
+                    std::exit(1);
+                }
+                if (property.HasMember("BSDFRef")) {
+                    const auto &bsdfName = property["BSDFRef"].GetString();
+                    auto bsdf = task->getBSDF(bsdfName);
+                    mesh->second->setBSDF(bsdf);
+                }
+                if (property.HasMember("emitterRef")) {
+                    const auto &emitterName = property["emitterRef"].GetString();
+                    auto emitter = task->getEmitter(emitterName);
+                    mesh->second->setEmitter(emitter);
+                }
+                if (property.HasMember("mediumRef")) {
+                    const auto mediumName = property["mediumRef"].GetString();
+                    auto medium = task->getMedium(mediumName);
+                    mesh->second->setMedium(medium);
+                }
+            }
+        } else if (std::strcmp("grid-medium", fileType) == 0) {
+            const auto &grids = loadVdbFile(filepath);
+            for (auto grid : grids) {
+                auto empty = task->getBSDF("empty_bsdf");
+                grid.second->setBSDF(empty);
+                task->scene->addShape(grid.second);
+            }
         }
-        const auto meshProperties = entity["meshProperties"].GetArray();
-        for (int i = 0; i < meshProperties.Size(); ++i) {
-            const auto &property = meshProperties[i].GetObject();
-            const auto &meshName 
-                = property["meshName"].GetString();
-            auto mesh = meshes.find(meshName);
-            if (mesh == meshes.end()) {
-                std::cerr << "No such a mesh : \"" << meshName <<"\"\n";
-                std::exit(1);
-            }
-            if (property.HasMember("BSDFRef")) {
-                const auto &bsdfName = property["BSDFRef"].GetString();
-                auto bsdf = task->getBSDF(bsdfName);
-                mesh->second->setBSDF(bsdf);
-            }
-            if (property.HasMember("emitterRef")) {
-                const auto &emitterName = property["emitterRef"].GetString();
-                auto emitter = task->getEmitter(emitterName);
-                mesh->second->setEmitter(emitter);
-            }
-            if (property.HasMember("mediumRef")) {
-                const auto mediumName = property["mediumRef"].GetString();
-                auto medium = task->getMedium(mediumName);
-                mesh->second->setMedium(medium);
-            }
-        }
+
     }
 
 
