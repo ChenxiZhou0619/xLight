@@ -1,6 +1,7 @@
 #include "gridmedium.h"
 
 #include <openvdb/openvdb.h>
+#include "core/render-core/hetergeneous.h"
 
 std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
 loadVdbFile(const std::string &filePath) 
@@ -33,17 +34,19 @@ loadVdbFile(const std::string &filePath)
 
     result[gridName] = std::make_shared<GridMedium>(
         Point3f (min.x(), min.y(), min.z()),
-        Point3f (max.x(), max.y(), max.z())
+        Point3f (max.x(), max.y(), max.z()),
+        std::make_shared<Hetergeneous>(densityGrid)
     );
 
     return result;
 }
 
-GridMedium::GridMedium(Point3f pMin, Point3f pMax)
+GridMedium::GridMedium(Point3f pMin, Point3f pMax, std::shared_ptr<Medium> gridMedium)
     : mPMin(pMin), mPMax(pMax)
 {
     //todo
     this->emitter = nullptr;
+    setMedium(gridMedium);
 }
 
 void rtcGridMediumBoundsFunc(const RTCBoundsFunctionArguments *args)

@@ -150,6 +150,7 @@ add_executable(
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/vpath.cpp
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/trvisual.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp
@@ -180,6 +181,7 @@ add_executable(
     # render/medium
     ${XLIGHT_RENDER_MEDIUM_DIR}/beerslaw.cpp
     ${XLIGHT_RENDER_MEDIUM_DIR}/homogeneous.cpp
+    ${XLIGHT_RENDER_MEDIUM_DIR}/hetergeneous.cpp
 )
 
 target_include_directories(demo PRIVATE

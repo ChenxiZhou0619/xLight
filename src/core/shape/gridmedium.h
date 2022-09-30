@@ -2,7 +2,6 @@
 
 #include "shape.h"
 
-
 std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
 loadVdbFile(const std::string &filePath);
 
@@ -11,7 +10,7 @@ class GridMedium : public ShapeInterface {
 public:
     GridMedium() = default;
 
-    GridMedium(Point3f pMin, Point3f pMax);
+    GridMedium(Point3f pMin, Point3f pMax, std::shared_ptr<Medium>gridMedium);
 
     virtual ~GridMedium() = default;
 
