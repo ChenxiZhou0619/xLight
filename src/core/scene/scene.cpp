@@ -143,6 +143,11 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
         //* Caculate the transmittance, if occulude, trans = SpectrumRGB{.0f}
         bool isOcculude = false;
         auto currentMedium = medium;
+
+        *trans = this->evaluateTrans(currentMedium, from, dRec->point_on_emitter);
+        return;
+
+
         while(true) {
             auto its = this->intersect(shadowRay);
             if (!its.has_value()) {
@@ -202,7 +207,7 @@ SpectrumRGB Scene::evaluateTrans(std::shared_ptr<Medium> medium,
             if (currentMedium)
                 result *= currentMedium->getTrans(shadowRay.ori, its->hitPoint);
             currentMedium = getTargetMedium(shadowRay.dir, its.value());
-            shadowRay = Ray3f{its->hitPoint , end};
+            shadowRay = Ray3f{its->hitPoint, end};
         }
     }
     return result;

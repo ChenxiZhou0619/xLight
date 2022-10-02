@@ -9,10 +9,12 @@ public:
 
     Hetergeneous(const rapidjson::Value &_value) {
         // donothing
+        mPhase = std::make_shared<IsotropicPhase>();
     }
 
     Hetergeneous(openvdb::FloatGrid::Ptr _density) {
         density = _density;
+        mPhase = std::make_shared<IsotropicPhase>();
     }
 
     virtual bool sampleDistance(MediumSampleRecord *mRec,
@@ -30,4 +32,8 @@ public:
 
 protected:
     openvdb::FloatGrid::Ptr density;
+
+    float scale = 10;
+
+    float step = 0.03;
 };

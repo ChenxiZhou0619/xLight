@@ -26,6 +26,9 @@ loadVdbFile(const std::string &filePath)
     vdbFile.close();
 
     FloatGrid::Ptr densityGrid = gridPtrCast<FloatGrid>(grid);
+    densityGrid->transform().preScale(1.5);
+    densityGrid->transform().preTranslate(openvdb::Vec3d(0, -50, 0));
+    
 
     auto worldBound = densityGrid->evalActiveVoxelBoundingBox();
     auto min = densityGrid->indexToWorld(worldBound.min()),
@@ -119,6 +122,7 @@ void rtcGridMediumIntersectFunc(const RTCIntersectFunctionNArguments *args)
 
     float t = nearT;
     if (t < tnear) t = farT;
+    if (t > tfar) return;
 
 
     RTCHit result;
