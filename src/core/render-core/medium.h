@@ -8,11 +8,11 @@ class Scene;
 struct MediumSampleRecord {
     float pathLength;
 
-    float pdf;
+    float pdf {1.f};
 
-    bool isValid;
+    bool isValid {false};
 
-    SpectrumRGB transmittance;
+    SpectrumRGB transmittance {1.f};
 
     SpectrumRGB sigmaS;
 
