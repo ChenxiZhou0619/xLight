@@ -106,24 +106,6 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 add_subdirectory(./dependencies)
 
-add_executable( gui-demo
-    ${XLIGHT_GUI_DIR}/gui-demo.cpp
-)
-
-target_include_directories(gui-demo PRIVATE
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/dependencies   
-)
-
-target_link_directories(gui-demo PRIVATE
-    ${PROJECT_SOURCE_DIR}/target/lib
-    /usr/local/lib
-)
-
-target_link_libraries(gui-demo
-    imgui GL
-)
-
 add_executable(
     demo    ${XLIGHT_TEST_DIR}/demo.cpp
 
@@ -173,6 +155,7 @@ add_executable(
     ${XLIGHT_RENDER_BSDF_DIR}/roughdielectric.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/plastic.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/empty.cpp
+    ${XLIGHT_RENDER_BSDF_DIR}/disney.cpp
 
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp
@@ -195,5 +178,5 @@ target_link_directories(demo PRIVATE
 )
 
 target_link_libraries(demo
-    assimp embree3 tbb openvdb
+    assimp embree3 tbb openvdb spdlog
 )

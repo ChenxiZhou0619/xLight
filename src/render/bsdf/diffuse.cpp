@@ -11,7 +11,7 @@ public:
         m_type = EBSDFType::EDiffuse;
     }
 
-    ~Diffuse() = default;
+    virtual ~Diffuse() = default;
 
     virtual bool isDiffuse() const override{
         return true;

@@ -56,14 +56,6 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
     its.hitPoint = ray.at(its.distance);
     its.shadingN = shape->getHitNormal(triangleIndex, uv);
     its.geometryN = Normal3f(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
-//    its.hitPoint = shape->getHitPoint(triangleIndex, uv); 
-//    its.geometryN = shape->getHitNormal(triangleIndex);
-
-
-//    std::cout << "=========================\n";
-//    std::cout << its.shadingN << std::endl;
-//    std::cout << its.geometryN << std::endl;
-
     its.geometryF = Frame{its.geometryN};
     its.shadingF = Frame{its.shadingN};
     its.uv = shape->getHitTextureCoordinate(triangleIndex, uv);
