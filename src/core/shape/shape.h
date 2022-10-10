@@ -23,6 +23,12 @@ public:
 
     virtual Normal3f getHitNormal(int triIdx) const = 0;
 
+    virtual Vector3f getHitTangent(int triIdx, Point2f uv) const = 0;
+
+    virtual Vector3f dpdu(int triIdx) const = 0;
+
+    virtual Vector3f dpdv(int triIdx) const = 0;
+
     //* Only for mesh like shape
     virtual Point2f getHitTextureCoordinate(int triIdx, Point2f) const = 0;
 
@@ -106,6 +112,8 @@ struct ShapeIntersection {
     Frame geometryF, shadingF;
 
     Point2f uv;
+
+    Vector3f dpdu;
 
     std::shared_ptr<ShapeInterface> shape;
 

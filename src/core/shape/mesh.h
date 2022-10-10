@@ -27,6 +27,12 @@ public:
     //* Only for mesh like shape
     virtual Normal3f getHitNormal(int triIdx, Point2f uv) const override;
 
+    virtual Vector3f getHitTangent(int triIdx, Point2f uv) const override;
+
+    virtual Vector3f dpdu(int triIdx) const override;
+
+    virtual Vector3f dpdv(int triIdx) const override;
+
     virtual Normal3f getHitNormal(int triIdx) const override;
 
     //* Only for mesh like shape
@@ -43,6 +49,8 @@ protected:
     virtual Normal3f getNormal(int idx) const override;
 
     virtual Point2f getUV(int idx) const override;
+
+    Vector3f getTangent(int idx) const;
 
     float getTriArea(int idx) const;
 private:

@@ -3,6 +3,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/render-core/medium.h"
 #include <stack>
+#include <spdlog/spdlog.h>
 
 Scene::Scene() {
     device = rtcNewDevice(nullptr);
@@ -54,10 +55,25 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
         rayhit.hit.u, rayhit.hit.v
     };        
     its.hitPoint = ray.at(its.distance);
-    its.shadingN = shape->getHitNormal(triangleIndex, uv);
-    its.geometryN = Normal3f(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
+    its.geometryN = Normal3f(
+        rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z
+    );
     its.geometryF = Frame{its.geometryN};
+    its.shadingN = its.geometryN;    
     its.shadingF = Frame{its.shadingN};
+
+    //* override the shading frame if tangent exists
+    if (shape->HasTangent()) {
+        //* Compute dpdu first
+        Vector3f dpdu = shape->dpdu(triangleIndex);
+
+        Vector3f tangent = shape->getHitTangent(triangleIndex, uv);
+        Vector3f bitangent = cross(its.shadingN, tangent);
+        tangent = cross(bitangent, its.shadingN);
+        its.shadingF = Frame{its.shadingN, tangent, bitangent};
+        its.dpdu = dpdu;
+    }
+
     its.uv = shape->getHitTextureCoordinate(triangleIndex, uv);
     return std::make_optional(its);
 }

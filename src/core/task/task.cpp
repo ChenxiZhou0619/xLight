@@ -126,6 +126,11 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 bsdf["textureRef"].GetString();
             bsdf_ptr->setTexture(task->getTexture(textureRef));
         }
+        if (bsdf.HasMember("normalmapRef")) {
+            const auto &normalRef = 
+                bsdf["normalmapRef"].GetString();
+            bsdf_ptr->setNormalmap(task->getTexture(normalRef));
+        }
         //TODO add bumpmap and normalmap 
         task->bsdfs[bsdfName] = bsdf_ptr;
         //TODO fix it

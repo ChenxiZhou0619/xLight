@@ -12,7 +12,7 @@ loadObjFile(const std::string &filePath) {
         filePath,
         aiProcess_ConvertToLeftHanded |
         aiProcess_JoinIdenticalVertices |
-//        aiProcess_CalcTangentSpace | 
+        aiProcess_CalcTangentSpace | 
         aiProcess_Triangulate
     );
 
@@ -188,6 +188,50 @@ Normal3f TriangleMesh::getHitNormal(int triIdx, Point2f uv) const {
          n1 = this->getNormal(triangle.y),
          n2 = this->getNormal(triangle.z);
     return (1 - u - v) * n0 + u * n1 + v * n2;
+}
+
+Vector3f TriangleMesh::getTangent(int idx) const {
+    auto tangent = m_tangents.col(idx);
+    return Vector3f{
+        tangent.x(), tangent.y(), tangent.z()
+    };
+}
+
+Vector3f TriangleMesh::getHitTangent(int triIdx, Point2f uv) const {
+    auto [u, v] = uv;
+    auto triangle = this->getFace(triIdx);
+    auto t0 = this->getTangent(triangle.x),
+         t1 = this->getTangent(triangle.y),
+         t2 = this->getTangent(triangle.z);
+    return (1 - u - v) * t0 + u * t1 + v * t2;
+}
+
+Vector3f TriangleMesh::dpdu(int triIdx) const {
+    auto triangle = getFace(triIdx);
+    auto uv0 = getUV(triangle.x),
+         uv1 = getUV(triangle.y),
+         uv2 = getUV(triangle.z);
+    
+    auto p0 = getVertex(triangle.x),
+         p1 = getVertex(triangle.y),
+         p2 = getVertex(triangle.z);
+
+
+    float determinant = 
+        (uv0[0] - uv2[0]) * (uv1[1] - uv2[1]) - 
+        (uv0[1] - uv2[1]) * (uv1[0] - uv2[0]);
+
+    Vector3f dpdu = 
+        (uv1[1] - uv2[1]) * (p0 - p2) + (uv2[1] - uv0[1]) * (p1 - p2);
+
+    if (determinant !=0)
+        dpdu /= determinant;
+    return dpdu;
+}
+
+Vector3f TriangleMesh::dpdv(int triIdx) const {
+    // do nothing currnetly
+    std::exit(1);
 }
 
 Normal3f TriangleMesh::getHitNormal(int triIdx) const {

@@ -84,3 +84,42 @@ protected:
 
 };
 REGISTER_CLASS(DisneyDiffuse, "disney-diffuse");
+
+
+class DisneyMetal : public BSDF {
+public:
+    DisneyMetal() = default;
+
+    DisneyMetal(const rapidjson::Value &_value) {
+        mRoughness = getFloat("roughness", _value);
+        mAnistropic = getFloat("anistropic", _value);
+    }
+
+    virtual ~DisneyMetal() = default;
+
+    //todo fixme
+    virtual bool isDiffuse() const override {
+        return true;
+    }
+
+    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override
+    {
+        if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
+        {
+            return SpectrumRGB{.0f};
+        }
+
+        Vector3f half = normalize(bRec.wi + bRec.wo);
+        SpectrumRGB baseColor = m_texture->evaluate(bRec.uv);
+        SpectrumRGB fresnel = 
+            baseColor + 
+            SpectrumRGB(1 - baseColor.max()) * std::pow(1 - dot(half, bRec.wo), 5); 
+    
+        
+    }
+protected:
+    float mRoughness;
+    float mAnistropic;
+    const float mAlphaMin = 0.0001f;
+};
+//REGISTER_CLASS(DisneyMetal, "disney-metal")

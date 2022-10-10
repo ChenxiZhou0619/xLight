@@ -24,6 +24,12 @@ public:
 
     virtual Point2f getHitTextureCoordinate(int triIdx, Point2f) const override;
 
+    virtual Vector3f getHitTangent(int tirIdx, Point2f uv) const override {return Vector3f{};}
+
+    virtual Vector3f dpdu(int triIdx) const override {return Vector3f{};}
+
+    virtual Vector3f dpdv(int triIdx) const override {return Vector3f{};}
+
     virtual void sampleOnSurface(PointQueryRecord *pRec,
                                  Sampler *sampler) const override;
 

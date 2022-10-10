@@ -51,6 +51,7 @@ public:
             }
 
             //TODO ray differentials and normal map etc.
+            bsdf->computeShadingFrame(& its.value());
 
             SpectrumRGB directIllumination{.0f};
             for (int i = 0; i < mShadowrayNums; ++i) {
@@ -77,7 +78,9 @@ public:
 
             if(bsdf_weight.isZero())
                 break;
-            
+            if (bsdf_pdf == 0)
+                break;
+
             ray = Ray3f{its->hitPoint, its->toWorld(bRec.wo)};
             
             its = scene.intersect(ray);

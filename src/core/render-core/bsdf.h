@@ -55,17 +55,12 @@ struct BSDFQueryRecord {
 class BSDF : public Configurable{
 protected:
     std::shared_ptr<Texture> m_texture;
-    Texture *m_bumpmap;
-    Texture *m_normalmap;
+    Texture *m_bumpmap = nullptr;
+    std::shared_ptr<Texture> m_normalmap = nullptr;
 public:
     BSDF() = default;
     BSDF(const rapidjson::Value &_value);
     virtual ~BSDF() = default;
-
-    //TODO delete it
-    void setTexture(Texture* texture) {
-        m_texture.reset(texture);
-    }
 
     void setTexture(std::shared_ptr<Texture> texture) {
         m_texture = texture;
@@ -75,7 +70,7 @@ public:
         m_bumpmap = texture;
     }
 
-    void setNormalmap(Texture *texture) {
+    void setNormalmap(std::shared_ptr<Texture> texture) {
         m_normalmap = texture;
     }
 
@@ -110,6 +105,8 @@ public:
     virtual void bumpComputeShadingNormal(RayIntersectionRec *i_rec) const;
 
     void computeShadingNormal (RayIntersectionRec *i_rec) const;
+
+    void computeShadingFrame (ShapeIntersection *its) const;
 
     virtual bool isDiffuse() const = 0;
 

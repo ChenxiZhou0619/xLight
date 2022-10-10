@@ -46,3 +46,20 @@ void BSDF::computeShadingNormal(RayIntersectionRec *i_rec) const {
     i_rec->shdFrame = Frame(i_rec->shdN);
     
 }
+
+void BSDF::computeShadingFrame(ShapeIntersection *its) const 
+{
+    if (!m_normalmap) return;
+
+    auto value = m_normalmap->evaluate(its->uv) * 2 - SpectrumRGB(1);
+    //* cuz local frame using Y axis as up
+    Normal3f shadingN = Normal3f{value.r(), value.b(), value.g()};
+    shadingN = its->toWorld(shadingN);
+
+    Vector3f newT = normalize(its->dpdu - shadingN * dot(shadingN, its->dpdu)),
+             newB = cross(shadingN, newT);
+
+    newT = cross(newB, shadingN);
+
+    its->shadingF = Frame{shadingN, newT, newB};
+}

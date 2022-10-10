@@ -207,6 +207,8 @@ Normal3f GridMedium::getHitNormal(int triIdx) const {
     return Normal3f();
 }
 
+
+
 Point2f GridMedium::getHitTextureCoordinate(int triIdx, Point2f uv) const
 {
     return Point2f();
