@@ -2,6 +2,7 @@
 #include "core/math/math.h"
 #include "core/math/warp.h"
 #include "spdlog/spdlog.h"
+#include "ndf.h"
 
 class DisneyDiffuse : public BSDF {
 public:
@@ -93,6 +94,7 @@ public:
     DisneyMetal(const rapidjson::Value &_value) {
         mRoughness = getFloat("roughness", _value);
         mAnistropic = getFloat("anistropic", _value);
+        ndf = std::make_shared<GGX>(mRoughness, mAnistropic);
     }
 
     virtual ~DisneyMetal() = default;
@@ -111,15 +113,49 @@ public:
 
         Vector3f half = normalize(bRec.wi + bRec.wo);
         SpectrumRGB baseColor = m_texture->evaluate(bRec.uv);
-        SpectrumRGB fresnel = 
+        SpectrumRGB Fresnel = 
             baseColor + 
             SpectrumRGB(1 - baseColor.max()) * std::pow(1 - dot(half, bRec.wo), 5); 
-    
+
+        float D = ndf->eval(half);
+        float G = ndf->G(bRec.wi, bRec.wo);
+
+        return Fresnel * D * G * 0.25f / Frame::cosTheta(bRec.wi);
         
     }
+
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec,
+                               const Point2f &sample,
+                               float &pdf) const override
+    {
+        auto [half, halfPdf] = ndf->sample(bRec.wi, sample);
+        bRec.wo = normalize(2 * dot(half, bRec.wi) * half - bRec.wi);
+        pdf = halfPdf / (4 * dot(bRec.wo, half));
+        if (pdf == 0) 
+            return SpectrumRGB{.0f};
+
+        SpectrumRGB baseColor = m_texture->evaluate(bRec.uv);
+        SpectrumRGB Fresnel = 
+            baseColor + 
+            SpectrumRGB(1 - baseColor.max()) * std::pow(1 - dot(half, bRec.wo), 5); 
+
+        auto res = Fresnel / (1 + ndf->Lambda(bRec.wo))
+            * dot(half, bRec.wo) / dot(half, bRec.wi);
+        
+        return res;
+    }
+
+    virtual float pdf(const BSDFQueryRecord &bRec) const override
+    {
+        Vector3f half = normalize(bRec.wi + bRec.wo);
+        return ndf->pdf(bRec.wi, half) / (4 * dot(bRec.wo, half));
+    }
+
+
 protected:
     float mRoughness;
     float mAnistropic;
     const float mAlphaMin = 0.0001f;
+    std::shared_ptr<NDF> ndf = nullptr;
 };
-//REGISTER_CLASS(DisneyMetal, "disney-metal")
+REGISTER_CLASS(DisneyMetal, "disney-metal")

@@ -1,5 +1,6 @@
 #include "core/render-core/integrator.h"
 #include "core/math/common.h"
+#include <spdlog/spdlog.h>
 
 class PathTracer : public Integrator {
 public:
@@ -82,7 +83,7 @@ public:
                 break;
 
             ray = Ray3f{its->hitPoint, its->toWorld(bRec.wo)};
-            
+
             its = scene.intersect(ray);
             foundIntersection = its.has_value();
 

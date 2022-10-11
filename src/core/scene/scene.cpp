@@ -64,6 +64,8 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
 
     //* override the shading frame if tangent exists
     if (shape->HasTangent()) {
+        its.shadingN = shape->getHitNormal(triangleIndex, uv);
+
         //* Compute dpdu first
         Vector3f dpdu = shape->dpdu(triangleIndex);
 
