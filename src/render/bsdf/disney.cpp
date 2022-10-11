@@ -159,3 +159,83 @@ protected:
     std::shared_ptr<NDF> ndf = nullptr;
 };
 REGISTER_CLASS(DisneyMetal, "disney-metal")
+
+class DisneyClearcoat : public BSDF {
+public:
+    DisneyClearcoat() = default;
+
+    DisneyClearcoat(const rapidjson::Value &_value) {
+        mClearcoatGloss = getFloat("glossy", _value);
+        mAlphaG = (1 - mClearcoatGloss) * 0.1 + mClearcoatGloss * 0.001;
+    }
+
+    virtual ~DisneyClearcoat() = default;
+
+    virtual bool isDiffuse() const override{
+        return false;
+    }
+
+    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override
+    {
+        Vector3f half = normalize(bRec.wi + bRec.wo);
+        SpectrumRGB Fresnel = SpectrumRGB(R0 + (1 - R0) * std::pow(1 - dot(half, bRec.wo), 5));
+        auto D = (mAlphaG * mAlphaG - 1) * INV_PI /
+            std::log(mAlphaG * mAlphaG) /
+            (1 + (mAlphaG * mAlphaG - 1) * half.y * half.y);
+        auto g = G(bRec.wi) * G(bRec.wo);
+        return Fresnel * D * g * 0.25 / Frame::cosTheta(bRec.wi);
+    }
+
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec,
+                               const Point2f &sample,
+                               float &pdf) const override
+    {
+        float cosElevation = std::sqrt((1 - std::pow(mAlphaG * mAlphaG, 1 - sample.x)) / (1 - mAlphaG * mAlphaG)),
+              sinElevation = std::sqrt(1 - cosElevation * cosElevation);
+        float azimuth = 2 * M_PI * sample.y;
+
+        Normal3f half {sinElevation * std::cos(azimuth), cosElevation, sinElevation * std::sin(azimuth)};
+        bRec.wo = normalize(2 * dot(bRec.wi, half) * half - bRec.wi);
+
+        if (Frame::cosTheta(bRec.wo) < 0) {
+            pdf = 0;
+            return SpectrumRGB{.0f};
+        }
+
+        float pdfHalf = (mAlphaG * mAlphaG - 1) * cosElevation * sinElevation / 
+            (mAlphaG * mAlphaG * cosElevation * cosElevation + sinElevation * sinElevation) /
+            std::log(mAlphaG);
+        pdf = pdfHalf * 0.25 / dot(half, bRec.wo);
+
+        SpectrumRGB Fresnel = SpectrumRGB(R0 + (1 - R0) * std::pow(1 - dot(half, bRec.wo), 5));
+        auto g = G(bRec.wi) * G(bRec.wo);
+
+        auto res = Fresnel * 2 * g * Frame::cosTheta(bRec.wo) /
+            (M_PI * Frame::cosTheta(bRec.wi) * cosElevation * sinElevation); 
+        return res;        
+    }
+
+    virtual float pdf(const BSDFQueryRecord &bRec) const override
+    {   
+
+        Normal3f half = normalize(bRec.wi + bRec.wo);
+        float cosElevation = half.y,
+              sinElevation = std::sqrt(1 - cosElevation * cosElevation);
+        float pdfHalf = (mAlphaG * mAlphaG - 1) * cosElevation * sinElevation / 
+            (mAlphaG * mAlphaG * cosElevation * cosElevation + sinElevation * sinElevation) /
+            std::log(mAlphaG);
+        return pdfHalf * 0.25 / dot(half, bRec.wo);
+    }
+protected:
+    float mClearcoatGloss;
+    float mAlphaG;
+    const float R0 = 0.04;
+
+    float G(Vector3f w) const {
+        float Sigma = std::sqrt((1 + (std::pow(w.x * 0.25, 2) + std::pow(w.z * 0.25, 2)) / (w.y * w.y))) + 1.f;
+        Sigma *= 0.5;
+        return 1 / Sigma;
+    }
+};
+
+REGISTER_CLASS(DisneyClearcoat, "disney-clearcoat")

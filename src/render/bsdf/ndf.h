@@ -56,9 +56,6 @@ public:
         Vector3f Nh = t1 * T1 + t2 * T2 + std::sqrt(std::max(0.f, 1 - t1 * t1 - t2 * t2)) * Vh;
         Vector3f Ne = normalize(Vector3f(mAlphaX * Nh.x, std::max(.0f, Nh.y), mAlphaY * Nh.z));
         float pdf = 1 / (1 + Lambda(wi)) * std::max(0.f, dot(wi, Ne)) * eval(Ne) / wi.y;
-        float term1 = 1 / (1 + Lambda(wi)),
-              term2 = std::max(0.f, dot(wi, Ne)),
-              term3 = eval(Ne);
         return {Ne, pdf};
     }
 
