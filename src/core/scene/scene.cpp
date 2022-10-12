@@ -112,7 +112,6 @@ void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
         EmitterQueryRecord eRec{pRec, shadowRay};
         
         dRec->energy = pRec.shape->getEmitter()->evaluate(shadowRay);
-        dRec->point_on_emitter = pRec.p;
         dRec->shadow_ray = shadowRay;
         dRec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
         dRec->pdf = 1 / emittersSurfaceArea;
@@ -143,7 +142,6 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
         EmitterQueryRecord eRec{pRec, shadowRay};
 
         dRec->energy = pRec.emitter->evaluate(shadowRay);
-        dRec->point_on_emitter = pRec.p;
         dRec->shadow_ray = shadowRay;
         dRec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
         dRec->pdf = 1 / emittersSurfaceArea;
@@ -154,7 +152,7 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
         bool isOcculude = false;
         auto currentMedium = medium;
 
-        *trans = this->evaluateTrans(currentMedium, from, dRec->point_on_emitter);
+        *trans = this->evaluateTrans(currentMedium, from, pRec.p);
         return;
 
 

@@ -3,7 +3,6 @@
 #include "bsdf.h"
 #include "sampler.h"
 #include "emitter.h"
-//#include "core/render-core/scene.h"
 #include "core/scene/scene.h"
 class Scene;
 
@@ -15,4 +14,10 @@ public:
     virtual ~Integrator() {}
     virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray, Sampler *sampler) const = 0;
 
+};
+
+
+struct LiSampleRecord {
+    SpectrumRGB Li {.0f};
+    float pdf;
 };

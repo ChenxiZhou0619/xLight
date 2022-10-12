@@ -115,6 +115,15 @@ public:
         return Li;
     }
 
+
+protected:
+    LiSampleRecord sampleDirect(const Scene &scene, Point3f from) const 
+    {
+        
+    }
+
+
+
 private:
     int mMaxDepth;
     int mRRThresHold;

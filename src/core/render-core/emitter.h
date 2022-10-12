@@ -36,7 +36,6 @@ struct DirectIlluminationRecord {
         EArea = 0,
         EEnvironment
     } emitter_type;
-    Point3f point_on_emitter;
     Ray3f shadow_ray;
     SpectrumRGB energy;
     float pdf;
@@ -62,7 +61,7 @@ public:
 
     virtual void setTexture(Texture *envmap) = 0;
 
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample) const = 0;
+    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const = 0;
 
     virtual float pdf(const Ray3f &ray) const = 0;
 protected:
