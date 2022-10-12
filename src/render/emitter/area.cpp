@@ -36,7 +36,7 @@ public:
         std::exit(1);
     }
 
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample) const override{
+    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const override{
         //! no implement
         std::cout << "AreaEmitter::sample2 no implement!\n";
         std::exit(1);

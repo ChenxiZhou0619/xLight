@@ -42,7 +42,6 @@ void renderBlock(std::shared_ptr<ImageBlock> block, std::shared_ptr<RenderTask> 
                     sampler->getCameraSample()
                 );  
                 color += integrator->getLi(*scene, ray, sampler.get());
-
                 sampler->nextSample();
             }
             color = color / (float)task->getSpp();

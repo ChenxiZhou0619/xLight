@@ -26,6 +26,9 @@ void Scene::postProcess() {
         }
     }
     emittersSurfaceArea = emittersDistribution.normalize();
+
+    if (environment)
+        environment->initialize();
 }
 
 std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
@@ -267,4 +270,18 @@ std::shared_ptr<Medium> Scene::getTargetMedium(Vector3f wo,
         return its.shape->getInsideMedium();
     }
     return nullptr;
+}
+
+void Scene::sampleEnvironment(DirectIlluminationRecord *dRec, 
+                              Point3f from, 
+                              Point2f sample) const 
+{
+    environment->sample(dRec, sample, from);
+}
+
+float Scene::pdfEnvironment(const Ray3f &ray) const 
+{
+    if (!environment)
+        return .0f;
+    return environment->pdf(ray);
 }

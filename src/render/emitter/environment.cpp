@@ -31,7 +31,7 @@ public:
                 float up = (float) u / width;
                 SpectrumRGB energy = m_envmap->evaluate(Point2f(up, vp));
                 float value = (
-                    energy[0]   * 0.212671f 
+                      energy[0] * 0.212671f 
                     + energy[1] * 0.715160f
                     + energy[2] * 0.072169f
                 ) * sin_theta;
@@ -62,10 +62,10 @@ public:
     }
 
     virtual SpectrumRGB evaluate(const Ray3f &ray) const override {
-        float cosTheta = ray.dir.y,
-              tanPhi = ray.dir.z / ray.dir.x;
-        float theta = std::acos(cosTheta),
-              phi = std::atan(tanPhi);
+        double cosTheta = ray.dir.y,
+               tanPhi = ray.dir.z / ray.dir.x;
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
         if (phi < 0) 
             phi += ray.dir.x > 0 ? 2 * M_PI : M_PI;
         else {
@@ -80,25 +80,7 @@ public:
     //! Consider the envmap on a infinite large sphere
     //! Uniformly sample it
     virtual void sample(PointQueryRecord *pRec, Point2f sample) const override {
-        pRec->mesh = nullptr;
-/*        
-        float theta = 2 * M_PI * sample[0],
-              phi   = std::acos(2 * sample[1] - 1);
-        
-        pRec->p = Point3f{
-            std::sin(phi) * std::cos(theta),
-            std::cos(phi),
-            std::sin(phi) * std::sin(theta)
-        } * m_envshpere_radius;
-
-        pRec->normal = Point3f(.0f) - pRec->p;
-
-        //pRec->pdf = 1 / (m_envshpere_radius * m_envshpere_radius * M_PI);
-
-        pRec->pdf = 0.25f * INV_PI;
-
-        pRec->emitter = this; 
-*/      
+        pRec->mesh = nullptr;      
         float pdf = .0f;
         Vector2i resolution = m_envmap->getResolution();
         int width = resolution.x,
@@ -120,51 +102,68 @@ public:
 
         pRec->emitter = this;
 
-        pRec->pdf = pdf / (2 * M_PI * M_PI * std::sin(theta));
+        pRec->pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
     }
 
     virtual void setTexture(Texture *texture) override {
         m_envmap = texture;
     }
 
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample) const override {
+//todo
+    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const override {
         float pdf = .0f;
         Vector2i resolution = m_envmap->getResolution();
         int width = resolution.x,
             height = resolution.y;
         Vector2i vu = m_env_distribution->sample(sample, &pdf);
-        float u = (float)vu[1] / width,
-              v = (float)vu[0] / height;
-        
-        float theta = v * M_PI,
-              phi   = u * 2 * M_PI;
-
+        double u = (double)vu[1] / width,
+               v = (double)vu[0] / height;
+            
+        double theta = v * M_PI,
+               phi   = u * 2 * M_PI;
+/*
         d_rec->point_on_emitter = Point3f {
             std::sin(theta) * std::cos(phi),
             std::cos(theta),
             std::sin(theta) * std::sin(phi)
         } * m_envshpere_radius;
-        d_rec->energy = m_envmap->evaluate(Point2f {u, v});
+
+*/
+        d_rec->energy = m_envmap->evaluate(Point2f (u, v));
+
         d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EEnvironment;
-        d_rec->pdf = pdf / (2 * M_PI * M_PI * std::sin(theta));
+        d_rec->pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
+        Vector3f dir (
+            std::sin(theta) * std::cos(phi),
+            std::cos(theta),
+            std::sin(theta) * std::sin(phi)
+        );
+
+        d_rec->shadow_ray = Ray3f{
+            position, dir, 0
+        };
     }
 
     virtual float pdf(const Ray3f &ray) const override {
         assert(m_envmap != nullptr);
-        float cosTheta = ray.dir.y,
-              tanPhi = ray.dir.z / ray.dir.x;
-        float theta = std::acos(cosTheta),
-              phi = std::atan(tanPhi);
+        double cosTheta = ray.dir.y,
+               tanPhi = ray.dir.z / ray.dir.x;
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
         if (phi < 0) 
             phi += ray.dir.x > 0 ? 2 * M_PI : M_PI;
         else {
             phi += ray.dir.x > 0 ? .0f : M_PI;
         }
-        float u = phi / (2 * M_PI),
-              v = theta / M_PI;
+        double u = phi / (2 * M_PI),
+               v = theta / M_PI;
+
         int x = u * m_envmap->getResolution().x,
             y = v * m_envmap->getResolution().y;
-        return m_env_distribution->pdf(Vector2i{y, x}) / (2 * M_PI * M_PI * std::sin(theta));
+        return m_env_distribution->pdf(Vector2i{y, x}) / 
+                (2 * M_PI * M_PI * std::sin(theta)) * 
+                m_envmap->getResolution().x *
+                m_envmap->getResolution().y;
         
     }
 

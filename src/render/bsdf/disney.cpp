@@ -95,6 +95,7 @@ public:
         mRoughness = getFloat("roughness", _value);
         mAnistropic = getFloat("anistropic", _value);
         ndf = std::make_shared<GGX>(mRoughness, mAnistropic);
+        m_type = EBSDFType::EGlossy;
     }
 
     virtual ~DisneyMetal() = default;
@@ -167,6 +168,7 @@ public:
     DisneyClearcoat(const rapidjson::Value &_value) {
         mClearcoatGloss = getFloat("glossy", _value);
         mAlphaG = (1 - mClearcoatGloss) * 0.1 + mClearcoatGloss * 0.001;
+        m_type = EBSDFType::EGlossy;
     }
 
     virtual ~DisneyClearcoat() = default;

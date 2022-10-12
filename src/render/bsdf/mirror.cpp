@@ -24,9 +24,8 @@ public:
             return SpectrumRGB{.0f};
         }
         bRec.wo = reflect(bRec.wi);
-        //std::cout << "wi = " << bRec.wi << std::endl;
-        //std::cout << "wo = " << bRec.wo << std::endl;
         pdf = 1.f;
+        bRec.isDelta = true;
         return SpectrumRGB {1.f};
     }
 

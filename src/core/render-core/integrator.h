@@ -17,7 +17,9 @@ public:
 };
 
 
-struct LiSampleRecord {
-    SpectrumRGB Li {.0f};
-    float pdf;
+struct LuminRecord {
+    SpectrumRGB lumin {.0f};
+    float pdf {.0f};
+    Vector3f direction;
+    bool isDelta = false;
 };

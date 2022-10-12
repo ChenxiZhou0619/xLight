@@ -9,6 +9,7 @@ struct BSDFQueryRecord {
     Vector3f wi, wo;
     Point2f uv;
     float du, dv;
+    bool isDelta = false;
 
     BSDFQueryRecord() = default;
     BSDFQueryRecord(const Vector3f &_wi) : wi(_wi) { }
@@ -45,6 +46,14 @@ struct BSDFQueryRecord {
         uv = its.uv;
         du = dv = 0;
     }
+
+    BSDFQueryRecord(const ShapeIntersection &its, Vector3f _wi, Vector3f _wo) {
+        wi = its.toLocal(_wi);
+        wo = its.toLocal(_wo);
+        uv = its.uv;
+        du = dv = 0;
+    }
+
     BSDFQueryRecord(const ShapeIntersection &its, Ray3f ri) {
         wi = its.toLocal(-ri.dir);
         uv = its.uv;
