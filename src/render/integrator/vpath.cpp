@@ -22,20 +22,30 @@ public:
         Ray3f ray{_ray};
         int bounces = 0;
         std::shared_ptr<Medium> medium = nullptr;
-        const float epsilon = 0.01f;
+        const float epsilon = 1e-4f;
         
-        auto its = scene.intersect(ray);
-        if (bounces == 0 && !its.has_value()) {
-            if (!its.has_value())
-                return scene.evaluateEnvironment(ray);
-            if (its->shape->isEmitter())
-                return its->shape->getEmitter()->evaluate(ray);
+        auto itsOpt = scene.intersect(ray);
+        bool foundIntersection = itsOpt.has_value();
+
+        if (foundIntersection) {
+            if (itsOpt->shape->isEmitter()) {
+                return itsOpt->shape->getEmitter()->evaluate(ray);
+            }
+        } else {
+            return scene.evaluateEnvironment(ray);
         }
 
 
         while(true) {
-            if (!its.has_value() || its->shape->isEmitter())
+            if (!foundIntersection || bounces>= mMaxDepth)
                 break;
+
+            //todo fixme
+            if (itsOpt->shape->isEmitter())
+                break;
+
+            
+
 
             MediumSampleRecord mRec;
             if (medium) medium->sampleDistance(&mRec, Ray3f{ray.ori, its->hitPoint}, sampler);

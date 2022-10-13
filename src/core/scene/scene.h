@@ -77,6 +77,10 @@ public:
         Point2f uv{u, v};
         return uv;
     }
+
+    bool hasEnvironment() const {
+        return environment != nullptr;
+    }
 private:
     //* Embree 
     RTCDevice device;

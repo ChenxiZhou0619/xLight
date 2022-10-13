@@ -33,10 +33,11 @@ public:
         }
 
         while (bounces < mMaxDepth) {
-
+ 
             if (!foundIntersection || bounces >= mMaxDepth)
                 break;
 
+            //todo fixme
             if (itsOpt->shape->isEmitter())
                 break;
 
@@ -44,7 +45,9 @@ public:
             auto its = itsOpt.value();
             auto bsdf = its.shape->getBSDF();
             if (bsdf && bsdf->m_type == BSDF::EBSDFType::EEmpty) {
-                ray = Ray3f{its.hitPoint, ray.dir};
+                ray = Ray3f{its.hitPoint + ray.dir * 1e-4, ray.dir};
+                itsOpt = scene.intersect(ray);
+                foundIntersection = itsOpt.has_value();
                 continue;
             }
 
@@ -93,23 +96,6 @@ public:
                     1 : powerHeuristic(bsdfPdf, luminPdf);
                 Li += beta * lumin * misw;
             }
-/*
-            SpectrumRGB lumion_energy{.0f};
-            float lumion_pdf = .0f;
-
-            if (!foundIntersection) {
-                lumion_energy = scene.evaluateEnvironment(ray);
-            } else {
-                if (its->shape->isEmitter()) {
-                    lumion_energy = its->shape->getEmitter()->evaluate(ray);
-                    lumion_pdf = scene.pdfAreaIllumination(its.value(), ray);
-                }
-            }
-
-            beta *= bsdf_weight;
-            if (!lumion_energy.isZero())
-                Li += beta * lumion_energy * powerHeuristic(bsdf_pdf, lumion_pdf);
-*/            
             
             if (bounces++ > mRRThresHold) {
                 if (sampler->next1D() > 0.95f) break;
@@ -126,6 +112,7 @@ protected:
     /**
      * @brief Randomly choose a light source, and sample it.
      * This should take occlusion and transmittance into consideration
+     * Sample scene only if exists, or area
      * 
      * @param scene 
      * @param from 
@@ -135,36 +122,27 @@ protected:
     LuminRecord sampleDirect(const Scene &scene, 
                              Point3f from,
                              Sampler *sampler) const 
-    {
-/*
-        //TODO, just sample area now
-        DirectIlluminationRecord dRec;
-        scene.sampleAreaIllumination(&dRec, from, sampler);
+    {   
+        if (scene.hasEnvironment()) {
+            DirectIlluminationRecord dRec;
+            auto sample = sampler->next2D();
+            scene.sampleEnvironment(&dRec, from, sample);
+            if (scene.occlude(dRec.shadow_ray)) {
+                return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
+            }
 
-        // test visibility
-        if (scene.occlude(dRec.shadow_ray)) {
-            return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
+            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
+        } else {
+            DirectIlluminationRecord dRec;
+            scene.sampleAreaIllumination(&dRec, from, sampler);
+
+            // test visibility
+            if (scene.occlude(dRec.shadow_ray)) {
+                return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
+            }
+
+            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
         }
-        
-        return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
-*/
-
-        DirectIlluminationRecord dRec;
-        auto sample = sampler->next2D();
-        scene.sampleEnvironment(&dRec, from, sample);
-        if (scene.occlude(dRec.shadow_ray)) {
-            return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
-        }
-
-        float pdf1 = dRec.pdf;
-        float pdf2 = scene.pdfEnvironment(dRec.shadow_ray);
-
-//        if (pdf1 != pdf2) {
-//            std::cout << "Error" << std::endl;
-//        }
-
-        return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
-
     }
 
     std::pair<SpectrumRGB, float> 
@@ -174,13 +152,11 @@ protected:
     {
         if (!itsOpt.has_value()) {
             return {scene.evaluateEnvironment(ray), scene.pdfEnvironment(ray)};
-//            return {scene.evaluateEnvironment(ray), 0};
         }
         else if (itsOpt->shape->isEmitter())
             return {
                 itsOpt->shape->getEmitter()->evaluate(ray),
-//                scene.pdfAreaIllumination(itsOpt.value(), ray)
-                .0f
+                scene.hasEnvironment() ? 0 : scene.pdfAreaIllumination(itsOpt.value(), ray)
             };
         return {SpectrumRGB{.0f}, .0f};
     }

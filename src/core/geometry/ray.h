@@ -44,6 +44,7 @@ public:
     TPoint3<T> ori;
     TVector3<T> dir;
     T time, tmin, tmax;
+    std::shared_ptr<Medium> medium;
 
     //* data for ray differential
     bool is_ray_differential = false;   // set to true when camera generate ray-differential
