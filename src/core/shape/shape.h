@@ -119,7 +119,7 @@ struct ShapeIntersection {
 
     int primID = -1;
 
-     Vector3f toWorld(const Vector3f &local) const {
+    Vector3f toWorld(const Vector3f &local) const {
         return shadingF.toWorld(local);
     }
 

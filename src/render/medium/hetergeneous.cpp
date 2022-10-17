@@ -2,7 +2,7 @@
 #include <openvdb/tools/Interpolation.h>
 
 bool Hetergeneous::sampleDistance(MediumSampleRecord *mRec, 
-                                  const Ray3f &ray, 
+                                  const Ray3f &ray, float tmax,
                                   Sampler *sampler) const 
 {
     auto [x, y] = sampler->next2D();
@@ -20,14 +20,14 @@ bool Hetergeneous::sampleDistance(MediumSampleRecord *mRec,
     Point3f origin = ray.ori;
     Vector3f dir = ray.dir;
 
-    while(accumulate < thick && len < ray.tmax) {
+    while(accumulate < thick && len < tmax) {
         Point3f p = origin + dir * len;
         auto value = mediumQuery.wsSample(openvdb::Vec3R(p.x, p.y, p.z)) * scale;
         accumulate += value * step;
         len += step;
     }
 
-    if (len <= ray.tmax) {
+    if (len <= tmax) {
         mRec->pathLength = len;
         mRec->isValid = true;
         mRec->medium = this;
@@ -39,7 +39,7 @@ bool Hetergeneous::sampleDistance(MediumSampleRecord *mRec,
         mRec->pdf = sigma_t * std::exp(-accumulate);
         mRec->albedo = 1.0f;
     } else {
-        mRec->pathLength = ray.tmax;
+        mRec->pathLength = tmax;
         mRec->isValid = false;
         mRec->medium = nullptr;
         mRec->transmittance = SpectrumRGB(std::exp(-accumulate));
@@ -76,4 +76,13 @@ SpectrumRGB Hetergeneous::getTrans(Point3f start, Point3f end) const
     }
 
     return SpectrumRGB(std::exp(-thick));
+}
+
+float Hetergeneous::pdfFromTo(Point3f from, 
+                              Point3f end, 
+                              bool isExceed) const 
+{   
+
+    //todo
+    return 1;
 }

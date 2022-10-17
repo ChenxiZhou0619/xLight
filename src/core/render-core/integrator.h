@@ -4,7 +4,10 @@
 #include "sampler.h"
 #include "emitter.h"
 #include "core/scene/scene.h"
+#include <variant>
+#include "medium.h"
 class Scene;
+
 
 class Integrator : public Configurable {
 public:
@@ -16,10 +19,21 @@ public:
 
 };
 
-
 struct LuminRecord {
     SpectrumRGB lumin {.0f};
     float pdf {.0f};
     Vector3f direction;
+    Point3f position;
     bool isDelta = false;
+};
+
+using Intersection = std::variant<ShapeIntersection,
+                                  MediumIntersection>;           
+
+
+
+struct PathVertex {
+    std::optional<Intersection> itsOpt;
+    SpectrumRGB vertexWeight;
+    float vertexPdf;
 };

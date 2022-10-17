@@ -54,6 +54,12 @@ struct BSDFQueryRecord {
         du = dv = 0;
     }
 
+    BSDFQueryRecord(const ShapeIntersection &its, Vector3f _wi) {
+        wi = its.toLocal(_wi);
+        uv = its.uv;
+        du = dv = 0;
+    }    
+
     BSDFQueryRecord(const ShapeIntersection &its, Ray3f ri) {
         wi = its.toLocal(-ri.dir);
         uv = its.uv;
@@ -124,4 +130,30 @@ public:
         EGlossy,
         EDiffuse
     } m_type;
+};
+
+class BlackHole : public BSDF {
+public:
+    BlackHole() = default;
+
+    BlackHole(const rapidjson::Value &_value) {
+        // do nothing
+        m_type = EBSDFType::EDiffuse;
+    }
+
+    virtual bool isDiffuse() const override {return true;}
+
+    virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override
+    {
+        return SpectrumRGB{.0f};
+    }
+
+    virtual float pdf(const BSDFQueryRecord &bRec) const override {return .0f;}
+
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, 
+                               const Point2f &sample, 
+                               float &pdf) const override
+    {
+        return SpectrumRGB{.0f};
+    }
 };

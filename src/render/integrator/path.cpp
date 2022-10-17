@@ -59,6 +59,7 @@ public:
                 auto [lumin, 
                       luminPdf, 
                       sampleDir, 
+                      luminPoint,
                       isDelta] 
                     = sampleDirect(scene, its.hitPoint, sampler);
                 // add if valid
@@ -68,7 +69,7 @@ public:
                     // mis
                     float misw = isDelta ? 
                         1 : powerHeuristic(luminPdf, bsdf->pdf(bRec));
-                    Li += beta * bsdfVal * lumin / luminPdf * misw;
+                    Li += beta * bsdfVal * lumin / luminPdf * misw / mShadowrayNums;
                 }
                 
             }
@@ -128,20 +129,20 @@ protected:
             auto sample = sampler->next2D();
             scene.sampleEnvironment(&dRec, from, sample);
             if (scene.occlude(dRec.shadow_ray)) {
-                return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
+                return {SpectrumRGB{.0f}, .0f, Vector3f{}, Point3f{}, false};
             }
 
-            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
+            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, Point3f{}, false};
         } else {
             DirectIlluminationRecord dRec;
             scene.sampleAreaIllumination(&dRec, from, sampler);
 
             // test visibility
             if (scene.occlude(dRec.shadow_ray)) {
-                return {SpectrumRGB{.0f}, .0f, Vector3f{}, false};
+                return {SpectrumRGB{.0f}, .0f, Vector3f{}, Point3f{}, false};
             }
 
-            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, false};
+            return {dRec.energy, dRec.pdf, dRec.shadow_ray.dir, Point3f{}, false};
         }
     }
 

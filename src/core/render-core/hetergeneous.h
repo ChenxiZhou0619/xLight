@@ -18,7 +18,7 @@ public:
     }
 
     virtual bool sampleDistance(MediumSampleRecord *mRec,
-                                const Ray3f &ray,
+                                const Ray3f &ray, float tmax,
                                 Sampler *sampler) const override;
 
     virtual SpectrumRGB getTrans(Point3f start,
@@ -27,6 +27,10 @@ public:
     virtual SpectrumRGB Le(const Ray3f &ray) const override {
         return SpectrumRGB(0.0);
     }
+
+    virtual float pdfFromTo(Point3f from,
+                            Point3f end,
+                            bool isExceed) const override;
 
     virtual ~Hetergeneous() = default;
 

@@ -225,6 +225,7 @@ void configureScene(std::shared_ptr<RenderTask> task,
                     const auto &emitterName = property["emitterRef"].GetString();
                     auto emitter = task->getEmitter(emitterName);
                     mesh->second->setEmitter(emitter);
+                    mesh->second->setBSDF(std::make_shared<BlackHole>());
                 }
                 if (property.HasMember("mediumRef")) {
                     const auto mediumName = property["mediumRef"].GetString();

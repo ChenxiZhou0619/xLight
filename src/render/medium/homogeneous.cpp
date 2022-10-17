@@ -11,12 +11,12 @@ public:
     }
 
     virtual bool sampleDistance(MediumSampleRecord *mRec,
-                                const Ray3f &ray,
+                                const Ray3f &ray, float tmax,
                                 Sampler *sampler) const override
     {
         auto [x, y] = sampler->next2D();
         float distance = -std::log(1 - x) / mDensity;
-        if (distance <= ray.tmax) {
+        if (distance <= tmax) {
             mRec->pathLength = distance;
             mRec->isValid = true;
             mRec->medium = this;
@@ -26,11 +26,11 @@ public:
             mRec->pdf = mDensity * std::exp(-mDensity * distance);
             mRec->albedo = mAlbedo;
         } else {
-            mRec->pathLength = ray.tmax;
+            mRec->pathLength = tmax;
             mRec->isValid = false;
             mRec->medium = nullptr;
-            mRec->transmittance = getTrans(ray.ori, ray.at(ray.tmax));
-            mRec->pdf = std::exp(-mDensity * ray.tmax);
+            mRec->transmittance = getTrans(ray.ori, ray.at(tmax));
+            mRec->pdf = std::exp(-mDensity * tmax);
         }
         return mRec->isValid;
     }
@@ -48,6 +48,18 @@ public:
     }
 
     virtual ~Homogeneous() = default;
+
+    virtual float pdfFromTo(Point3f from,
+                            Point3f end,
+                            bool isExceed) const override
+    {
+        float dist = (end - from).length();
+        if (isExceed) {
+            return std::exp(-mDensity * dist);
+        } else {
+            return mDensity * std::exp(-mDensity * dist);
+        }
+    }
 
     
 private:

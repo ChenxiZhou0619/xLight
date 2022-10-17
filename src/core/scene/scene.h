@@ -56,28 +56,6 @@ public:
 
     float pdfEnvironment(const Ray3f &ray) const;
 
-    std::pair<Point2f, Vector3f> sampleToDir(Point2f sample) const {
-        DirectIlluminationRecord dRec;
-        environment->sample(&dRec, sample, Point3f(0));
-        return {Point2f{dRec.shadow_ray.tmin, dRec.shadow_ray.tmax} ,dRec.shadow_ray.dir};
-    }
-
-    Point2f dirToSample(Vector3f dir) const {
-        float cosTheta = dir.y,
-              tanPhi = dir.z / dir.x;
-        float theta = std::acos(cosTheta),
-              phi = std::atan(tanPhi);
-        if (phi < 0) 
-            phi += dir.x > 0 ? 2 * M_PI : M_PI;
-        else {
-            phi += dir.x > 0 ? .0f : M_PI;
-        }
-        float u = phi / (2 * M_PI),
-              v = theta / M_PI;
-        Point2f uv{u, v};
-        return uv;
-    }
-
     bool hasEnvironment() const {
         return environment != nullptr;
     }

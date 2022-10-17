@@ -27,7 +27,7 @@ public:
 
     TRay3() = default;
 
-    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = 0.0002, T _tmax = FLOATMAX)
+    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = 0.0002, T _tmax = 1e10)
         : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax) { };
 
     TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, T _time = .0f) : ori(_ori), time(_time) {

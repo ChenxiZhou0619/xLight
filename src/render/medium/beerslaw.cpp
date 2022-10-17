@@ -11,13 +11,13 @@ public:
 
     //* Sample the path length before next scatter
     virtual bool sampleDistance(MediumSampleRecord *m_rec,
-                                const Ray3f &ray,
+                                const Ray3f &ray, float tmax,
                                 Sampler *sampler) const override
     {
         // only scatter, so distance is infinity
         m_rec->pathLength = std::numeric_limits<float>::max();
         m_rec->pdf = 1;
-        m_rec->transmittance = getTrans(ray.ori, ray.at(ray.tmax));
+        m_rec->transmittance = getTrans(ray.ori, ray.at(tmax));
         m_rec->medium = this;
         return false;
     }
@@ -41,6 +41,14 @@ public:
 
     virtual SpectrumRGB Le(const Ray3f &ray) const override {
         return SpectrumRGB{0};
+    }
+
+    virtual float pdfFromTo(Point3f from,
+                            Point3f end,
+                            bool isExceed) const override
+    {
+        if (isExceed) return 1;
+        else return 0;
     }
 
 

@@ -81,11 +81,15 @@ public:
 
     //* Sample the path length before next scatter
     virtual bool sampleDistance(MediumSampleRecord *m_rec,
-                                const Ray3f &ray,
+                                const Ray3f &ray, float tmax,
                                 Sampler *sampler) const = 0;
 
     virtual SpectrumRGB getTrans(Point3f start,
                                  Point3f end) const = 0;
+
+    virtual float pdfFromTo(Point3f from,
+                            Point3f end,
+                            bool isExceed) const = 0;
 
     virtual SpectrumRGB Le(const Ray3f &ray) const = 0;
 
@@ -103,4 +107,17 @@ public:
 
 protected:
     std::shared_ptr<PhaseFunction> mPhase;
+};
+
+
+struct MediumIntersection {
+    float distance;
+
+    Point3f scatterPoint;
+
+    Vector3f forwardDirection;
+
+    Frame forwardFrame;
+
+    std::shared_ptr<Medium> medium;
 };
