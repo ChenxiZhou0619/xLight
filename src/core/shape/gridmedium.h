@@ -31,7 +31,7 @@ public:
     virtual Vector3f dpdv(int triIdx) const override {return Vector3f{};}
 
     virtual void sampleOnSurface(PointQueryRecord *pRec,
-                                 Sampler *sampler) const override;
+                                 Point3f sample) const override;
 
     friend void rtcGridMediumBoundsFunc(const RTCBoundsFunctionArguments *args);
 

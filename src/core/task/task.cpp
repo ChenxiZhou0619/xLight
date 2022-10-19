@@ -157,18 +157,30 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 )
             };
             envEmitter->setTexture(texture.get());
-            task->scene->setEnvMap(envEmitter);            
+//            task->scene->setEnvMap(envEmitter);
+            task->scene->addEmitter(envEmitter);
+
+        } else if (std::strcmp("area", emitterType) == 0){
+            //const auto &emitterName = 
+            //    emitter["name"].GetString();
+            //std::shared_ptr<Emitter> emitter_ptr {
+            //        static_cast<Emitter *>(
+            //        ObjectFactory::createInstance(
+            //            "area", emitter
+            //        )
+            //    )
+            //};
+            //task->emitters[emitterName] = emitter_ptr;
+            std::cout << "Area light should be declared directly in mesh!\n";
+            std::exit(1);
         } else {
-            const auto &emitterName = 
-                emitter["name"].GetString();
+            //* Spot, directional etc...
+            const auto &emitterName 
+                = emitter["name"].GetString();
             std::shared_ptr<Emitter> emitter_ptr {
-                    static_cast<Emitter *>(
-                    ObjectFactory::createInstance(
-                        "area", emitter
-                    )
-                )
+                static_cast<Emitter *>(ObjectFactory::createInstance(emitterType, emitter))
             };
-            task->emitters[emitterName] = emitter_ptr;
+            task->scene->addEmitter(emitter_ptr);
         }
     }
 
@@ -245,11 +257,20 @@ void configureScene(std::shared_ptr<RenderTask> task,
                     auto bsdf = task->getBSDF(bsdfName);
                     mesh->second->setBSDF(bsdf);
                 }
-                if (property.HasMember("emitterRef")) {
-                    const auto &emitterName = property["emitterRef"].GetString();
-                    auto emitter = task->getEmitter(emitterName);
-                    mesh->second->setEmitter(emitter);
+                if (property.HasMember("emitter")) {
+                    auto emitter = property["emitter"].GetObject();
+                    auto emitterType = emitter["type"].GetString();
+
+                    std::shared_ptr<Emitter> emitter_ptr {
+                        static_cast<Emitter *>(
+                            ObjectFactory::createInstance(emitterType, emitter)
+                        )
+                    };
+
+                    emitter_ptr->shape = mesh->second;
+                    mesh->second->setEmitter(emitter_ptr);
                     mesh->second->setBSDF(std::make_shared<BlackHole>());
+                    task->scene->addEmitter(emitter_ptr);
                 }
                 if (property.HasMember("mediumRef")) {
                     const auto mediumName = property["mediumRef"].GetString();

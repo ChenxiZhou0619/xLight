@@ -39,7 +39,7 @@ public:
     virtual Point2f getHitTextureCoordinate(int triIdx, Point2f) const override;
 
     virtual void sampleOnSurface(PointQueryRecord *pRec,
-                                 Sampler *sampler) const override;
+                                 Point3f sample) const override;
 protected:
     
     virtual Point3f getVertex(int idx) const override;

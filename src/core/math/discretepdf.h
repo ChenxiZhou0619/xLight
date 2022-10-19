@@ -129,3 +129,61 @@ private:
 
     int m_dim_x, m_dim_y;
 };
+/**
+ * @brief New 1d distribution object
+ * 
+ * @tparam Object 
+ */
+template<typename Object>
+class Distrib1D {
+public:
+    Distrib1D() = default;
+
+    Distrib1D(int nEntries) : distrib(nEntries) {
+        objects.reserve(nEntries);
+    }
+
+    virtual ~Distrib1D() = default;
+
+    void append(Object obj, float weight) {
+        objects.emplace_back(obj);
+        distrib.append(weight);
+    }
+
+    void postProcess() {
+        distrib.normalize();
+    }
+
+    /**
+     * @brief Receive a uniform random in [0, 1], return a sample result and its corresponding pdf
+     * 
+     * @param uniform 
+     * @return std::pair<Object, float> 
+     */
+    std::pair<Object, float>
+    sample(float uniform) const {
+        float pdf = .0f;
+        int idx = distrib.sample(uniform, &pdf);
+        return {objects[idx], pdf};
+    }
+
+    /**
+     * @brief Given an obj, return the pdf if it is sampled in sample routine
+     * 
+     * @param obj 
+     * @return float 
+     */
+    float pdf(Object obj) const {
+        if (auto itr = std::find(objects.begin(), objects.end(), obj);
+            itr != objects.end())
+        {
+            return distrib.pdf(itr - objects.begin());
+        }
+
+        return 0.f;
+    }
+
+private:
+    std::vector<Object> objects;
+    Distribution1D distrib;
+};

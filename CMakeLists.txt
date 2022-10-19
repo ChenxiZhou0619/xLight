@@ -129,8 +129,8 @@ add_executable(
     # render/integrator
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/deep.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/normal.cpp
-    ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
-    ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
+#    ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
+#    ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/vpath.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/trvisual.cpp
 
@@ -160,7 +160,7 @@ add_executable(
     # render/emitter
     ${XLIGHT_RENDER_EMITTER_DIR}/area.cpp
     ${XLIGHT_RENDER_EMITTER_DIR}/environment.cpp
-
+    ${XLIGHT_RENDER_EMITTER_DIR}/spot.cpp
     # render/medium
     ${XLIGHT_RENDER_MEDIUM_DIR}/beerslaw.cpp
     ${XLIGHT_RENDER_MEDIUM_DIR}/homogeneous.cpp

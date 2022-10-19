@@ -253,15 +253,16 @@ Point2f TriangleMesh::getHitTextureCoordinate(int triIdx, Point2f uv) const {
     return (1 - u - v) * uv0 + u * uv1 + v * uv2;
 }
 
-void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec, 
-                                   Sampler *sampler) const
+void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec,
+                                   Point3f sample) const
 {
-    int triIdx = m_triangles_distribution->sample(sampler->next1D());
+    int triIdx = m_triangles_distribution->sample(sample[0]);
     auto triangle = getFace(triIdx);
     auto p0 = this->getVertex(triangle.x),
          p1 = this->getVertex(triangle.y),
          p2 = this->getVertex(triangle.z);
-    auto [x, y] = sampler->next2D();
+    float x = sample[1],
+          y = sample[2];
     auto w0 = 1 - std::sqrt(1 - x),
          w1 = y * std::sqrt(1 - x),
          w2 = std::max(.0f, 1 - w0 - w1);

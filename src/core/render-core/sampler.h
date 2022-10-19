@@ -28,6 +28,7 @@ public:
     virtual void startPixel(const Point2f &p) { };
     virtual float next1D() = 0;
     virtual Point2f next2D() = 0;
+    virtual Point3f next3D() = 0;
     virtual void nextSample() = 0;
 
     CameraSample getCameraSample() {
@@ -87,6 +88,7 @@ public:
     }
     virtual float next1D() override;
     virtual Point2f next2D() override;
+    virtual Point3f next3D() override;
     virtual std::shared_ptr<Sampler> clone() const override{
         return std::make_shared<PixelSampler>(xSamples, ySamples, nDimensions);
     }

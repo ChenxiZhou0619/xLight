@@ -214,7 +214,8 @@ Point2f GridMedium::getHitTextureCoordinate(int triIdx, Point2f uv) const
     return Point2f();
 } 
 
-void GridMedium::sampleOnSurface(PointQueryRecord *pRec, Sampler *sampler) const 
+void GridMedium::sampleOnSurface(PointQueryRecord *pRec, 
+                                 Point3f sample) const 
 {
     return;
 }

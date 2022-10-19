@@ -199,7 +199,6 @@ protected:
     {   
         auto itsOpt = scene.intersect(ray);
 
-
         if (auto medium = ray.medium; medium) {
             if (!itsOpt.has_value()) {
                 //todo 
@@ -319,22 +318,25 @@ protected:
                    Ray3f ray,
                    std::optional<Intersection> &itsOpt) const
     {
+        std::shared_ptr<Emitter> emitter = nullptr;
+        SpectrumRGB Le{.0f};
+        
         if (!itsOpt.has_value()) {
-            return {
-                scene.evaluateEnvironment(ray),
-                scene.pdfEnvironment(ray)
-            };
+            emitter = scene.getEnvEmitter();
+            Le = scene.evaluateEnvironment(ray);
         } else {
-            if (auto surfaceIts = std::get_if<ShapeIntersection>(&itsOpt.value()); surfaceIts) {
-                if (auto emitter = surfaceIts->shape->getEmitter(); emitter) {
-                    return {
-                        emitter->evaluate(ray),
-                        scene.hasEnvironment() ? 0 : scene.pdfAreaIllumination(*surfaceIts, ray)
-                    };
-                }
+            if (auto surfaceIts = std::get_if<ShapeIntersection>(&itsOpt.value());
+                surfaceIts) 
+            {
+                emitter = surfaceIts->shape->getEmitter();
+                Le = emitter ? emitter->evaluate(ray) : SpectrumRGB{.0f};
             }
         }
-        return {SpectrumRGB{.0f}, .0f};
+
+        float pdfEmitter = scene.pdfEmitter(emitter),
+              pdfSample = emitter ? 
+                emitter->pdf(toEmitterHitInfo(itsOpt, ray)) : 0;
+        return {Le, pdfEmitter * pdfSample};
     }
 
     /**
@@ -350,14 +352,9 @@ protected:
                              Sampler *sampler) const
     {
         DirectIlluminationRecord dRec;
-        if (scene.hasEnvironment()) {
-            scene.sampleEnvironment(&dRec, from, sampler->next2D());
-        } else {
-            scene.sampleAreaIllumination(&dRec, from, sampler);
-        }
+        scene.sampleDirectLumin(&dRec, from, sampler);
         Ray3f shadowRay = dRec.shadow_ray;
-
-        return {dRec.energy, dRec.pdf, shadowRay.dir, shadowRay.at(shadowRay.tmax), false};
+        return {dRec.energy, dRec.pdf, shadowRay.dir, shadowRay.at(shadowRay.tmax), dRec.isDelta};
     }
 
 
@@ -412,7 +409,22 @@ protected:
     }
 
 
-    
+    EmitterHitInfo toEmitterHitInfo(std::optional<Intersection> &itsOpt,
+                                    const Ray3f &ray) const 
+    {
+        EmitterHitInfo info;
+        if (itsOpt.has_value()) {
+            if (auto surfaceIts = std::get_if<ShapeIntersection>(&itsOpt.value());
+                surfaceIts)
+            {
+                info.dist = surfaceIts->distance;
+                info.dir = ray.dir,
+                info.hitpoint = surfaceIts->hitPoint;
+                info.normal = surfaceIts->geometryN;
+            }
+        }
+        return info;
+    }
 
 
 private:

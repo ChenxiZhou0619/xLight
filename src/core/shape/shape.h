@@ -47,7 +47,7 @@ public:
     }
 
     virtual void sampleOnSurface(PointQueryRecord *pRec,
-                                 Sampler *sampler) const = 0;
+                                 Point3f sample) const = 0;
 
     float getSurfaceArea() const {
         return m_surface_area;

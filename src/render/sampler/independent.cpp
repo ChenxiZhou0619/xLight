@@ -23,6 +23,10 @@ public:
         return Point2f(next1D(), next1D());    
     }
 
+    virtual Point3f next3D() override {
+        return Point3f{next1D(), next1D(), next1D()};
+    }
+
     virtual std::shared_ptr<Sampler> clone() const override {
         return std::make_shared<Independent>();
     }

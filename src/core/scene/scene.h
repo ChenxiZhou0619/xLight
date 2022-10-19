@@ -5,7 +5,11 @@
 #include <stack>
 #include <embree3/rtcore.h>
 #include <core/shape/shape.h>
+#include <variant>
+#include "core/render-core/medium.h"
 
+using Intersection = std::variant<ShapeIntersection,
+                                  MediumIntersection>;
 class Scene {
 public:
     Scene();
@@ -14,6 +18,8 @@ public:
 
     void addShape(std::shared_ptr<ShapeInterface> shape);
 
+    void addEmitter(std::shared_ptr<Emitter> emitter);
+
     void postProcess();
 
     std::optional<ShapeIntersection> intersect(const Ray3f &ray) const;
@@ -21,40 +27,41 @@ public:
     bool occlude(const Ray3f &ray) const;
 
     SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
-
+/*
+//todo delete
     void sampleAreaIllumination(DirectIlluminationRecord *dRec,
                                 Point3f from,
-                                Sampler *sampler) const;
-
+                                Sampler *sampler) const { }
+//todo delete
     void sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
                                           SpectrumRGB *trans,
                                           Point3f from,
                                           std::shared_ptr<Medium> medium,
-                                          Sampler *sampler) const;
-
+                                          Sampler *sampler) const { }
+//todo deletes
     float pdfAreaIllumination (const ShapeIntersection &its,
-                               const Ray3f &ray) const;
-
+                               const Ray3f &ray) const { }
+//todo delete
     SpectrumRGB evaluateTrans(std::shared_ptr<Medium> medium,
                               Point3f from,
-                              Point3f end) const;
-
+                              Point3f end) const { }
+*/
+/*
     std::optional<ShapeIntersection> intersect(const Ray3f &ray,
                                                std::shared_ptr<Medium> medium, 
                                                SpectrumRGB *trans) const;
-
-    std::shared_ptr<Medium> getTargetMedium(Vector3f wo,
-                                            const ShapeIntersection &its) const;
-
+*/
     void setEnvMap(std::shared_ptr<Emitter> _environment) {
         environment = _environment;
     }
-
+/*
+//todo delete
     void sampleEnvironment(DirectIlluminationRecord *dRec,
                            Point3f from,
-                           Point2f sample) const; 
-
-    float pdfEnvironment(const Ray3f &ray) const;
+                           Point2f sample) const { }
+//todo delete
+    float pdfEnvironment(const Ray3f &ray) const { }
+*/
 
     bool hasEnvironment() const {
         return environment != nullptr;
@@ -67,6 +74,19 @@ public:
     void setEnvMedium(std::shared_ptr<Medium> medium) {
         envMedium = medium;
     }
+
+    /* 
+        todo from should be replace with an info struct to do get a better sample 
+    */    
+    void sampleDirectLumin(DirectIlluminationRecord *dRec,
+                           Point3f from,
+                           Sampler *sampler) const;
+
+    float pdfEmitter(std::shared_ptr<Emitter> emitter) const;
+
+    std::shared_ptr<Emitter> getEnvEmitter() const {
+        return environment;
+    }
 private:
     //* Embree 
     RTCDevice device;
@@ -77,9 +97,7 @@ private:
     std::vector<std::shared_ptr<ShapeInterface>>  shapes;
     std::shared_ptr<Medium> envMedium;
 
-    std::vector<std::shared_ptr<ShapeInterface>>  areaEmitters;
-    float emittersSurfaceArea;
-    Distribution1D emittersDistribution;
-
+    std::vector<std::shared_ptr<Emitter>> emitters;
+    Distrib1D<std::shared_ptr<Emitter>> lightDistrib;
 
 };

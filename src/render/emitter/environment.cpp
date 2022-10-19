@@ -110,12 +110,15 @@ public:
     }
 
 //todo
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const override {
+    virtual void sample(DirectIlluminationRecord *d_rec, 
+                        Point3f sample, 
+                        Point3f position) const override 
+    {
         float pdf = .0f;
         Vector2i resolution = m_envmap->getResolution();
         int width = resolution.x,
             height = resolution.y;
-        Vector2i vu = m_env_distribution->sample(sample, &pdf);
+        Vector2i vu = m_env_distribution->sample({sample[1], sample[2]}, &pdf);
         double u = (double)vu[1] / width,
                v = (double)vu[0] / height;
             
@@ -144,16 +147,17 @@ public:
         };
     }
 
-    virtual float pdf(const Ray3f &ray) const override {
+    virtual float pdf(const EmitterHitInfo &info) const override 
+    {
         assert(m_envmap != nullptr);
-        double cosTheta = ray.dir.y,
-               tanPhi = ray.dir.z / ray.dir.x;
+        double cosTheta = info.dir.y,
+               tanPhi = info.dir.z / info.dir.x;
         double theta = std::acos(cosTheta),
                phi = std::atan(tanPhi);
         if (phi < 0) 
-            phi += ray.dir.x > 0 ? 2 * M_PI : M_PI;
+            phi += info.dir.x > 0 ? 2 * M_PI : M_PI;
         else {
-            phi += ray.dir.x > 0 ? .0f : M_PI;
+            phi += info.dir.x > 0 ? .0f : M_PI;
         }
         double u = phi / (2 * M_PI),
                v = theta / M_PI;

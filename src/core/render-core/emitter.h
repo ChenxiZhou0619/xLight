@@ -2,6 +2,7 @@
 #include "core/utils/configurable.h"
 #include "core/render-core/texture.h"
 #include "core/mesh/mesh.h"
+#include <optional>
 
 class Emitter;
 class ShapeInterface;
@@ -34,11 +35,20 @@ struct EmitterQueryRecord {
 struct DirectIlluminationRecord {
     enum class EmitterType {
         EArea = 0,
-        EEnvironment
+        EEnvironment,
+        ESpot,
     } emitter_type;
     Ray3f shadow_ray;
     SpectrumRGB energy;
     float pdf;
+    bool isDelta = false;
+};
+
+struct EmitterHitInfo{
+    float dist;
+    Point3f hitpoint;
+    Normal3f normal;
+    Vector3f dir;
 };
 
 // TODO, setTexture method, and maybe Emitter holds a mesh / entity is a good choice
@@ -61,9 +71,11 @@ public:
 
     virtual void setTexture(Texture *envmap) = 0;
 
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const = 0;
+    virtual void sample(DirectIlluminationRecord *d_rec, 
+                        Point3f sample, 
+                        Point3f position) const = 0;
 
-    virtual float pdf(const Ray3f &ray) const = 0;
-protected:
-    Mesh *m_mesh = nullptr;
+    virtual float pdf(const EmitterHitInfo &info)const = 0;
+
+    std::weak_ptr<ShapeInterface> shape;
 };

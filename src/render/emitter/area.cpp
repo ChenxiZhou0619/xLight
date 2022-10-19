@@ -1,8 +1,8 @@
 #include "core/render-core/emitter.h"
-
+#include "core/shape/shape.h"
 class AreaEmitter : public Emitter {
-    // TODO, replace it with texture
     SpectrumRGB m_lightEnergy;
+    
 public:
     AreaEmitter() = default;
     AreaEmitter(const rapidjson::Value &_value) {
@@ -29,17 +29,35 @@ public:
         std::cout << "AreaEmitter::setTexture no implement!\n";
         std::exit(1);
     }
-
-    virtual float pdf(const Ray3f &ray) const override {
-        //! no implement
-        std::cout << "Error, area pdf not implement!\n";
-        std::exit(1);
+//todo depend the sampling strategy
+    virtual float pdf(const EmitterHitInfo &info) const override 
+    {
+        if (auto shape_ptr = shape.lock(); 
+            shape_ptr) 
+        {
+            float pdf = 1.f / shape_ptr->getSurfaceArea(),
+                  jacob = info.dist * info.dist / std::abs(dot(info.normal, info.dir));
+            return pdf * jacob;
+        }   
+        return .0f;             
     }
 
-    virtual void sample(DirectIlluminationRecord *d_rec, Point2f sample, Point3f position) const override{
-        //! no implement
-        std::cout << "AreaEmitter::sample2 no implement!\n";
-        std::exit(1);
+    virtual void sample(DirectIlluminationRecord *d_rec, 
+                        Point3f sample, 
+                        Point3f position) const override
+    {
+        auto shape_ptr = shape.lock();
+        assert(shape_ptr != nullptr);
+
+        PointQueryRecord pRec;
+        shape_ptr->sampleOnSurface(&pRec, sample);
+        Ray3f shadowRay {position, pRec.p};
+        d_rec->emitter_type = DirectIlluminationRecord::EmitterType::EArea;
+        d_rec->shadow_ray = shadowRay;
+        d_rec->isDelta = false;
+        d_rec->energy = evaluate(shadowRay);
+        d_rec->pdf = shadowRay.tmax * shadowRay.tmax
+            / std::abs(dot(pRec.normal, shadowRay.dir));
     }
 };
 

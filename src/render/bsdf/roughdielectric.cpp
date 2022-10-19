@@ -1,5 +1,5 @@
 #include "core/render-core/bsdf.h"
-#include "core/math/distribution.h"
+#include "core/math/ndf.h"
 #include "core/math/common.h"
 
 class RoughDielectric : public BSDF {

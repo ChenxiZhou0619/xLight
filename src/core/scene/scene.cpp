@@ -5,6 +5,7 @@
 #include <stack>
 #include <spdlog/spdlog.h>
 
+
 Scene::Scene() {
     device = rtcNewDevice(nullptr);
     scene = rtcNewScene(device);
@@ -17,8 +18,13 @@ void Scene::addShape(std::shared_ptr<ShapeInterface> shape) {
     shapes.emplace_back(shape);
 }
 
+void Scene::addEmitter(std::shared_ptr<Emitter> emitter) {
+    emitters.emplace_back(emitter);
+}
+
 void Scene::postProcess() {
     rtcCommitScene(scene);
+/*
     for (auto shape : shapes) {
         if (shape->isEmitter()) {
             areaEmitters.emplace_back(shape);
@@ -26,6 +32,14 @@ void Scene::postProcess() {
         }
     }
     emittersSurfaceArea = emittersDistribution.normalize();
+*/  
+    //* Construct the light distribution using some measure
+    //* Here distribution is refer to a single emitter
+    //! Just uniform distribution now
+    for (auto emitter : emitters) {
+        lightDistrib.append(emitter, 1);
+    }
+    lightDistrib.postProcess();
 
     if (environment)
         environment->initialize();
@@ -96,7 +110,7 @@ SpectrumRGB Scene::evaluateEnvironment(const Ray3f &ray) const {
         return environment->evaluate(ray);
     }
 }
-
+/*
 void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
                                    Point3f from,
                                    Sampler *sampler) const 
@@ -125,7 +139,9 @@ void Scene::sampleAreaIllumination(DirectIlluminationRecord *dRec,
         std::exit(1);
     }
 }
+*/
 
+/*
 void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec, 
                                              SpectrumRGB *trans, 
                                              Point3f from,
@@ -189,7 +205,8 @@ void Scene::sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
     }
 
 }
-
+*/
+/*
 SpectrumRGB Scene::evaluateTrans(std::shared_ptr<Medium> medium, 
                                  Point3f from, 
                                  Point3f end) const 
@@ -223,7 +240,8 @@ SpectrumRGB Scene::evaluateTrans(std::shared_ptr<Medium> medium,
     }
     return result;
 }
-
+*/
+/*
 float Scene::pdfAreaIllumination(const ShapeIntersection& its, 
                                  const Ray3f &ray) const 
 {
@@ -231,7 +249,9 @@ float Scene::pdfAreaIllumination(const ShapeIntersection& its,
         its.distance * its.distance
         / std::abs(dot(its.shadingN, ray.dir));
 }
+*/
 
+/*
 std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
                                                   std::shared_ptr<Medium> medium,
                                                   SpectrumRGB *trans) const 
@@ -259,29 +279,34 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray,
     }
     return std::nullopt;
 }
-
-std::shared_ptr<Medium> Scene::getTargetMedium(Vector3f wo, 
-                                               const ShapeIntersection &its) const 
-{
-    if (dot(its.geometryN, wo) > 0) {
-        return its.shape->getOutsideMedium();
-    }
-    if (dot(its.geometryN, wo) < 0) {
-        return its.shape->getInsideMedium();
-    }
-    return nullptr;
-}
-
+*/
+/*
 void Scene::sampleEnvironment(DirectIlluminationRecord *dRec, 
                               Point3f from, 
                               Point2f sample) const 
 {
     environment->sample(dRec, sample, from);
 }
-
+*/
+/*
 float Scene::pdfEnvironment(const Ray3f &ray) const 
 {
     if (!environment)
         return .0f;
     return environment->pdf(ray);
+}
+*/
+void Scene::sampleDirectLumin(DirectIlluminationRecord *dRec, 
+                              Point3f from, 
+                              Sampler *sampler) const 
+{
+    auto [light, lightPdf] 
+        = lightDistrib.sample(sampler->next1D());
+    light->sample(dRec, sampler->next3D(), from);
+    dRec->pdf *= lightPdf;
+}
+
+float Scene::pdfEmitter(std::shared_ptr<Emitter> emitter) const
+{
+    return lightDistrib.pdf(emitter);
 }

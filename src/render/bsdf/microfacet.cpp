@@ -10,7 +10,7 @@
  */
 #include "core/render-core/bsdf.h"
 #include "core/math/common.h"
-#include "core/math/distribution.h"
+#include "core/math/ndf.h"
 
 class Microfacet : public BSDF {
 protected:    

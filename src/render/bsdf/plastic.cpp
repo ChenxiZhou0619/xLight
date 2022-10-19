@@ -1,7 +1,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/math/math.h"
 #include "core/math/common.h"
-#include "core/math/distribution.h"
+#include "core/math/ndf.h"
 #include "core/math/warp.h"
 
 class Plastic : public BSDF {

@@ -13,4 +13,10 @@ Point2f PixelSampler::next2D() {
     else return Point2f(dist(rng), dist(rng));
 }
 
+Point3f PixelSampler::next3D() {
+    float x = next1D();
+    auto [y, z] = next2D();
+    return {x, y, z};
+}
+
 
