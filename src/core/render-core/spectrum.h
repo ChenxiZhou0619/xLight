@@ -124,6 +124,10 @@ public:
             );
     }
 
+    float average() const {
+        return (rgb[0] + rgb[1] + rgb[2]) / 3;
+    }
+
     float r() const {return rgb.x;}
     float g() const {return rgb.y;}
     float b() const {return rgb.z;}

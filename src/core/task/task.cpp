@@ -189,7 +189,31 @@ void configureScene(std::shared_ptr<RenderTask> task,
                     ObjectFactory::createInstance(mediumType, medium)
                 )
             };
+
+        if (medium.HasMember("phase")) {
+            const auto &phaseType = medium["phase"]["type"].GetString();
+            std::shared_ptr<PhaseFunction> phase {
+                static_cast<PhaseFunction *>(
+                    ObjectFactory::createInstance(phaseType, medium["phase"].GetObject())
+                )
+            };
+            medium_ptr->setPhase(phase); 
+        } else {
+            std::shared_ptr<PhaseFunction> phase {
+                static_cast<PhaseFunction *>(
+                    ObjectFactory::createInstance("isotropic", medium)
+                )
+            };
+            medium_ptr->setPhase(phase);
+        }
         task->mediums[mediumName] = medium_ptr;
+
+        if (medium.HasMember("isEnv")) {
+            bool isEnv = medium["isEnv"].GetBool();
+            if (isEnv) {
+                task->scene->setEnvMedium(medium_ptr);
+            }
+        }
     }
     std::cout << task->mediums.size() << " mediums configured\n";
 

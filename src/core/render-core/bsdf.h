@@ -126,7 +126,8 @@ public:
     virtual bool isDiffuse() const = 0;
 
     enum class EBSDFType {
-        EEmpty = 0,
+        EUnknown = 0,
+        EEmpty,
         EGlossy,
         EDiffuse
     } m_type;
@@ -134,7 +135,9 @@ public:
 
 class BlackHole : public BSDF {
 public:
-    BlackHole() = default;
+    BlackHole() {
+        m_type = EBSDFType::EDiffuse;
+    }
 
     BlackHole(const rapidjson::Value &_value) {
         // do nothing

@@ -59,6 +59,14 @@ public:
     bool hasEnvironment() const {
         return environment != nullptr;
     }
+
+    std::shared_ptr<Medium> getEnvMedium() const {
+        return envMedium;
+    }
+
+    void setEnvMedium(std::shared_ptr<Medium> medium) {
+        envMedium = medium;
+    }
 private:
     //* Embree 
     RTCDevice device;
@@ -67,8 +75,11 @@ private:
     int shapeCount = 0;
     std::shared_ptr<Emitter> environment;
     std::vector<std::shared_ptr<ShapeInterface>>  shapes;
+    std::shared_ptr<Medium> envMedium;
 
     std::vector<std::shared_ptr<ShapeInterface>>  areaEmitters;
     float emittersSurfaceArea;
     Distribution1D emittersDistribution;
+
+
 };

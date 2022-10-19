@@ -4,10 +4,10 @@ class Homogeneous : public Medium {
 public:
     Homogeneous() = default;
     Homogeneous(const rapidjson::Value &_value) {
-        mDensity = getFloat("density", _value);
-        mAlbedo = getFloat("albedo", _value);
+        mDensity = getSpectrumRGB("density", _value);
+        mAlbedo = getSpectrumRGB("albedo", _value);
         mEmission = getSpectrumRGB("emission", _value);
-        mPhase = std::make_shared<IsotropicPhase>();
+        
     }
 
     virtual bool sampleDistance(MediumSampleRecord *mRec,
@@ -15,22 +15,37 @@ public:
                                 Sampler *sampler) const override
     {
         auto [x, y] = sampler->next2D();
-        float distance = -std::log(1 - x) / mDensity;
+
+        //* Choose a channel using y
+        int channel = std::min(int(y * 3), 2);
+
+        float sigmaT = mDensity[channel];
+
+
+        float distance = -std::log(1 - x) / sigmaT;
         if (distance <= tmax) {
             mRec->pathLength = distance;
             mRec->isValid = true;
             mRec->medium = this;
-            mRec->sigmaS = SpectrumRGB{mDensity * mAlbedo};
-            mRec->sigmaA = SpectrumRGB{mDensity * (1 - mAlbedo)};
+            mRec->sigmaS = mDensity * mAlbedo;
+            mRec->sigmaA = mDensity * (SpectrumRGB{1} - mAlbedo);
             mRec->transmittance = getTrans(ray.ori, ray.at(distance));
-            mRec->pdf = mDensity * std::exp(-mDensity * distance);
+            mRec->pdf = .0f;
+            for (int i = 0; i < 3; ++i) {
+                float pdf = mDensity[i] * mRec->transmittance[i];
+                mRec->pdf += pdf / 3;
+            }
             mRec->albedo = mAlbedo;
         } else {
             mRec->pathLength = tmax;
             mRec->isValid = false;
             mRec->medium = nullptr;
             mRec->transmittance = getTrans(ray.ori, ray.at(tmax));
-            mRec->pdf = std::exp(-mDensity * tmax);
+            mRec->pdf = .0f;
+            for (int i = 0; i < 3; ++i) {
+                float pdf = mRec->transmittance[i];
+                mRec->pdf += pdf / 3;
+            }
         }
         return mRec->isValid;
     }
@@ -39,8 +54,11 @@ public:
                                  Point3f end) const override
     {
         float dist = (end - start).length();
-        float thick = std::exp(-mDensity * dist);
-        return SpectrumRGB{thick};
+        return SpectrumRGB{
+            std::exp(-mDensity[0] * dist),
+            std::exp(-mDensity[1] * dist),
+            std::exp(-mDensity[2] * dist)
+        };
     }
 
     virtual SpectrumRGB Le(const Ray3f &ray) const override {
@@ -54,17 +72,24 @@ public:
                             bool isExceed) const override
     {
         float dist = (end - from).length();
+        float pdf = .0f;
+        
         if (isExceed) {
-            return std::exp(-mDensity * dist);
+            for (int i = 0; i < 3; ++i) {
+                pdf += std::exp(-mDensity[i] * dist) / 3;
+            }
         } else {
-            return mDensity * std::exp(-mDensity * dist);
+            for (int i = 0; i < 3; ++i) {
+                pdf += std::exp(-mDensity[i] * dist) * mDensity[i] / 3;
+            }
         }
+        return pdf;
     }
 
     
 private:
-    float mDensity;
-    float mAlbedo;
+    SpectrumRGB mDensity;
+    SpectrumRGB mAlbedo;
     SpectrumRGB mEmission;
 };
 

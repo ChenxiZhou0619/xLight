@@ -37,7 +37,7 @@ bool Hetergeneous::sampleDistance(MediumSampleRecord *mRec,
         mRec->sigmaS = SpectrumRGB{sigma_t};
         mRec->transmittance = SpectrumRGB(std::exp(-accumulate));
         mRec->pdf = sigma_t * std::exp(-accumulate);
-        mRec->albedo = 1.0f;
+        mRec->albedo = SpectrumRGB{1.0f};
     } else {
         mRec->pathLength = tmax;
         mRec->isValid = false;
