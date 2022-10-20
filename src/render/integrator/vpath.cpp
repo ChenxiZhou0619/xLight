@@ -19,12 +19,13 @@ public:
                               Sampler *sampler) const override
     {
         return getLiSingleScattering(scene, _ray, sampler);
+//        return getLiMultipleScattering(scene, _ray, sampler);
     }
 
 protected:
-    SpectrumRGB getLiSingleScattering(const Scene &scene,
-                                      Ray3f ray,
-                                      Sampler *sampler) const 
+    SpectrumRGB getLiMultipleScattering(const Scene &scene,
+                                        Ray3f ray,
+                                        Sampler *sampler) const 
     {
         SpectrumRGB Li{.0f}, beta{1.f};
         int bounces = 0;
@@ -59,7 +60,8 @@ protected:
                     auto [lumin, luminPdf, sampleDir, samplePoint, isDelta]
                         = sampleDirect(scene, surfaceIts->hitPoint, sampler); 
                     Ray3f shadowRay {surfaceIts->hitPoint, samplePoint};
-                    
+                    shadowRay.medium = getTargetMedium(scene, *surfaceIts, shadowRay.dir);
+
                     //* Evaluate bsdf
                     BSDFQueryRecord bRec{*surfaceIts, -ray.dir, sampleDir};
                     SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
@@ -68,15 +70,10 @@ protected:
                     auto [trans, transPdf] = marchRayFromTo(scene, shadowRay);
 
                     //* The real pdf for constructing the path
-//!                    luminPdf *= transPdf;
-//                    spdlog::info("trans : [{}, {}, {}], transPdf : [{}]", 
-//                        trans.r(), trans.g(), trans.b(), 
-//                        transPdf
-//                    );
                     // add if valid
                     if (!bsdfVal.isZero() && !lumin.isZero() && !trans.isZero()) {
                         float misw = isDelta ? 
-                            1 : powerHeuristic(luminPdf, bsdfPdf);
+                            1 : powerHeuristic(luminPdf, bsdfPdf * transPdf); //! fix
                         Li += beta * bsdfVal * trans * lumin * misw /
                             (mShadowrayNums * luminPdf);
                     }
@@ -107,7 +104,7 @@ protected:
                     = evaluateDirect(scene, ray, pathVertex.itsOpt);
                 if (!lumin.isZero()) {
                     float misw = bRec.isDelta ? 
-                        1 : powerHeuristic(bsdfPdf, luminPdf);
+                        1 : powerHeuristic(bsdfPdf * pathVertex.vertexPdf, luminPdf);   //! fix
                     Li += beta * lumin * misw;
                 }
             }
@@ -127,16 +124,11 @@ protected:
                     //* Evaluate trans
                     auto [trans, transPdf] = marchRayFromTo(scene, shadowRay);
                     //* The real pdf for constructing the path
-//!                    luminPdf *= transPdf;
-//                    spdlog::info("trans : [{}, {}, {}], transPdf : [{}]", 
-//                        trans.r(), trans.g(), trans.b(), 
-//                        transPdf
-//                    );
 
                     // add if valid
                     if (!phaseVal.isZero() && !lumin.isZero() && !trans.isZero()) {
                         float misw = isDelta ? 
-                            1 : powerHeuristic(luminPdf, phasePdf);
+                            1 : powerHeuristic(luminPdf, phasePdf * transPdf);
                         Li += beta * phaseVal * mediumIts->sigmaS * trans * lumin * misw / 
                             (mShadowrayNums * luminPdf);
                     }
@@ -156,7 +148,7 @@ protected:
                 };
                 ray.medium = medium;
 
-                pathVertex = marchRay(scene, ray, sampler);
+                pathVertex = marchRay(scene, ray, sampler, false);
                 beta *= pathVertex.vertexWeight;
 
                 if (beta.isZero()) break;
@@ -166,7 +158,7 @@ protected:
                     = evaluateDirect(scene, ray, pathVertex.itsOpt);
                 if (!lumin.isZero()) {
                     float misw = pRec.isDelta ? 
-                        1 : powerHeuristic(pRec.pdf, luminPdf);
+                        1 : powerHeuristic(pRec.pdf * pathVertex.vertexPdf, luminPdf);
                     Li += beta * lumin * misw;
                 }
             } else {
@@ -183,6 +175,151 @@ protected:
         return Li;
     }
 
+    SpectrumRGB getLiSingleScattering(const Scene &scene,
+                                      Ray3f ray,
+                                      Sampler *sampler) const 
+    {
+        SpectrumRGB Li{0.f}, beta{1.f};
+        int bounces = 0;
+
+        ray.medium = scene.getEnvMedium();
+
+        PathVertex pathVertex = marchRay(scene, ray, sampler);
+        beta *= pathVertex.vertexWeight;
+
+        while(bounces <= mMaxDepth) {
+            std::optional<Intersection> itsOpt = pathVertex.itsOpt;
+            bool foundIntersection = itsOpt.has_value();
+
+            if (bounces == 0) {
+                auto [lumin, luminPdf]
+                    = evaluateDirect(scene, ray, itsOpt);
+                if (!lumin.isZero()) {
+                    Li += beta * lumin;
+                    break;
+                }
+            }
+
+            if (!foundIntersection) break;
+
+            if (auto surfaceIts = std::get_if<ShapeIntersection>(&itsOpt.value());
+                surfaceIts)
+            {
+                auto bsdf = surfaceIts->shape->getBSDF();
+
+                //*Sample direct
+                for (int i = 0; i < mShadowrayNums; ++i) {
+                    auto [lumin, luminPdf, sampleDir, samplePoint, isDelta]
+                        = sampleDirect(scene, surfaceIts->hitPoint, sampler);
+                    Ray3f shadowRay {surfaceIts->hitPoint, samplePoint};
+                    shadowRay.medium = getTargetMedium(scene, *surfaceIts, shadowRay.dir);
+
+                    //* Evaluate bsdf
+                    BSDFQueryRecord bRec{*surfaceIts, -ray.dir, sampleDir};
+                    SpectrumRGB bsdfVal = bsdf->evaluate(bRec);
+                    float bsdfPdf = bsdf->pdf(bRec);
+                    //* Evaluate trans
+                    auto [trans, transPdf] = marchRayFromTo(scene, shadowRay);
+
+                    //add if valid
+                    if (!bsdfVal.isZero() && !lumin.isZero() && !trans.isZero()) {
+                        float misw = isDelta ? 
+                            1 : powerHeuristic(luminPdf, bsdfPdf);
+                        Li += beta * bsdfVal * trans * lumin * misw 
+                            / (mShadowrayNums * luminPdf);
+                    }
+                }
+                //* Sample bsdf * trans
+                BSDFQueryRecord bRec{*surfaceIts, -ray.dir};
+                float bsdfPdf = .0f;
+                SpectrumRGB bsdfWeight = bsdf->sample(bRec, sampler->next2D(), bsdfPdf);
+                beta *= bsdfWeight;
+
+                //* Sample t second
+                ray = Ray3f {
+                    surfaceIts->hitPoint,
+                    surfaceIts->toWorld(bRec.wo)
+                };
+                ray.medium = getTargetMedium(scene, *surfaceIts, ray.dir);
+
+                pathVertex = marchRay(scene, ray, sampler);
+                beta *= pathVertex.vertexWeight;
+
+                if (beta.isZero()) break;
+
+                //* Evaluate, if hit the light source
+                auto [lumin, luminPdf]
+                    = evaluateDirect(scene, ray, pathVertex.itsOpt);
+                if (!lumin.isZero()) {
+                    float misw = bRec.isDelta ? 
+                        1 : powerHeuristic(bsdfPdf * pathVertex.vertexPdf, luminPdf);
+                    Li += beta * lumin * misw;
+                }
+            } else if (auto mediumIts = std::get_if<MediumIntersection>(&itsOpt.value());
+                mediumIts)
+            {
+                auto medium = mediumIts->medium;
+                for (int i = 0; i < mShadowrayNums; ++i) {
+                    auto [lumin, luminPdf, sampleDir, samplePoint, isDelta]
+                        = sampleDirect(scene, mediumIts->scatterPoint, sampler);
+                    Ray3f shadowRay {mediumIts->scatterPoint, samplePoint};
+                    shadowRay.medium = medium;
+
+                    //* Evaluate phase
+                    PhaseQueryRecord pRec{mediumIts->scatterPoint, ray.dir, sampleDir};
+                    SpectrumRGB phaseVal = medium->evaluatePhase(pRec);
+                    float phasePdf = medium->pdfPhase(pRec);
+                    //* Evaluate trans
+                    auto [trans, transPdf] = marchRayFromTo(scene, shadowRay);
+
+                    //add if valid
+                    if (!phaseVal.isZero() && !lumin.isZero() && !trans.isZero()) {
+                        float misw = isDelta ? 
+                            1 : powerHeuristic(luminPdf, phasePdf * transPdf);
+                        Li += beta * phaseVal * mediumIts->sigmaS * trans * lumin * misw 
+                            / (mShadowrayNums * luminPdf);
+                    }
+                } 
+
+                //* Sample phase * trans
+
+                //* Sample phase first
+                PhaseQueryRecord pRec{mediumIts->scatterPoint, ray.dir};
+                SpectrumRGB phaseWeight = medium->samplePhase(&pRec, sampler->next2D());
+                beta *= phaseWeight * mediumIts->sigmaS;
+
+                //* Sample t second
+                ray = Ray3f{
+                    mediumIts->scatterPoint,
+                    pRec.localFrame.toWorld(pRec.wo)
+                };
+                ray.medium = medium;
+
+                //todo this ray should not scatter in medium
+                pathVertex = marchRay(scene, ray, sampler, true);
+                beta *= pathVertex.vertexWeight;
+
+                if (beta.isZero()) break;
+
+                //* Evaluate if hit the light
+                auto [lumin, luminPdf] 
+                    = evaluateDirect(scene, ray, pathVertex.itsOpt);
+                if (!lumin.isZero()) {
+                    float misw = pRec.isDelta ? 
+                        1 : powerHeuristic(pRec.pdf * pathVertex.vertexPdf, luminPdf);
+                    Li += beta * lumin * misw;
+                }
+            }
+
+            //* rr
+            if (bounces++ > mRRThresHold) {
+                if (sampler->next1D() > 0.95f) break;
+                beta /= 0.95;
+            }            
+        }
+
+        return Li;
+    }
 
 //todo to handle the infinity volume    
     /**
@@ -195,9 +332,34 @@ protected:
      */
     PathVertex marchRay(const Scene &scene,
                         Ray3f ray,
-                        Sampler *sampler) const
+                        Sampler *sampler,
+                        bool ignoreMedium = false) const
     {   
         auto itsOpt = scene.intersect(ray);
+
+        if (ignoreMedium) {
+            if (auto medium = ray.medium; medium) {
+                if (!itsOpt.has_value()) {
+                    return {
+                        std::nullopt, SpectrumRGB{.0f}, 1.f
+                    };
+                } else {
+                    Intersection its{itsOpt.value()};
+                    return {
+                        std::make_optional(its), medium->getTrans(ray.ori, itsOpt->hitPoint), 1
+                    };
+                }
+            } else {
+                if (!itsOpt.has_value()) {
+                    return {std::nullopt, SpectrumRGB{1}, 1};
+                } else {
+                    Intersection its{itsOpt.value()};
+                    return {
+                        std::make_optional(its), SpectrumRGB{1}, 1
+                    };
+                }
+            }
+        }
 
         if (auto medium = ray.medium; medium) {
             if (!itsOpt.has_value()) {
@@ -244,8 +406,6 @@ protected:
                     return {std::nullopt, SpectrumRGB{1}, 1.f};
                 }
                 if (itsOpt->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
-                    //std::cout << "Not allowed, ray in medium hit not empty!\n";
-                    //std::exit(1);
                     if (!scene.getEnvMedium()) {
                         return { std::nullopt, SpectrumRGB{1.f}, 1.f };
                     } else {

@@ -31,7 +31,6 @@ using Intersection = std::variant<ShapeIntersection,
                                   MediumIntersection>;           
 
 
-
 struct PathVertex {
     std::optional<Intersection> itsOpt;
     SpectrumRGB vertexWeight;

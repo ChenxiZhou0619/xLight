@@ -27,41 +27,10 @@ public:
     bool occlude(const Ray3f &ray) const;
 
     SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
-/*
-//todo delete
-    void sampleAreaIllumination(DirectIlluminationRecord *dRec,
-                                Point3f from,
-                                Sampler *sampler) const { }
-//todo delete
-    void sampleAttenuatedAreaIllumination(DirectIlluminationRecord *dRec,
-                                          SpectrumRGB *trans,
-                                          Point3f from,
-                                          std::shared_ptr<Medium> medium,
-                                          Sampler *sampler) const { }
-//todo deletes
-    float pdfAreaIllumination (const ShapeIntersection &its,
-                               const Ray3f &ray) const { }
-//todo delete
-    SpectrumRGB evaluateTrans(std::shared_ptr<Medium> medium,
-                              Point3f from,
-                              Point3f end) const { }
-*/
-/*
-    std::optional<ShapeIntersection> intersect(const Ray3f &ray,
-                                               std::shared_ptr<Medium> medium, 
-                                               SpectrumRGB *trans) const;
-*/
+
     void setEnvMap(std::shared_ptr<Emitter> _environment) {
         environment = _environment;
     }
-/*
-//todo delete
-    void sampleEnvironment(DirectIlluminationRecord *dRec,
-                           Point3f from,
-                           Point2f sample) const { }
-//todo delete
-    float pdfEnvironment(const Ray3f &ray) const { }
-*/
 
     bool hasEnvironment() const {
         return environment != nullptr;
