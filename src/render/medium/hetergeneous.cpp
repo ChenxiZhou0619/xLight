@@ -48,6 +48,8 @@ bool Hetergeneous::sampleDistance(MediumSampleRecord *mRec,
     return mRec->isValid;
 }
 
+
+
 SpectrumRGB Hetergeneous::getTrans(Point3f start, Point3f end) const 
 {
 

@@ -59,6 +59,16 @@ public:
         d_rec->pdf = shadowRay.tmax * shadowRay.tmax
             / std::abs(dot(pRec.normal, shadowRay.dir));
     }
+
+    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const override
+    {
+        auto shape_ptr = shape.lock();
+        assert(shape_ptr != nullptr);
+
+        PointQueryRecord pRec;
+        shape_ptr->sampleOnSurface(&pRec, sample);
+        return {pRec.p, pRec.pdf};
+    }
 };
 
 REGISTER_CLASS(AreaEmitter, "area")

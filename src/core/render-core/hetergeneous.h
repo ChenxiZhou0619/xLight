@@ -21,6 +21,14 @@ public:
                                 const Ray3f &ray, float tmax,
                                 Sampler *sampler) const override;
 
+    virtual bool samplePath(MediumSampleRecord *mRec,
+                            const Ray3f &ray, float tmax,
+                            const LightSourceInfo *info,
+                            Sampler *sampler) const override
+    {
+        //todo
+    }
+
     virtual SpectrumRGB getTrans(Point3f start,
                                  Point3f end) const override;
 

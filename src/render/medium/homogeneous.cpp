@@ -1,4 +1,5 @@
 #include "core/render-core/medium.h"
+#include "pathsampler.h"
 
 class Homogeneous : public Medium {
 public:
@@ -50,6 +51,35 @@ public:
         return mRec->isValid;
     }
 
+    virtual bool samplePath(MediumSampleRecord *mRec,
+                            const Ray3f &ray, float tmax,
+                            const LightSourceInfo *info,
+                            Sampler *sampler) const override
+    {
+        auto[dist, distPdf] = 
+            pathSampler->sampleDistance(ray.ori, 
+                                        ray.dir, 
+                                        tmax, info, 
+                                        sampler->next2D());
+        if (dist <= tmax) {
+            mRec->pathLength = dist;
+            mRec->isValid = true;
+            mRec->medium = this;
+            mRec->sigmaS = mDensity * mAlbedo;
+            mRec->sigmaA = mDensity * (SpectrumRGB{1} - mAlbedo);
+            mRec->transmittance = getTrans(ray.ori, ray.at(dist));
+            mRec->pdf = info->lighSourcePointPdf * distPdf;
+            mRec->albedo = mAlbedo;
+        } else {
+            //todo test if equi-angular can archive here
+            mRec->pathLength = tmax;
+            mRec->isValid = false;
+            mRec->medium = nullptr;
+            mRec->pdf = info->lighSourcePointPdf * distPdf;
+        }
+        return mRec->isValid;
+    }
+
     virtual SpectrumRGB getTrans(Point3f start,
                                  Point3f end) const override
     {
@@ -85,12 +115,13 @@ public:
         }
         return pdf;
     }
-
     
 private:
     SpectrumRGB mDensity;
     SpectrumRGB mAlbedo;
     SpectrumRGB mEmission;
+
+    std::shared_ptr<PathSampler> pathSampler = std::make_shared<EquiAngular>();
 };
 
 REGISTER_CLASS(Homogeneous, "homogeneous")

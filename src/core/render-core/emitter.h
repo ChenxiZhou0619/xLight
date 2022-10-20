@@ -75,6 +75,8 @@ public:
                         Point3f sample, 
                         Point3f position) const = 0;
 
+    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const = 0;
+
     virtual float pdf(const EmitterHitInfo &info)const = 0;
 
     std::weak_ptr<ShapeInterface> shape;

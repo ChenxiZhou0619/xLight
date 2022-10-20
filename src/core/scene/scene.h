@@ -56,6 +56,13 @@ public:
     std::shared_ptr<Emitter> getEnvEmitter() const {
         return environment;
     }
+
+    virtual std::pair<Point3f, float> sampleLightPoint(float u, Point3f sample) const 
+    {
+        auto[light, lightPdf] = lightDistrib.sample(u);
+        auto [p, pdf] = light->samplePoint(sample);
+        return {p, pdf * lightPdf};
+    }
 private:
     //* Embree 
     RTCDevice device;

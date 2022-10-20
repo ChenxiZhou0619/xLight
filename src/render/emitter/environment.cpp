@@ -105,6 +105,12 @@ public:
         pRec->pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
     }
 
+    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const override
+    {
+        //* do nothing
+        return {Point3f{}, 0};
+    }
+
     virtual void setTexture(Texture *texture) override {
         m_envmap = texture;
     }

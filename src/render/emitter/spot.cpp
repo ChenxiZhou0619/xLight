@@ -41,6 +41,10 @@ public:
         dRec->energy = lightEnergy / (dRec->shadow_ray.tmax * dRec->shadow_ray.tmax);
     }
 
+    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const override {
+        return {position, 1};
+    }
+
     //todo delete this
     virtual void setTexture(Texture *envmap) override{ }
 

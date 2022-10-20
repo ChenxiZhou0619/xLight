@@ -184,22 +184,22 @@ protected:
 
         ray.medium = scene.getEnvMedium();
 
-        PathVertex pathVertex = marchRay(scene, ray, sampler);
+        PathVertex pathVertex = marchRay(scene, ray, sampler, true);
+        if (bounces == 0) {
+            auto [lumin, luminPdf]
+                = evaluateDirect(scene, ray, pathVertex.itsOpt);
+            if (!lumin.isZero()) {
+                Li += beta * lumin;
+            }
+        }
+
+
+        pathVertex = marchRay(scene, ray, sampler);
         beta *= pathVertex.vertexWeight;
 
         while(bounces <= mMaxDepth) {
             std::optional<Intersection> itsOpt = pathVertex.itsOpt;
             bool foundIntersection = itsOpt.has_value();
-
-            if (bounces == 0) {
-                auto [lumin, luminPdf]
-                    = evaluateDirect(scene, ray, itsOpt);
-                if (!lumin.isZero()) {
-                    Li += beta * lumin;
-                    break;
-                }
-            }
-
             if (!foundIntersection) break;
 
             if (auto surfaceIts = std::get_if<ShapeIntersection>(&itsOpt.value());
@@ -275,7 +275,7 @@ protected:
                     //add if valid
                     if (!phaseVal.isZero() && !lumin.isZero() && !trans.isZero()) {
                         float misw = isDelta ? 
-                            1 : powerHeuristic(luminPdf, phasePdf * transPdf);
+                            1 : powerHeuristic(luminPdf, phasePdf);
                         Li += beta * phaseVal * mediumIts->sigmaS * trans * lumin * misw 
                             / (mShadowrayNums * luminPdf);
                     }
@@ -306,7 +306,7 @@ protected:
                     = evaluateDirect(scene, ray, pathVertex.itsOpt);
                 if (!lumin.isZero()) {
                     float misw = pRec.isDelta ? 
-                        1 : powerHeuristic(pRec.pdf * pathVertex.vertexPdf, luminPdf);
+                        1 : powerHeuristic(pRec.pdf, luminPdf);
                     Li += beta * lumin * misw;
                 }
             }
@@ -362,8 +362,7 @@ protected:
         }
 
         if (auto medium = ray.medium; medium) {
-            if (!itsOpt.has_value()) {
-                //todo 
+            if (!itsOpt.has_value()) { 
                 //* Infinity volume not allowed now, due to some round errors
                 if (auto envMedium = scene.getEnvMedium(); 
                     !envMedium) {
@@ -377,7 +376,11 @@ protected:
 
             //* Sample the trans
             MediumSampleRecord mRec;
-            if (medium->sampleDistance(&mRec, ray, tBounds, sampler)) {
+            //todo here should be careful
+            auto [p, pdf] = scene.sampleLightPoint(sampler->next1D(), sampler->next3D());
+            LightSourceInfo info{p, pdf};
+
+            if (medium->samplePath(&mRec, ray, tBounds,&info ,sampler)) {
                 //* Return a mediumIntersection
                 MediumIntersection mediumIts;
                 mediumIts.medium = medium;

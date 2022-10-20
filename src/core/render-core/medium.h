@@ -24,6 +24,13 @@ struct MediumSampleRecord {
     const Medium *medium = nullptr;
 };
 
+struct LightSourceInfo {
+    //* Only this is enough for equi-angular
+    Point3f lightSourcePoint;
+    float lighSourcePointPdf;
+
+};
+
 class Medium : public Configurable {
 public:
     Medium() = default;
@@ -34,6 +41,11 @@ public:
     virtual bool sampleDistance(MediumSampleRecord *m_rec,
                                 const Ray3f &ray, float tmax,
                                 Sampler *sampler) const = 0;
+
+    virtual bool samplePath(MediumSampleRecord *mRec,
+                            const Ray3f &ray, float tBound,
+                            const LightSourceInfo *info,
+                            Sampler *sampler) const = 0;
 
     virtual SpectrumRGB getTrans(Point3f start,
                                  Point3f end) const = 0;
@@ -80,3 +92,4 @@ struct MediumIntersection {
 
     SpectrumRGB albedo;
 };
+
