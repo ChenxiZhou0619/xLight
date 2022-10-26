@@ -7,6 +7,7 @@
 #include <core/shape/shape.h>
 #include <variant>
 #include "core/render-core/medium.h"
+#include <core/render-core/info.h>
 
 using Intersection = std::variant<ShapeIntersection,
                                   MediumIntersection>;
@@ -76,4 +77,8 @@ private:
     std::vector<std::shared_ptr<Emitter>> emitters;
     Distrib1D<std::shared_ptr<Emitter>> lightDistrib;
 
+public:
+    SurfaceIntersectionInfo intersectWithSurface(const Ray3f &ray) const;
+    LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &surfaceIts,
+                                      Sampler *sampler) const;
 };

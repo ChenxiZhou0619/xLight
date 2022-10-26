@@ -271,4 +271,5 @@ void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec,
     pRec->normal = getNormal(triangle.x) * w0
                    + getNormal(triangle.y) * w1
                    + getNormal(triangle.z) * w2;
+    pRec->pdf = 1 / m_surface_area;
 }

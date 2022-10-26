@@ -10,7 +10,7 @@ public:
     virtual ~DeepIntegrator() = default;
 
     virtual SpectrumRGB getLi(const Scene &scene,
-                              const Ray3f &ray,
+                              Ray3f ray,
                               Sampler *sampler) const override 
     {
         auto its = scene.intersect(ray);

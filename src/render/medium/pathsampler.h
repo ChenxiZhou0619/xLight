@@ -1,5 +1,6 @@
 #pragma once
 #include "core/render-core/medium.h"
+#include <core/render-core/info.h>
 
 class PathSampler {
 public:
@@ -20,7 +21,7 @@ public:
                    Point2f sample) const override
     {
         assert(info != nullptr);
-        Vector3f ori2light = info->lightSourcePoint - origin;
+        Vector3f ori2light = info->position - origin;
         double a = dot(ori2light, dir),
                b = tBound + a,
                D = std::sqrt(std::max(.0, ori2light.length2() - a * a));

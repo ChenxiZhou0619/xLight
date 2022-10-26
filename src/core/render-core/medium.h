@@ -4,7 +4,9 @@
 #include "sampler.h"
 #include "core/math/warp.h"
 #include "phase.h"
+
 class Scene;
+struct LightSourceInfo;
 
 struct MediumSampleRecord {
     float pathLength;
@@ -22,13 +24,6 @@ struct MediumSampleRecord {
     SpectrumRGB albedo;
 
     const Medium *medium = nullptr;
-};
-
-struct LightSourceInfo {
-    //* Only this is enough for equi-angular
-    Point3f lightSourcePoint;
-    float lighSourcePointPdf;
-
 };
 
 class Medium : public Configurable {

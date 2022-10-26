@@ -1,6 +1,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/math/math.h"
 #include "core/math/warp.h"
+#include <core/render-core/info.h>
 
 class Diffuse : public BSDF {
 public:

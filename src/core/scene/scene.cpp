@@ -310,3 +310,36 @@ float Scene::pdfEmitter(std::shared_ptr<Emitter> emitter) const
 {
     return lightDistrib.pdf(emitter);
 }
+
+
+SurfaceIntersectionInfo Scene::intersectWithSurface(const Ray3f &ray) const
+{
+    SurfaceIntersectionInfo itsInfo;
+    //todo replace the old interface
+    auto itsOpt = intersect(ray);
+    
+    if (!itsOpt) {
+        itsInfo.light = getEnvEmitter();
+        itsInfo.wi = ray.dir;
+        return itsInfo;
+    }
+
+    itsInfo.shape = itsOpt->shape.get();
+    itsInfo.light = itsInfo.shape->getEmitter();
+    itsInfo.position = itsOpt->hitPoint;
+    itsInfo.distance = itsOpt->distance;
+    itsInfo.wi = -ray.dir;
+    itsInfo.geometryNormal = itsOpt->geometryN;
+    itsInfo.shadingFrame = itsOpt->shadingF;
+    itsInfo.uv = itsOpt->uv;
+    return itsInfo;
+}
+
+LightSourceInfo Scene::sampleLightSource(const SurfaceIntersectionInfo &itsInfo, 
+                                         Sampler *sampler) const 
+{
+    auto [light, pdfLight] = lightDistrib.sample(sampler->next1D()); 
+    LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
+    info.pdf *= pdfLight;
+    return info;    
+}           

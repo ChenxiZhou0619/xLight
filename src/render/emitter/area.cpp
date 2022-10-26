@@ -1,5 +1,6 @@
 #include "core/render-core/emitter.h"
 #include "core/shape/shape.h"
+#include <core/render-core/info.h>
 class AreaEmitter : public Emitter {
     SpectrumRGB m_lightEnergy;
     
@@ -69,6 +70,49 @@ public:
         shape_ptr->sampleOnSurface(&pRec, sample);
         return {pRec.p, pRec.pdf};
     }
+
+    virtual SpectrumRGB evaluate(const LightSourceInfo &Info,
+                                 Point3f destination) const override
+    {
+        return m_lightEnergy;
+    }
+
+    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info,
+                                 const Ray3f &ray) const override
+    {
+        return m_lightEnergy;
+    }
+
+    virtual float pdf(const SurfaceIntersectionInfo &info,
+                      const Ray3f &ray) const override
+    {
+        auto shape_ptr = shape.lock();
+        assert(shape_ptr != nullptr);
+        float pdf = 1.f / shape_ptr->getSurfaceArea(),
+              jacob = info.distance * info.distance / std::abs(dot(info.geometryNormal, info.wi));
+        return pdf * jacob;
+    }
+
+    virtual LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &info,
+                                              Point3f sample) const override
+    {
+        auto shape_ptr = shape.lock();
+        assert(shape_ptr != nullptr);
+
+        PointQueryRecord pRec;
+        shape_ptr->sampleOnSurface(&pRec, sample);
+
+        LightSourceInfo lightInfo;
+        lightInfo.lightType = LightSourceInfo::LightType::Area;
+        lightInfo.position = pRec.p;
+        lightInfo.normal = pRec.normal;
+        lightInfo.direction = normalize(pRec.p - info.position);
+        lightInfo.light = this;
+        lightInfo.pdf = pRec.pdf * (lightInfo.position - info.position).length2() / 
+                        std::abs(dot(pRec.normal, normalize(pRec.p - info.position)));       
+        return lightInfo;
+    }
+
 };
 
 REGISTER_CLASS(AreaEmitter, "area")

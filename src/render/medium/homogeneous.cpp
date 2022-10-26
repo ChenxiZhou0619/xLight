@@ -1,4 +1,5 @@
 #include "core/render-core/medium.h"
+#include <core/render-core/info.h>
 #include "pathsampler.h"
 
 class Homogeneous : public Medium {
@@ -68,14 +69,14 @@ public:
             mRec->sigmaS = mDensity * mAlbedo;
             mRec->sigmaA = mDensity * (SpectrumRGB{1} - mAlbedo);
             mRec->transmittance = getTrans(ray.ori, ray.at(dist));
-            mRec->pdf = info->lighSourcePointPdf * distPdf;
+            mRec->pdf = info->pdf * distPdf;
             mRec->albedo = mAlbedo;
         } else {
             //todo test if equi-angular can archive here
             mRec->pathLength = tmax;
             mRec->isValid = false;
             mRec->medium = nullptr;
-            mRec->pdf = info->lighSourcePointPdf * distPdf;
+            mRec->pdf = info->pdf * distPdf;
         }
         return mRec->isValid;
     }

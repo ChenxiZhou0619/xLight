@@ -14,11 +14,10 @@ public:
     }
 
     virtual SpectrumRGB getLi(const Scene &scene,
-                              const Ray3f &_ray,
+                              Ray3f ray,
                               Sampler *sampler) const override
     {
         SpectrumRGB Li{.0f}, beta{1.f};
-        Ray3f ray{_ray};
         int bounces = 0;
 
         std::optional<ShapeIntersection> itsOpt = scene.intersect(ray);

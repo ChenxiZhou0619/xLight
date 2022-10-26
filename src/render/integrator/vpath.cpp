@@ -15,10 +15,10 @@ public:
     }
 
     virtual SpectrumRGB getLi(const Scene &scene,
-                              const Ray3f &_ray,
+                              Ray3f ray,
                               Sampler *sampler) const override
     {
-        return getLiSingleScattering(scene, _ray, sampler);
+        return getLiSingleScattering(scene, ray, sampler);
 //        return getLiMultipleScattering(scene, _ray, sampler);
     }
 
@@ -321,7 +321,7 @@ protected:
         return Li;
     }
 
-//todo to handle the infinity volume    
+    //todo to handle the infinity volume    
     /**
      * @brief March the ray in scene, return the intersection(optionally), rayWeight and pdf of selecting the path vertex
      * 
@@ -467,7 +467,7 @@ protected:
         return PathVertex{};
     }
 
-//todo handle the medium emission
+    //todo handle the medium emission
     /**
      * @brief Evaluate the direct lighting (Le) of intersection, and correspond pdf
      * 
@@ -598,3 +598,264 @@ private:
 };
 
 REGISTER_CLASS(VolPathTracer, "vpath")
+
+class SingleVolPathTracer : public Integrator {
+public:
+    SingleVolPathTracer() = default;
+
+    SingleVolPathTracer(const rapidjson::Value &_value) {
+        mMaxDepth = getInt("maxDepth", _value);
+        mRRThreshold = getInt("rrThreshold", _value);
+    }
+
+    virtual SpectrumRGB getLi(const Scene &scene,
+                              Ray3f ray,
+                              Sampler *sampler) const override
+    {
+        SpectrumRGB Li{0.f}, beta{1.f}; 
+        int bounces = 0;
+
+        auto itsOpt_weight = marchRay(scene, ray);
+
+        {
+            auto [lumin, luminPdf] = evaluateDirect(scene, ray, itsOpt_weight.first);
+            if (!lumin.isZero()) Li += lumin * itsOpt_weight.second;
+        }
+        
+        while (bounces <= mMaxDepth) {
+            const auto &itsOpt = itsOpt_weight.first;
+            const auto &weight = itsOpt_weight.second;
+
+            if (auto medium = ray.medium; medium) {
+                //* There are many ways to sample a mediumIntersection, such as
+                //*     1. Sample the transmittance
+                //*     2. Equi-angular sampling
+                //*     3. Joint-importance samping
+                //*   So, the sampling routinue of medium should know the information of emitter, 
+                //* which is required by some samplimg methods
+
+                //* Sample a light source first
+                //todo fixme 
+                LightSourceInfo info{Point3f{1, 1, 1}, 1, SpectrumRGB{10}};
+                
+                float tBound = itsOpt ? itsOpt->distance : ray.tmax;
+                MediumSampleRecord mRec;
+
+                //* Then, sample a scatterPoint
+                bool inMedium = medium->samplePath(&mRec, ray, tBound, &info, sampler);
+
+                if (inMedium) {
+                    //todo do the light sample and no requirement for transPdf
+                    //* Successfully sample a medium intersection
+                    //* < L > = phase * sigmaS * Le * Tr / pdf
+
+                    Point3f scatterPoint = ray.at(mRec.pathLength);
+                    Vector3f directLuminDir = info.lightSourcePoint - scatterPoint;
+                    float luminDistSquare = directLuminDir.length2();
+                    Ray3f shadowRay {scatterPoint, info.lightSourcePoint};
+                    shadowRay.medium = medium;
+                    directLuminDir = normalize(directLuminDir);
+
+                    PhaseQueryRecord pRec{ray.at(mRec.pathLength), ray.dir, directLuminDir};
+                    SpectrumRGB phaseValue = medium->evaluatePhase(pRec),
+                                lumin = info.lightSourceEnergy / luminDistSquare;
+                    SpectrumRGB tr = evaluateTr(scene, medium, scatterPoint, info.lightSourcePoint);
+
+                    Li += beta * phaseValue * mRec.sigmaS * lumin * tr;//pdf is 1
+                } else {
+                    //todo don't know do what
+                }
+            }
+
+            //* Handle the surface situation
+            if (!itsOpt.has_value()) {
+                //todo handle infinite light
+                break;
+            }
+
+            auto its = itsOpt.value();
+            auto bsdf = its.shape->getBSDF();
+            //* Handle special surface
+            if (bsdf->m_type == BSDF::EBSDFType::EEmpty) {
+                //* Just skip the surface
+                ray = Ray3f{
+                    its.hitPoint + ray.dir * mEpsilon,
+                    ray.dir
+                };
+                ray.medium = getTargetMedium(scene, its, ray.dir);
+                continue;
+            }
+
+            //* < L > = bsdf * cos * lumin * Tr / pdf
+            
+            //* Sample direct
+            {
+                DirectIlluminationRecord dRec;
+                scene.sampleDirectLumin(&dRec, its.hitPoint, sampler);
+
+                Ray3f shadowRay = dRec.shadow_ray;
+                auto medium = getTargetMedium(scene, its, shadowRay.dir); 
+                
+                SpectrumRGB tr = evaluateTr(scene, medium, its.hitPoint, shadowRay.at(shadowRay.tmax));
+
+                BSDFQueryRecord bRec{its, -ray.dir, shadowRay.dir};
+                SpectrumRGB bsdfValue = bsdf->evaluate(bRec);
+                float bsdfPdf = bsdf->pdf(bRec);
+
+                if (!tr.isZero() && !bsdfValue.isZero()) {
+                    Li += bsdfValue * dRec.energy * tr / dRec.pdf;
+                }
+            }
+            //* Sample BSDF
+            {
+                BSDFQueryRecord bRec{its, -ray.dir};
+                float bsdfPdf = .0f;
+                SpectrumRGB bsdfWeight = bsdf->sample(bRec, sampler->next2D(), bsdfPdf);
+                ray = Ray3f{
+                    its.hitPoint,
+                    its.toWorld(bRec.wo)
+                };
+                ray.ori = ray.ori + ray.dir * mEpsilon;
+                ray.medium = getTargetMedium(scene, its, ray.dir);
+                
+                itsOpt_weight = marchRay(scene, ray);
+                
+                beta *= bsdfWeight * weight;
+
+                if (beta.isZero()) break;
+
+                if (itsOpt.has_value()) {
+                    auto [lumin, luminPdf] = evaluateDirect(scene, ray, itsOpt);
+                    if (!lumin.isZero())
+                        Li += beta * lumin * powerHeuristic(bsdfPdf, luminPdf);
+                }
+            }
+            //* rr
+            if (bounces++ > mRRThreshold) {
+                if (sampler->next1D() > 0.95f) break;
+                beta /= 0.95;
+            } 
+
+        }
+
+        return Li;
+    }
+protected:
+
+    /**
+     * @brief Return the optional surface intersection and Tr
+     * 
+     * @param scene 
+     * @param ray 
+     * @return std::pair<std::optional<ShapeIntersection>, float> 
+     */
+    std::pair<std::optional<ShapeIntersection>, SpectrumRGB> 
+    marchRay(const Scene &scene, Ray3f ray) const
+    {
+        auto itsOpt = scene.intersect(ray);
+        SpectrumRGB Tr{1.f};
+
+        if (auto medium = ray.medium; medium) {
+            //* Compute the Tr
+            if (itsOpt.has_value()) {
+                //* Hit the surface
+                Tr *= medium->getTrans(ray.ori, itsOpt->hitPoint);
+            } else {
+                //* Hit environment
+                if (scene.hasEnvironment()) {
+                    Tr = SpectrumRGB{.0f};
+                }
+            }
+        }
+        return {itsOpt, Tr};
+    }
+
+    EmitterHitInfo toEmitterHitInfo(const std::optional<ShapeIntersection> &itsOpt,
+                                    const Ray3f &ray) const 
+    {
+        EmitterHitInfo info;
+        if (itsOpt.has_value()) {
+            info.dist = itsOpt->distance;
+            info.dir = ray.dir,
+            info.hitpoint = itsOpt->hitPoint;
+            info.normal = itsOpt->geometryN;
+        }
+        return info;
+    }
+
+
+    std::pair<SpectrumRGB, float>
+    evaluateDirect(const Scene &scene,
+                   Ray3f ray,
+                   const std::optional<ShapeIntersection> &itsOpt) const
+    {
+        std::shared_ptr<Emitter> emitter = nullptr;
+        SpectrumRGB Le{.0f};
+        
+        if (!itsOpt.has_value()) {
+            emitter = scene.getEnvEmitter();
+            Le = scene.evaluateEnvironment(ray);
+        } else {    
+            emitter = itsOpt->shape->getEmitter();
+            Le = emitter ? emitter->evaluate(ray) : SpectrumRGB{.0f};
+        }
+
+        float pdfEmitter = scene.pdfEmitter(emitter),
+              pdfSample = emitter ? 
+                emitter->pdf(toEmitterHitInfo(itsOpt, ray)) : 0;
+        return {Le, pdfEmitter * pdfSample};
+    }
+
+//todo fix interface
+    SpectrumRGB evaluateTr(const Scene &scene, std::shared_ptr<Medium> medium,
+                           Point3f from, Point3f dest) const
+    {
+        SpectrumRGB trans{1.f};
+        Ray3f ray {from, dest};
+        
+        auto itsOpt = scene.intersect(ray);
+        do {
+            if (!itsOpt.has_value()) {
+                if (medium) {
+                    trans *= medium->getTrans(ray.ori, dest);
+                } 
+                break;
+            }
+
+            if (itsOpt->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
+                //* Occlude
+                return SpectrumRGB{.0f};
+            }
+            if (medium) {
+                trans *= medium->getTrans(ray.ori, itsOpt->hitPoint);
+            }
+            ray = Ray3f {
+                itsOpt->hitPoint + ray.dir * mEpsilon,
+                dest
+            };
+            medium = getTargetMedium(scene, itsOpt.value(), ray.dir);
+            itsOpt = scene.intersect(ray);
+        } while (itsOpt.has_value());
+
+
+        return trans;
+    }
+
+    std::shared_ptr<Medium> getTargetMedium(const Scene &scene,
+                                            const ShapeIntersection &surfaceIts,
+                                            Vector3f dir) const
+    {
+        if (dot(surfaceIts.geometryN, dir) < 0) {
+            return surfaceIts.shape->getInsideMedium();
+        } else {
+            return scene.getEnvMedium();
+        }
+    }
+
+
+    int mMaxDepth;
+    int mRRThreshold;
+    const float mEpsilon = 1e-4;
+};
+
+REGISTER_CLASS(SingleVolPathTracer, "singlevpath")

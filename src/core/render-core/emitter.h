@@ -6,6 +6,8 @@
 
 class Emitter;
 class ShapeInterface;
+struct LightSourceInfo;
+struct SurfaceIntersectionInfo;
 
 struct PointQueryRecord {
     Point3f p;
@@ -65,6 +67,18 @@ public:
     virtual SpectrumRGB evaluate(const EmitterQueryRecord &eRec) const = 0;
 
     virtual SpectrumRGB evaluate(const Ray3f &ray) const = 0;
+
+    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
+                                 Point3f destination) const = 0;
+
+    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &itsInfo,
+                                 const Ray3f &ray) const = 0;
+
+    virtual float pdf(const SurfaceIntersectionInfo &info, 
+                      const Ray3f &ray) const = 0;
+
+    virtual LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &info, 
+                                              Point3f sample) const = 0;
 
     //TODO, old function
     virtual void sample (PointQueryRecord* pRec, Point2f sample) const = 0;

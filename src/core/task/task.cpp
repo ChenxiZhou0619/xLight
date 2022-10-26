@@ -157,9 +157,8 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 )
             };
             envEmitter->setTexture(texture.get());
-//            task->scene->setEnvMap(envEmitter);
+            task->scene->setEnvMap(envEmitter);
             task->scene->addEmitter(envEmitter);
-
         } else if (std::strcmp("area", emitterType) == 0){
             //const auto &emitterName = 
             //    emitter["name"].GetString();
@@ -266,7 +265,6 @@ void configureScene(std::shared_ptr<RenderTask> task,
                             ObjectFactory::createInstance(emitterType, emitter)
                         )
                     };
-
                     emitter_ptr->shape = mesh->second;
                     mesh->second->setEmitter(emitter_ptr);
                     mesh->second->setBSDF(std::make_shared<BlackHole>());
@@ -286,10 +284,7 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 task->scene->addShape(grid.second);
             }
         }
-
     }
-
-
     task->scene->postProcess();
 }
 

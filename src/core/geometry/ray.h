@@ -27,10 +27,14 @@ public:
 
     TRay3() = default;
 
-    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir, T _time = .0f, T _tmin = 0.0002, T _tmax = 1e10)
-        : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax) { };
+    TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir,
+          std::shared_ptr<Medium> _medium = nullptr, 
+          T _time = .0f, T _tmin = 0.0002, T _tmax = 1e10)
+        : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax), medium(_medium) { };
 
-    TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, T _time = .0f) : ori(_ori), time(_time) {
+    TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, 
+          std::shared_ptr<Medium> _medium = nullptr ,T _time = .0f) : ori(_ori), time(_time), medium(_medium) 
+    {
         dir = Vector3f{_end - _ori};
         tmin = 0.0002;
         tmax = dir.length() - EPSILON * 100;

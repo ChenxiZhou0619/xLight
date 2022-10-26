@@ -1,4 +1,5 @@
 #include "bsdf.h"
+#include <core/render-core/info.h>
 
 void BSDF::bumpComputeShadingNormal(RayIntersectionRec *i_rec) const {
     if (m_bumpmap == nullptr)
@@ -62,4 +63,42 @@ void BSDF::computeShadingFrame(ShapeIntersection *its) const
     newT = cross(newB, shadingN);
 
     its->shadingF = Frame{shadingN, newT, newB};
+}
+
+SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,
+                           Vector3f _wo) const 
+{
+    Vector3f wi = info.toLocal(info.wi),
+             wo = info.toLocal(_wo);
+    BSDFQueryRecord bRec;
+    bRec.uv = info.uv;
+    bRec.wi = wi;
+    bRec.wo = wo;
+    return evaluate(bRec);
+}
+
+BSDFInfo BSDF::sample(const SurfaceIntersectionInfo &info, 
+                      Point2f uv) const
+{
+    BSDFInfo bsdfInfo;
+    Vector3f wi = info.toLocal(info.wi);
+    BSDFQueryRecord bRec;
+    bRec.uv = info.uv;
+    bRec.wi = wi;
+
+    bsdfInfo.weight = sample(bRec, uv, bsdfInfo.pdf);
+    bsdfInfo.wo = info.toWorld(bRec.wo);
+    return bsdfInfo;
+}
+
+float BSDF::pdf(const SurfaceIntersectionInfo &info, 
+                Vector3f _wo) const
+{
+    Vector3f wi = info.toLocal(info.wi),
+             wo = info.toLocal(_wo);
+    BSDFQueryRecord bRec;
+    bRec.uv = info.uv;
+    bRec.wi = wi;
+    bRec.wo = wo;
+    return pdf(bRec);
 }

@@ -15,7 +15,7 @@ public:
     Integrator(const rapidjson::Value &_value) {}
     
     virtual ~Integrator() {}
-    virtual SpectrumRGB getLi(const Scene &scene, const Ray3f &ray, Sampler *sampler) const = 0;
+    virtual SpectrumRGB getLi(const Scene &scene, Ray3f ray, Sampler *sampler) const = 0;
 
 };
 

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <core/geometry/common.h>
 
 inline int sign(float t) {
     return t > 0 ? 1 : -1;
@@ -9,6 +10,7 @@ inline int sign(float t) {
 
 
 inline float powerHeuristic(float fpdf, float gpdf) {
+    if (fpdf == FINF) return 1;
     fpdf *= fpdf;
     gpdf *= gpdf;
     return fpdf / (fpdf + gpdf);
