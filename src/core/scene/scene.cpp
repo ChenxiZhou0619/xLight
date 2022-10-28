@@ -312,27 +312,28 @@ float Scene::pdfEmitter(std::shared_ptr<Emitter> emitter) const
 }
 
 
-SurfaceIntersectionInfo Scene::intersectWithSurface(const Ray3f &ray) const
+std::shared_ptr<SurfaceIntersectionInfo> 
+Scene::intersectWithSurface(const Ray3f &ray) const
 {
-    SurfaceIntersectionInfo itsInfo;
+    auto info = std::make_shared<SurfaceIntersectionInfo>();
     //todo replace the old interface
     auto itsOpt = intersect(ray);
     
     if (!itsOpt) {
-        itsInfo.light = getEnvEmitter();
-        itsInfo.wi = ray.dir;
-        return itsInfo;
+        info->light = getEnvEmitter();
+        info->wi = ray.dir;
+        return info;
     }
 
-    itsInfo.shape = itsOpt->shape.get();
-    itsInfo.light = itsInfo.shape->getEmitter();
-    itsInfo.position = itsOpt->hitPoint;
-    itsInfo.distance = itsOpt->distance;
-    itsInfo.wi = -ray.dir;
-    itsInfo.geometryNormal = itsOpt->geometryN;
-    itsInfo.shadingFrame = itsOpt->shadingF;
-    itsInfo.uv = itsOpt->uv;
-    return itsInfo;
+    info->shape = itsOpt->shape.get();
+    info->light = info->shape->getEmitter();
+    info->position = itsOpt->hitPoint;
+    info->distance = itsOpt->distance;
+    info->wi = -ray.dir;
+    info->geometryNormal = itsOpt->geometryN;
+    info->shadingFrame = itsOpt->shadingF;
+    info->uv = itsOpt->uv;
+    return info;
 }
 
 LightSourceInfo Scene::sampleLightSource(const SurfaceIntersectionInfo &itsInfo, 
@@ -342,4 +343,13 @@ LightSourceInfo Scene::sampleLightSource(const SurfaceIntersectionInfo &itsInfo,
     LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
     info.pdf *= pdfLight;
     return info;    
-}           
+}    
+
+LightSourceInfo Scene::sampleLightSource(const IntersectionInfo &itsInfo, 
+                                         Sampler *sampler) const 
+{
+    auto [light, pdfLight] = lightDistrib.sample(sampler->next1D()); 
+    LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
+    info.pdf *= pdfLight;
+    return info;    
+}

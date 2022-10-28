@@ -59,21 +59,19 @@ public:
         return lightEnergy / (destination - info.position).length2();
     }
 
-    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &itsInfo,
-                                 const Ray3f &ray) const override
+    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &itsInfo) const override
     {
         //* No implement
         std::cout << "No implement!\n";
         std::exit(1);
     }
 
-    virtual float pdf(const SurfaceIntersectionInfo &info, 
-                      const Ray3f &ray) const override
+    virtual float pdf(const SurfaceIntersectionInfo &info) const override
     {
         return FINF;
     }
 
-    virtual LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &info, 
+    virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info, 
                                               Point3f sample) const override
     {
         LightSourceInfo lightInfo;

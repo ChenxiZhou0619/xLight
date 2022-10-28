@@ -78,7 +78,10 @@ private:
     Distrib1D<std::shared_ptr<Emitter>> lightDistrib;
 
 public:
-    SurfaceIntersectionInfo intersectWithSurface(const Ray3f &ray) const;
+    std::shared_ptr<SurfaceIntersectionInfo> 
+    intersectWithSurface(const Ray3f &ray) const;
     LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &surfaceIts,
+                                      Sampler *sampler) const;
+    LightSourceInfo sampleLightSource(const IntersectionInfo &info,
                                       Sampler *sampler) const;
 };

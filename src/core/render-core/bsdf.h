@@ -5,7 +5,7 @@
 #include "core/shape/shape.h"
 
 struct SurfaceIntersectionInfo;
-struct BSDFInfo;
+struct ScatterInfo;
 
 struct BSDFQueryRecord {
     // ! both point from the origin in local
@@ -107,7 +107,7 @@ public:
     SpectrumRGB evaluate(const SurfaceIntersectionInfo &info,
                          Vector3f wo) const;
 
-    BSDFInfo sample(const SurfaceIntersectionInfo &info, 
+    ScatterInfo sample(const SurfaceIntersectionInfo &info, 
                     Point2f sample) const;
 
     float pdf(const SurfaceIntersectionInfo &info, Vector3f wo) const;

@@ -77,19 +77,18 @@ SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,
     return evaluate(bRec);
 }
 
-BSDFInfo BSDF::sample(const SurfaceIntersectionInfo &info, 
+ScatterInfo BSDF::sample(const SurfaceIntersectionInfo &info, 
                       Point2f uv) const
 {
-    BSDFInfo bsdfInfo;
+    ScatterInfo scatterInfo;
     Vector3f wi = info.toLocal(info.wi);
     BSDFQueryRecord bRec;
     bRec.uv = info.uv;
     bRec.wi = wi;
 
-    bsdfInfo.weight = sample(bRec, uv, bsdfInfo.pdf);
-    bsdfInfo.wo = info.toWorld(bRec.wo);
-    bsdfInfo.type = m_type;
-    return bsdfInfo;
+    scatterInfo.weight = sample(bRec, uv, scatterInfo.pdf);
+    scatterInfo.wo = info.toWorld(bRec.wo);
+    return scatterInfo;
 }
 
 float BSDF::pdf(const SurfaceIntersectionInfo &info, 

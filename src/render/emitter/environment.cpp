@@ -189,8 +189,7 @@ public:
         )) * m_energy_scale;
     }
 
-    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info,
-                                 const Ray3f &ray) const override
+    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
     {
         double cosTheta = info.wi.y,
                tanPhi = info.wi.z / info.wi.x;
@@ -208,8 +207,7 @@ public:
         )) * m_energy_scale;
     }
 
-    virtual float pdf(const SurfaceIntersectionInfo &info, 
-                      const Ray3f &ray) const override
+    virtual float pdf(const SurfaceIntersectionInfo &info) const override
     {
         assert(m_envmap != nullptr);
         double cosTheta = info.wi.y,
@@ -232,7 +230,7 @@ public:
                 m_envmap->getResolution().y;
     }
 
-    virtual LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &info, 
+    virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info, 
                                               Point3f sample) const override
     {
         auto [width, height] = m_envmap->getResolution();
@@ -248,6 +246,7 @@ public:
             std::sin(theta) * std::sin(phi)
         );
         LightSourceInfo lightInfo;
+        lightInfo.position = info.position + m_envshpere_radius * dir;
         lightInfo.lightType = LightSourceInfo::LightType::Environment;
         lightInfo.light = this;
         lightInfo.direction = dir;
@@ -262,7 +261,6 @@ private:
 
     std::unique_ptr<Distribution2D> m_env_distribution;
 
-    // TODO, Hack, replace it
     float m_envshpere_radius = 100000.f;
 
     float m_energy_scale = 1.f;

@@ -28,13 +28,9 @@ public:
                 Li += beta * Le * misw;
             }
             if (!itsInfo) break;
-            if (itsInfo.skipIts()) {
-                ray = itsInfo.generateRay(scene, ray.dir);
-                pathInfo = samplePath(scene, ray, &pathInfo);
-            }
 
             //* Sample direct
-            if (bsdf->m_type != BSDF::EBSDFType::EEmpty){
+            {
                 LightSourceInfo lightSourceInfo = scene.sampleLightSource(itsInfo, sampler);
                 Ray3f shadowRay = itsInfo.generateShadowRay(scene, lightSourceInfo);
                 SpectrumRGB Tr = tr(scene, shadowRay);
@@ -62,10 +58,8 @@ protected:
     int mMaxDepth;
     int mRRThreshold;
 
-    //* This methods always sample the cloest surface intersection of the ray
-    //* Cuz the empty-bsdf should not change the pdfDirection of pathInfo,
-    //* so, we need know the pdfDirection of previous pathInfo when the bsdfInfo is 
-    //* generate by empty bsdf
+    //* This method samples a intersection (surface or medium) along the ray in scene,
+    //* The empty surface will be skipped
     PathInfo samplePath(const Scene &scene, Ray3f ray,
                         const PathInfo *prevPath = nullptr,
                         const BSDFInfo *info = nullptr) const

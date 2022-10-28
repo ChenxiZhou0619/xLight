@@ -77,14 +77,12 @@ public:
         return m_lightEnergy;
     }
 
-    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info,
-                                 const Ray3f &ray) const override
+    virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
     {
         return m_lightEnergy;
     }
 
-    virtual float pdf(const SurfaceIntersectionInfo &info,
-                      const Ray3f &ray) const override
+    virtual float pdf(const SurfaceIntersectionInfo &info) const override
     {
         auto shape_ptr = shape.lock();
         assert(shape_ptr != nullptr);
@@ -93,7 +91,7 @@ public:
         return pdf * jacob;
     }
 
-    virtual LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &info,
+    virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info,
                                               Point3f sample) const override
     {
         auto shape_ptr = shape.lock();

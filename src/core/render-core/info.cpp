@@ -1,60 +1,126 @@
 #include <core/render-core/info.h>
 #include <core/scene/scene.h>
 
-Ray3f SurfaceIntersectionInfo::generateShadowRay(const Scene &scene, const LightSourceInfo &info) const {
-    Ray3f shadowRay;
-
-    if (info.lightType == LightSourceInfo::LightType::Environment) {
-        shadowRay = Ray3f{position, info.direction};
-    } else {
-        shadowRay = Ray3f{position, info.position};
-    }
-    if (dot(shadowRay.dir, geometryNormal) > 0) shadowRay.medium = scene.getEnvMedium();
-    else shadowRay.medium = shape->getInsideMedium();
-    return shadowRay;
-}
-
-Ray3f SurfaceIntersectionInfo::generateShadowRay(const Scene &scene, Point3f destination) const
-{
-    Ray3f shadowRay {position, destination};
-    if (dot(shadowRay.dir, geometryNormal) > 0) shadowRay.medium = scene.getEnvMedium();
-    else shadowRay.medium = shape->getInsideMedium();
-    return shadowRay;
-}
-
-Ray3f SurfaceIntersectionInfo::generateRay(const Scene &scene, Vector3f dir) const {
-    Ray3f ray;
-    ray.ori = position;
-    ray.dir = dir;
-    if (dot(ray.dir, geometryNormal) > 0) ray.medium = scene.getEnvMedium();
-    else ray.medium = shape->getInsideMedium();
-    return ray;
-}
-
-Vector3f SurfaceIntersectionInfo::toLocal(Vector3f v) const 
-{
+//* IntersectionInfo
+Vector3f IntersectionInfo::toLocal(Vector3f v) const {
     return shadingFrame.toLocal(v);
 }
-
-Vector3f SurfaceIntersectionInfo::toWorld(Vector3f v) const 
-{
+Vector3f IntersectionInfo::toWorld(Vector3f v) const {
     return shadingFrame.toWorld(v);
 }
 
-IntersectionInfo::IntersectionInfo(const SurfaceIntersectionInfo &sIts){
-    data = Intersection{sIts};
-}
-
-IntersectionInfo::IntersectionInfo(const MediumIntersectionInfo &mIts){
-    data = Intersection{mIts};
-}
-
-const SurfaceIntersectionInfo* IntersectionInfo::asSurfaceIntersection() const
+//* SurfaceIntersectionInfo
+Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
+                                          Point3f destination) const
 {
-    return std::get_if<SurfaceIntersectionInfo>(&data);
+    Ray3f ray{position, destination};
+    bool outwards = dot(ray.dir, geometryNormal) > 0;
+    ray.medium = outwards ? 
+        scene.getEnvMedium() : shape->getInsideMedium(); 
+    return ray;
 }
 
-const MediumIntersectionInfo* IntersectionInfo::asMediumIntersection() const
+Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
+                                          Vector3f direction) const
 {
-    return std::get_if<MediumIntersectionInfo>(&data);
+    Ray3f ray{position, direction};
+    bool outwards = dot(ray.dir, geometryNormal) > 0;
+    ray.medium = outwards ? 
+        scene.getEnvMedium() : shape->getInsideMedium(); 
+    return ray;
+}
+
+SpectrumRGB SurfaceIntersectionInfo::evaluateScatter(Vector3f wo) const
+{
+    assert(shape);
+    return shape->getBSDF()->evaluate(*this, wo);
+}
+
+float SurfaceIntersectionInfo::pdfScatter(Vector3f wo) const
+{
+    assert(shape);
+    return shape->getBSDF()->pdf(*this, wo);
+}
+
+ScatterInfo SurfaceIntersectionInfo::sampleScatter(Point2f sample) const
+{
+    assert(shape);
+    return shape->getBSDF()->sample(*this, sample);
+}
+
+SpectrumRGB SurfaceIntersectionInfo::evaluateLe() const
+{
+    return light ? 
+        light->evaluate(*this) : SpectrumRGB{.0f};
+}
+
+float SurfaceIntersectionInfo::pdfLe() const
+{
+    return light ?
+        light->pdf(*this) : .0f;
+}
+
+bool SurfaceIntersectionInfo::terminate() const 
+{
+    return (!shape || shape->isEmitter());
+}
+
+//* MediumIntersectionInfo
+Ray3f MediumIntersectionInfo::scatterRay(const Scene &scene,
+                                          Point3f destination) const
+{
+    Ray3f ray{position, destination};
+    ray.medium = medium;
+    return ray;
+}
+
+Ray3f MediumIntersectionInfo::scatterRay(const Scene &scene,
+                                          Vector3f direction) const
+{
+    Ray3f ray{position, direction};
+    ray.medium = medium;
+    return ray;
+}
+
+SpectrumRGB MediumIntersectionInfo::evaluateScatter(Vector3f wo) const 
+{
+    assert(medium);
+    PhaseQueryRecord pRec{position, wi, wo};
+    return medium->evaluatePhase(pRec);
+}
+
+float MediumIntersectionInfo::pdfScatter(Vector3f wo) const
+{
+    assert(medium);
+    PhaseQueryRecord pRec{position, wi, wo};
+    return medium->pdfPhase(pRec);
+}
+
+ScatterInfo MediumIntersectionInfo::sampleScatter(Point2f sample) const
+{
+    assert(medium);
+    ScatterInfo info;
+    PhaseQueryRecord pRec{position, wi};
+    info.weight = medium->samplePhase(&pRec, sample);
+    info.wo = toWorld(pRec.wo);
+    info.pdf = medium->pdfPhase(pRec);
+    return info;
+}
+
+SpectrumRGB MediumIntersectionInfo::evaluateLe() const
+{
+    //todo no emission medium now
+    return SpectrumRGB{0};
+}
+
+float MediumIntersectionInfo::pdfLe() const
+{
+    //todo no emission medium now
+    return .0f;
+}
+
+bool MediumIntersectionInfo::terminate() const 
+{
+    //todo no emission, so always false
+    return false;
 }

@@ -17,8 +17,8 @@ public:
     {
         SpectrumRGB Li{.0f}, beta{1.f};
         int bounces = 0;
-        PathInfo pathInfo = samplePath(scene, ray);
-        const SurfaceIntersectionInfo &itsInfo = *pathInfo.itsInfo.asSurfaceIntersection();
+        PathInfo pathInfo = samplePath(scene, ray, FINF, SpectrumRGB{1});
+        const auto& itsInfo = pathInfo.itsInfo;
         while(bounces <= mMaxDepth) {
             beta *= pathInfo.weight;
             if (beta.isZero()) break;
@@ -26,30 +26,29 @@ public:
             //* <L> = beta * Le * misw(pdfPath, pdfLe)
             {
                 //give the emission of the hitpoint and the pdf of sampling this point when sample direct
-                SpectrumRGB Le = evaluateLe(scene, ray, itsInfo);
-                float pdf = pdfLe(scene, ray, itsInfo);
+                SpectrumRGB Le = itsInfo->evaluateLe();
+                float pdf = itsInfo->pdfLe();
                 float misw = powerHeuristic(pathInfo.pdfDirection, pdf);
                 Li += beta * Le * misw;     
             }
             //* Not hit the scene, terminate
-            if (!itsInfo) break;            
-            auto bsdf = itsInfo.shape->getBSDF();
+            if (itsInfo->terminate()) break;            
             //* Sample the direct
             {
-                LightSourceInfo lightSourceInfo = scene.sampleLightSource(itsInfo, sampler);
-                Ray3f shadowRay = itsInfo.generateShadowRay(scene, lightSourceInfo);
+                LightSourceInfo lightSourceInfo = scene.sampleLightSource(*itsInfo, sampler);
+                Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                 if (!scene.occlude(shadowRay)) {
                     auto *light = lightSourceInfo.light;
-                    SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo.position);
-                    SpectrumRGB f = bsdf->evaluate(itsInfo, shadowRay.dir);
-                    float misw = powerHeuristic(lightSourceInfo.pdf, bsdf->pdf(itsInfo, shadowRay.dir));
+                    SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo->position);
+                    SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
+                    float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
                     Li += beta * f * Le / lightSourceInfo.pdf * misw;
                 }
             }
             //* Sample the bsdf
-            BSDFInfo bsdfInfo = bsdf->sample(itsInfo, sampler->next2D());
-            ray = itsInfo.generateRay(scene, bsdfInfo.wo);
-            pathInfo = samplePath(scene, ray, &bsdfInfo);
+            ScatterInfo scatterInfo = itsInfo->sampleScatter(sampler->next2D());
+            ray = itsInfo->scatterRay(scene, scatterInfo.wo);
+            pathInfo = samplePath(scene, ray, scatterInfo.pdf, scatterInfo.weight);
             if (bounces++ > mRRThreshold) {
                 if (sampler->next1D() > 0.95f) break;
                 beta /= 0.95;
@@ -59,39 +58,19 @@ public:
     }
 
 protected:
-    PathInfo samplePath(const Scene &scene, Ray3f ray, const BSDFInfo *bsdfInfo = nullptr) const
+    PathInfo samplePath(const Scene &scene, Ray3f ray, float pdfDirection, SpectrumRGB weight) const
     {
         PathInfo pathInfo;
         //* In path tracer(with out volumes), length sampling is a dirac delta distribution(given a direction)
-        SurfaceIntersectionInfo itsInfo = scene.intersectWithSurface(ray);
-        pathInfo.itsInfo = IntersectionInfo{itsInfo};
-        pathInfo.length = itsInfo.distance;
+        auto itsInfo = scene.intersectWithSurface(ray);
+        pathInfo.itsInfo = scene.intersectWithSurface(ray);
+        pathInfo.length = itsInfo->distance;
         pathInfo.pdfLength = FINF;
-        pathInfo.pdfDirection = bsdfInfo ? bsdfInfo->pdf : FINF;
-        pathInfo.vertex = itsInfo.position;
-        pathInfo.weight = bsdfInfo ? bsdfInfo->weight : SpectrumRGB{1};
+        pathInfo.pdfDirection = pdfDirection;
+        pathInfo.vertex = itsInfo->position;
+        pathInfo.weight = weight;
         return pathInfo;
     }
-
-    SpectrumRGB evaluateLe(const Scene &scene, const Ray3f &ray, 
-                           const SurfaceIntersectionInfo &itsInfo) const
-    {   
-        SpectrumRGB Le{.0f};
-        if (auto light = itsInfo.light; light) {
-            Le += light->evaluate(itsInfo, ray);
-        }
-        return Le;
-    }
-
-    float pdfLe(const Scene &scene, const Ray3f &ray,
-                const SurfaceIntersectionInfo &itsInfo) const 
-    {
-        float pdf = .0f;
-        if (auto light = itsInfo.light; light) {
-            pdf = scene.pdfEmitter(light) * light->pdf(itsInfo, ray);
-        }
-        return pdf;
-    }   
 
 protected:
     int mMaxDepth;
