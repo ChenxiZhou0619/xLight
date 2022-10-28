@@ -105,10 +105,10 @@ public:
     virtual SpectrumRGB evaluate (const BSDFQueryRecord &bRec) const = 0;
 
     SpectrumRGB evaluate(const SurfaceIntersectionInfo &info,
-                                Vector3f wo) const;
+                         Vector3f wo) const;
 
     BSDFInfo sample(const SurfaceIntersectionInfo &info, 
-                            Point2f sample) const;
+                    Point2f sample) const;
 
     float pdf(const SurfaceIntersectionInfo &info, Vector3f wo) const;
 

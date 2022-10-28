@@ -88,6 +88,7 @@ BSDFInfo BSDF::sample(const SurfaceIntersectionInfo &info,
 
     bsdfInfo.weight = sample(bRec, uv, bsdfInfo.pdf);
     bsdfInfo.wo = info.toWorld(bRec.wo);
+    bsdfInfo.type = m_type;
     return bsdfInfo;
 }
 

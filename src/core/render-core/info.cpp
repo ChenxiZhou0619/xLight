@@ -14,6 +14,14 @@ Ray3f SurfaceIntersectionInfo::generateShadowRay(const Scene &scene, const Light
     return shadowRay;
 }
 
+Ray3f SurfaceIntersectionInfo::generateShadowRay(const Scene &scene, Point3f destination) const
+{
+    Ray3f shadowRay {position, destination};
+    if (dot(shadowRay.dir, geometryNormal) > 0) shadowRay.medium = scene.getEnvMedium();
+    else shadowRay.medium = shape->getInsideMedium();
+    return shadowRay;
+}
+
 Ray3f SurfaceIntersectionInfo::generateRay(const Scene &scene, Vector3f dir) const {
     Ray3f ray;
     ray.ori = position;

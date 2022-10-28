@@ -1,7 +1,3 @@
-#include <functional>
-
-#include <spdlog/spdlog.h>
-
 #include <core/math/common.h>
 #include <core/render-core/integrator.h>
 
@@ -81,7 +77,6 @@ protected:
                            const SurfaceIntersectionInfo &itsInfo) const
     {   
         SpectrumRGB Le{.0f};
-        //* Evaluate the environment 
         if (auto light = itsInfo.light; light) {
             Le += light->evaluate(itsInfo, ray);
         }

@@ -14,18 +14,23 @@ public:
     }
 
     virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override {
-        std::cout << "EmptyBSDF::evaluate not implement!\n";
-        std::exit(1);    
+        //std::cout << "EmptyBSDF::evaluate not implement!\n";
+        //std::exit(1);
+        return SpectrumRGB{.0f};    
     }
 
     virtual float pdf(const BSDFQueryRecord &bRec) const override {
-        std::cout << "EmptyBSDF::pdf not implement!\n";
-        std::exit(1);    
+        //std::cout << "EmptyBSDF::pdf not implement!\n";
+        //std::exit(1);
+        return .0f;
     }
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
-        std::cout << "EmptyBSDF::sample not implement!\n";
-        std::exit(1);
+        //std::cout << "EmptyBSDF::sample not implement!\n";
+        //std::exit(1);
+        bRec.wo = -bRec.wi;
+        pdf = FINF;
+        return SpectrumRGB{1.f};
     }
 
 };
