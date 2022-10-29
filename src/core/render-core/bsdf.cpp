@@ -78,7 +78,7 @@ SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,
 }
 
 ScatterInfo BSDF::sample(const SurfaceIntersectionInfo &info, 
-                      Point2f uv) const
+                         Point2f uv) const
 {
     ScatterInfo scatterInfo;
     Vector3f wi = info.toLocal(info.wi);

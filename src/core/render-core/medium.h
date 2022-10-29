@@ -7,6 +7,7 @@
 
 class Scene;
 struct LightSourceInfo;
+struct MediumIntersectionInfo;
 
 struct MediumSampleRecord {
     float pathLength;
@@ -66,6 +67,10 @@ public:
     void setPhase(std::shared_ptr<PhaseFunction> phase) {
         this->mPhase = phase;
     }
+
+    virtual std::shared_ptr<MediumIntersectionInfo> 
+    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const = 0;
+
 
 protected:
     std::shared_ptr<PhaseFunction> mPhase;

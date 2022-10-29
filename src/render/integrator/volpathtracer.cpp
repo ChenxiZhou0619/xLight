@@ -15,38 +15,35 @@ public:
     {
         SpectrumRGB Li{.0f}, beta{1.f};
         int bounces = 0;
-        PathInfo pathInfo = samplePath(scene, ray);
-        const IntersectionInfo &itsInfo = pathInfo.itsInfo;
+        PathInfo pathInfo = samplePath(scene, ray, sampler);
+        const auto &itsInfo = pathInfo.itsInfo;
         while (bounces <= mMaxDepth) {
             beta *= pathInfo.weight;
             if (beta.isZero()) break;
             //* Evaluate the Le
             {
-                SpectrumRGB Le = evaluateLe(scene, ray, itsInfo);
-                float pdf = pdfLe(scene, ray, itsInfo);
+                SpectrumRGB Le = itsInfo->evaluateLe();
+                float pdf = itsInfo->pdfLe();
                 float misw = powerHeuristic(pathInfo.pdfDirection, pdf);
                 Li += beta * Le * misw;
             }
-            if (!itsInfo) break;
+            if (itsInfo->terminate()) break;
 
             //* Sample direct
             {
-                LightSourceInfo lightSourceInfo = scene.sampleLightSource(itsInfo, sampler);
-                Ray3f shadowRay = itsInfo.generateShadowRay(scene, lightSourceInfo);
+                LightSourceInfo lightSourceInfo = scene.sampleLightSource(*itsInfo, sampler);
+                Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                 SpectrumRGB Tr = tr(scene, shadowRay);
                 auto *light = lightSourceInfo.light;
-                SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo.position);
-                SpectrumRGB f = bsdf->evaluate(itsInfo, shadowRay.dir);
-                float misw = powerHeuristic(lightSourceInfo.pdf, bsdf->pdf(itsInfo, shadowRay.dir));
+                SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo->position);
+                SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
+                float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
                 Li += beta * f * Le * Tr / lightSourceInfo.pdf * misw;
             }
-            //* Sample the bsdf
-            Point2f sample = bsdf->m_type == BSDF::EBSDFType::EEmpty ? 
-                Point2f{.0f} : sampler->next2D();
-            BSDFInfo bsdfInfo = bsdf->sample(itsInfo, sample);
-            ray = itsInfo.generateRay(scene, bsdfInfo.wo);
-            pathInfo = samplePath(scene, ray, pathInfo.pdfDirection, &bsdfInfo);
-            if (bsdfInfo.type == BSDF::EBSDFType::EEmpty) bounces--;
+            //* Sample the scatter
+            ScatterInfo scatterInfo = itsInfo->sampleScatter(sampler->next2D());
+            ray = itsInfo->scatterRay(scene, scatterInfo.wo);
+            pathInfo = samplePath(scene, ray, sampler, &scatterInfo);            
             if (bounces++ > mRRThreshold) {
                 if (sampler->next1D() > 0.95f) break;
                 beta /= 0.95;
@@ -60,75 +57,77 @@ protected:
 
     //* This method samples a intersection (surface or medium) along the ray in scene,
     //* The empty surface will be skipped
+    //*     1. If the scatter is medium, next scatter event will be surface intersection
+    //*     2. If the scatter is surface, next scatter will be surface / medium intersection
     PathInfo samplePath(const Scene &scene, Ray3f ray,
-                        const PathInfo *prevPath = nullptr,
-                        const BSDFInfo *info = nullptr) const
-    {
+                        Sampler *sampler,
+                        const ScatterInfo *info = nullptr) const
+    {   
+        //* If no scatter info is provided, pdfDirection if FINF
         PathInfo pathInfo;
-        SurfaceIntersectionInfo itsInfo = scene.intersectWithSurface(ray);
-        pathInfo.itsInfo = IntersectionInfo(itsInfo);
-        pathInfo.length = itsInfo.distance;
-        pathInfo.vertex = itsInfo.position;
-        pathInfo.pdfLength = FINF;
-        if (info) {
-            pathInfo.pdfDirection = info->type == BSDF::EBSDFType::EEmpty ? 
-                prevPdfDirection : info->pdf;
-            pathInfo.weight = info->weight;
-        } else {
-            pathInfo.pdfDirection = FINF;
-            pathInfo.weight = SpectrumRGB{1};
-        }
-        //todo pathInfo.weight
-        if (auto medium = ray.medium; medium) {
-            pathInfo.weight *= medium->getTrans(ray.ori, itsInfo.position);
+        pathInfo.pdfDirection = info ? info->pdf : FINF;
+        pathInfo.length = 0;
+        pathInfo.weight = info ? info->weight : SpectrumRGB{1};
+        //* Single scattering, so no medium intersection in this situation
+        if (info && info->scatterType == ScatterInfo::ScatterType::Medium) {
+            std::shared_ptr<SurfaceIntersectionInfo> sIts;
+            do {
+                sIts = scene.intersectWithSurface(ray);
+                if (auto medium = ray.medium; medium) {
+                    pathInfo.weight *= medium->getTrans(ray.ori, sIts->position);
+                }
+                pathInfo.length += sIts->distance;
+                if (sIts->terminate()) break;
+                ray = sIts->scatterRay(scene, ray.dir);
+            } while(sIts->shape && sIts->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty);
+            pathInfo.itsInfo = sIts;
+            pathInfo.vertex = sIts->position;
+        } 
+        //* Sample a medium intersection or surface intersection along the ray
+        else {
+            std::shared_ptr<SurfaceIntersectionInfo> sIts;
+            do {
+                sIts = scene.intersectWithSurface(ray);
+                if (auto medium = ray.medium; medium) {
+                    auto mIts = medium->sampleIntersection(ray, sIts->distance, sampler->next2D());           
+                    pathInfo.weight *= mIts->weight;
+                    if (mIts->medium) {
+                        //* Successfully sample a medium intersection
+                        pathInfo.itsInfo = mIts;
+                        pathInfo.vertex = mIts->position;
+                        pathInfo.length += mIts->distance;
+                        break;
+                    }
+                }
+                //* No, hit the surface
+                pathInfo.itsInfo = sIts;
+                pathInfo.vertex = sIts->position;
+                pathInfo.length += sIts->distance;
+                if (sIts->terminate()) break;
+                ray = sIts->scatterRay(scene, ray.dir);
+            }while(sIts->shape && sIts->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty);
         }
         return pathInfo;
-    }
-
-    //* This method samples a medium intersection in given medium and 
-    //* ray segment
-    PathInfo sampleMedium(Ray3f ray, float tBound, Sampler *sampler) const {
-
-    } 
-
-    SpectrumRGB evaluateLe(const Scene &scene, Ray3f ray, 
-                           const IntersectionInfo &info) const
-    {
-        SpectrumRGB Le{.0f};
-        if (auto light = info.light; light) {
-            Le += light->evaluate(info, ray);
-        }
-        return Le;
-    }
-
-    float pdfLe(const Scene &scene, Ray3f ray, 
-                const IntersectionInfo &info) const
-    {
-        float pdf = .0f;
-        if (auto light = info.light; light) {
-            pdf = scene.pdfEmitter(light) * light->pdf(info, ray);
-        }
-        return pdf;
     }
 
     SpectrumRGB tr(const Scene &scene, Ray3f ray) const
     {
         SpectrumRGB Tr{1.f};
         Point3f destination = ray.at(ray.tmax);
-        SurfaceIntersectionInfo info = scene.intersectWithSurface(ray);
-        while(info) {
+        auto info = scene.intersectWithSurface(ray);
+        while(info->shape) {
             if (auto medium = ray.medium; medium) {
-                Tr *= medium->getTrans(ray.ori, info.position);
+                Tr *= medium->getTrans(ray.ori, info->position);
             }
-            if (info.shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
+            if (info->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
                 Tr = SpectrumRGB{.0f};
                 break;
             } else {
-                ray = info.generateShadowRay(scene, destination);
+                ray = info->scatterRay(scene, destination);
                 info = scene.intersectWithSurface(ray);
             }
         }
         return Tr;
     }
 };
-REGISTER_CLASS(VolPathTracer, "volpathtracer")
+REGISTER_CLASS(VolPathTracer, "volpath-tracer")

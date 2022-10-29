@@ -14,7 +14,7 @@ public:
 
     Frame() = default;
 
-    Frame(const Normal3f &normal) {
+    explicit Frame(const Normal3f &normal) {
         Vector3f tmp {0, 1, 0};
         if (std::abs(dot(normal, tmp)) > 1 - EPSILON) {
             tmp = Vector3f {0, 0, 1};

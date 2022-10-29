@@ -1,4 +1,5 @@
 #include "core/render-core/medium.h"
+#include <core/render-core/info.h>
 
 //* The medium only consider absorbtion, which means no scattering or emission
 class Beerslaw : public Medium {
@@ -57,6 +58,17 @@ public:
     {
         if (isExceed) return 1;
         else return 0;
+    }
+
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+        auto mIts = std::make_shared<MediumIntersectionInfo>();
+        mIts->medium = nullptr; //* Cuz no possibility for inside intersection
+        mIts->weight = getTrans(ray.ori, ray.at(tBounds));
+        //* This is a delta distribution
+        mIts->pdf = FINF;
+        return mIts;
     }
 
 

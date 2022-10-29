@@ -15,8 +15,9 @@ Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
 {
     Ray3f ray{position, destination};
     bool outwards = dot(ray.dir, geometryNormal) > 0;
-    ray.medium = outwards ? 
-        scene.getEnvMedium() : shape->getInsideMedium(); 
+    auto medium = outwards ? 
+        scene.getEnvMedium() : shape->getInsideMedium();
+    ray.medium = medium ? medium.get() : nullptr; 
     return ray;
 }
 
@@ -25,8 +26,9 @@ Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
 {
     Ray3f ray{position, direction};
     bool outwards = dot(ray.dir, geometryNormal) > 0;
-    ray.medium = outwards ? 
-        scene.getEnvMedium() : shape->getInsideMedium(); 
+    auto medium = outwards ? 
+        scene.getEnvMedium() : shape->getInsideMedium();
+    ray.medium = medium ? medium.get() : nullptr; 
     return ray;
 }
 
@@ -45,7 +47,9 @@ float SurfaceIntersectionInfo::pdfScatter(Vector3f wo) const
 ScatterInfo SurfaceIntersectionInfo::sampleScatter(Point2f sample) const
 {
     assert(shape);
-    return shape->getBSDF()->sample(*this, sample);
+    auto sInfo = shape->getBSDF()->sample(*this, sample);
+    sInfo.scatterType = ScatterInfo::ScatterType::Surface;
+    return sInfo;
 }
 
 SpectrumRGB SurfaceIntersectionInfo::evaluateLe() const
@@ -104,6 +108,7 @@ ScatterInfo MediumIntersectionInfo::sampleScatter(Point2f sample) const
     info.weight = medium->samplePhase(&pRec, sample);
     info.wo = toWorld(pRec.wo);
     info.pdf = medium->pdfPhase(pRec);
+    info.scatterType = ScatterInfo::ScatterType::Medium;
     return info;
 }
 

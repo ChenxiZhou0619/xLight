@@ -116,6 +116,45 @@ public:
         }
         return pdf;
     }
+
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+        auto [x, y] = sample;
+        auto mIts = std::make_shared<MediumIntersectionInfo>();
+        //* Choose a channel using y
+        int channel = std::min(int(y * 3), 2);
+        float sigmaT = mDensity[channel];
+        float distance = -std::log(1 - x) / sigmaT;
+        if (distance <= tBounds) {
+            //* Sample a medium intersection
+            mIts->medium = this;
+            mIts->position = ray.at(distance);
+            mIts->distance = distance;
+            mIts->wi = ray.dir;
+            mIts->shadingFrame = Frame{mIts->wi};
+            mIts->pdf = .0f;
+            SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+            for (int i = 0; i < 3; ++i) {
+                float pdf = mDensity[i] * tr[i];
+                mIts->pdf += pdf / 3;
+            }
+            //todo ONLY SCATTER KNOW, SO ONLY SIGMAS HERE
+            mIts->weight = mDensity * mAlbedo * tr / mIts->pdf;
+        } else {
+            //* No, escape the medium
+            mIts->medium = nullptr;
+            mIts->pdf = .0f;
+            SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+            for (int i = 0; i < 3; ++i) {
+                float pdf = mDensity[i] * tr[i];
+                mIts->pdf += pdf / 3;
+            }
+            mIts->weight = tr / mIts->pdf;
+        }
+        return mIts;
+    }
+
     
 private:
     SpectrumRGB mDensity;

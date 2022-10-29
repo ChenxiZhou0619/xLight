@@ -21,6 +21,12 @@
 class Scene;
 
 struct ScatterInfo {
+    enum ScatterType {
+        Unknown = 0,
+        Surface,
+        Medium
+    } scatterType = Unknown;
+
     SpectrumRGB weight;
 
     Vector3f    wo;
@@ -78,7 +84,11 @@ struct SurfaceIntersectionInfo : public IntersectionInfo{
 //* sampling a point in the medium
 struct MediumIntersectionInfo : public IntersectionInfo{
     //* The medium where occurs the medium intersection
-    std::shared_ptr<Medium> medium = nullptr;
+    const Medium    *medium = nullptr;
+    //* The weight of sampling this medium intersection
+    SpectrumRGB     weight;
+    //* The pdf of sampling this medium intersection
+    float           pdf;
 
     virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const override;
     virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;

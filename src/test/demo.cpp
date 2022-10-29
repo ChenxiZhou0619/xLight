@@ -41,7 +41,7 @@ void renderBlock(std::shared_ptr<ImageBlock> block, std::shared_ptr<RenderTask> 
                     task->getImgSize(),
                     sampler->getCameraSample()
                 );
-                ray.medium = scene->getEnvMedium(); //set here  
+                ray.medium = scene->getEnvMedium().get(); //set here  
                 color += integrator->getLi(*scene, ray, sampler.get());
                 sampler->nextSample();
             }

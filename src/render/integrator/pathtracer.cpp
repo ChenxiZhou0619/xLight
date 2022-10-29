@@ -63,7 +63,7 @@ protected:
         PathInfo pathInfo;
         //* In path tracer(with out volumes), length sampling is a dirac delta distribution(given a direction)
         auto itsInfo = scene.intersectWithSurface(ray);
-        pathInfo.itsInfo = scene.intersectWithSurface(ray);
+        pathInfo.itsInfo = itsInfo;
         pathInfo.length = itsInfo->distance;
         pathInfo.pdfLength = FINF;
         pathInfo.pdfDirection = pdfDirection;

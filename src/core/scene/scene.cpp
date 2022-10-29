@@ -87,10 +87,12 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
         Vector3f dpdu = shape->dpdu(triangleIndex);
 
         Vector3f tangent = shape->getHitTangent(triangleIndex, uv);
-        Vector3f bitangent = cross(its.shadingN, tangent);
-        tangent = cross(bitangent, its.shadingN);
+        Vector3f bitangent = normalize(cross(its.shadingN, tangent));
+        tangent = normalize(cross(bitangent, its.shadingN));
         its.shadingF = Frame{its.shadingN, tangent, bitangent};
         its.dpdu = dpdu;
+        its.geometryN = its.shadingN;
+        its.geometryF = its.shadingF;
     }
 
     its.uv = shape->getHitTextureCoordinate(triangleIndex, uv);
@@ -320,8 +322,12 @@ Scene::intersectWithSurface(const Ray3f &ray) const
     auto itsOpt = intersect(ray);
     
     if (!itsOpt) {
+        info->shape = nullptr;
         info->light = getEnvEmitter();
+        info->distance = 100000.f;
+        info->position = ray.at(info->distance);
         info->wi = ray.dir;
+//        info->shadingFrame = Frame{info->wi};
         return info;
     }
 

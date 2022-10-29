@@ -42,6 +42,12 @@ public:
 
     virtual ~Hetergeneous() = default;
 
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+
+    }
+
 protected:
     openvdb::FloatGrid::Ptr density;
 
