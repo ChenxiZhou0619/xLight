@@ -35,10 +35,10 @@ public:
                 Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                 SpectrumRGB Tr = tr(scene, shadowRay);
                 auto *light = lightSourceInfo.light;
-                SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo->position);
+                SpectrumRGB LeWeight = light->evaluate(lightSourceInfo, itsInfo->position);
                 SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
                 float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
-                Li += beta * f * Le * Tr / lightSourceInfo.pdf * misw;
+                Li += beta * f * LeWeight * Tr * misw;
             }
             //* Sample the scatter
             ScatterInfo scatterInfo = itsInfo->sampleScatter(sampler->next2D());
@@ -115,17 +115,23 @@ protected:
         SpectrumRGB Tr{1.f};
         Point3f destination = ray.at(ray.tmax);
         auto info = scene.intersectWithSurface(ray);
-        while(info->shape) {
-            if (auto medium = ray.medium; medium) {
-                Tr *= medium->getTrans(ray.ori, info->position);
-            }
-            if (info->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
+        while(true) {
+            if (info->shape && info->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
                 Tr = SpectrumRGB{.0f};
                 break;
-            } else {
-                ray = info->scatterRay(scene, destination);
-                info = scene.intersectWithSurface(ray);
+            }else if (!info->shape) {
+                if (auto medium = ray.medium; medium) {
+                    Tr *= medium->getTrans(ray.ori, destination);
+                }
+                break;
             }
+            else if (info->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
+                if (auto medium = ray.medium; medium) {
+                    Tr *= medium->getTrans(ray.ori, info->position);
+                }
+                ray = info->scatterRay(scene, ray.dir);
+                info = scene.intersectWithSurface(ray);
+            } 
         }
         return Tr;
     }

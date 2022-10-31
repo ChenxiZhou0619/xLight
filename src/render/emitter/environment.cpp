@@ -186,7 +186,7 @@ public:
         return m_envmap->evaluate(Point2f(
             phi / (2 * M_PI),
             theta / M_PI
-        )) * m_energy_scale;
+        )) * m_energy_scale / info.pdf;
     }
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override

@@ -147,7 +147,7 @@ public:
             mIts->pdf = .0f;
             SpectrumRGB tr = getTrans(ray.ori, mIts->position);
             for (int i = 0; i < 3; ++i) {
-                float pdf = mDensity[i] * tr[i];
+                float pdf =  tr[i];
                 mIts->pdf += pdf / 3;
             }
             mIts->weight = tr / mIts->pdf;

@@ -39,10 +39,10 @@ public:
                 Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                 if (!scene.occlude(shadowRay)) {
                     auto *light = lightSourceInfo.light;
-                    SpectrumRGB Le = light->evaluate(lightSourceInfo, itsInfo->position);
+                    SpectrumRGB LeWeight = light->evaluate(lightSourceInfo, itsInfo->position);
                     SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
                     float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
-                    Li += beta * f * Le / lightSourceInfo.pdf * misw;
+                    Li += beta * f * LeWeight * misw;
                 }
             }
             //* Sample the bsdf

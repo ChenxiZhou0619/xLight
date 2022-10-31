@@ -71,10 +71,10 @@ public:
         return {pRec.p, pRec.pdf};
     }
 
-    virtual SpectrumRGB evaluate(const LightSourceInfo &Info,
+    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
                                  Point3f destination) const override
     {
-        return m_lightEnergy;
+        return m_lightEnergy / info.pdf;
     }
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
