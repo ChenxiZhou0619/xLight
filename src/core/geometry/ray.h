@@ -29,14 +29,14 @@ public:
 
     TRay3(const TPoint3<T> &_ori, const TVector3<T> &_dir,
           std::shared_ptr<Medium> _medium = nullptr, 
-          T _time = .0f, T _tmin = 0.00001, T _tmax = 1e10)
+          T _time = .0f, T _tmin = 0.0005, T _tmax = 1e10)
         : ori(_ori), dir(normalize(_dir)), time(_time), tmin(_tmin), tmax(_tmax), medium(_medium.get()) { };
 
     TRay3(const TPoint3<T> &_ori, const TPoint3<T> &_end, 
           std::shared_ptr<Medium> _medium = nullptr ,T _time = .0f) : ori(_ori), time(_time), medium(_medium.get()) 
     {
         dir = Vector3f{_end - _ori};
-        tmin = 0.00001;
+        tmin = 0.0005;
         tmax = dir.length() - EPSILON * 100;
         dir = normalize(dir);        
     }

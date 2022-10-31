@@ -327,7 +327,7 @@ Scene::intersectWithSurface(const Ray3f &ray) const
         info->distance = 100000.f;
         info->position = ray.at(info->distance);
         info->wi = ray.dir;
-//        info->shadingFrame = Frame{info->wi};
+
         return info;
     }
 

@@ -14,6 +14,7 @@ Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
                                           Point3f destination) const
 {
     Ray3f ray{position, destination};
+    ray.ori += ray.dir * 0.0001;
     bool outwards = dot(ray.dir, geometryNormal) > 0;
     auto medium = outwards ? 
         scene.getEnvMedium() : shape->getInsideMedium();
@@ -25,6 +26,7 @@ Ray3f SurfaceIntersectionInfo::scatterRay(const Scene &scene,
                                           Vector3f direction) const
 {
     Ray3f ray{position, direction};
+    ray.ori += ray.dir * 0.0001;
     bool outwards = dot(ray.dir, geometryNormal) > 0;
     auto medium = outwards ? 
         scene.getEnvMedium() : shape->getInsideMedium();

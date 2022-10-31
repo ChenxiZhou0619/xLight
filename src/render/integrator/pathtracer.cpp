@@ -18,7 +18,7 @@ public:
         SpectrumRGB Li{.0f}, beta{1.f};
         int bounces = 0;
         PathInfo pathInfo = samplePath(scene, ray, FINF, SpectrumRGB{1});
-        const auto& itsInfo = pathInfo.itsInfo;
+        const auto &itsInfo = pathInfo.itsInfo;
         while(bounces <= mMaxDepth) {
             beta *= pathInfo.weight;
             if (beta.isZero()) break;
