@@ -106,5 +106,5 @@ target_link_directories(demo PRIVATE
 )
 
 target_link_libraries(demo
-    assimp embree3 tbb openvdb spdlog
+    assimp embree3 tbb openvdb spdlog profiler unwind
 )

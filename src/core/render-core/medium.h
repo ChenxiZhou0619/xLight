@@ -71,6 +71,9 @@ public:
     virtual std::shared_ptr<MediumIntersectionInfo> 
     sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const = 0;
 
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const = 0;
+
 
 protected:
     std::shared_ptr<PhaseFunction> mPhase;

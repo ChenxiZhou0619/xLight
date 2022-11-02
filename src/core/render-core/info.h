@@ -114,7 +114,7 @@ struct PathInfo {
     //* The pdf of sampling the path length
     float       pdfLength;
     //* The scatter information on new path vertex
-    std::shared_ptr<IntersectionInfo> itsInfo;
+    std::shared_ptr<IntersectionInfo> itsInfo = nullptr;
 
     float pdf() const;    
 };

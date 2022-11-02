@@ -155,6 +155,36 @@ public:
         return mIts;
     }
 
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+        auto [x, y] = sample;
+        auto mIts = std::make_shared<MediumIntersectionInfo>();
+        //* Choose a channel using y
+        int channel = std::min(int(y * 3), 2);
+        float sigmaT = mDensity[channel],
+              thick = std::exp(-tBounds * sigmaT);
+        float distance = -std::log(1 - x * (1 - thick)) / sigmaT;
+
+        if (distance > tBounds) {
+            return nullptr;
+        }
+
+        mIts->medium = this;
+        mIts->position = ray.at(distance);
+        mIts->wi = ray.dir;
+        mIts->shadingFrame = Frame{mIts->wi};
+        SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+        mIts->pdf = .0f;
+        for (int i = 0; i < 3; ++i) {
+            float pdf = mDensity[i] * tr[i] / (1 - thick);
+            mIts->pdf += pdf / 3;
+        }
+        mIts->weight = mDensity * mAlbedo * tr / mIts->pdf;
+        mIts->distance = distance;
+        float tmp = mIts->weight.average() + thick;
+        return mIts;
+    }
     
 private:
     SpectrumRGB mDensity;

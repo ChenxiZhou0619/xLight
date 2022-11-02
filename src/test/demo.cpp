@@ -8,6 +8,8 @@
 #include <tbb/tbb.h>
 #include <mutex>
 
+#include <gperftools/profiler.h>
+
 #define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
 #define PBWIDTH 60
 
@@ -114,6 +116,8 @@ void render(std::shared_ptr<RenderTask> task) {
 
 
 int main(int argc, char **argv) {
+//    ProfilerStart("xLight_Performance.prof");
     auto task = createTask(argv[1]);
     render(task);
+//    ProfilerStop();
 }

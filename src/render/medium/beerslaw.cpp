@@ -71,6 +71,12 @@ public:
         return mIts;
     }
 
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+        return nullptr;
+    }
+
 
 private:
     SpectrumRGB m_absorbtion;

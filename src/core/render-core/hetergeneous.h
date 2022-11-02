@@ -48,6 +48,12 @@ public:
 
     }
 
+    virtual std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override
+    {
+
+    }
+
 protected:
     openvdb::FloatGrid::Ptr density;
 
