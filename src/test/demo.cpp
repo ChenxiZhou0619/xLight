@@ -120,4 +120,5 @@ int main(int argc, char **argv) {
     auto task = createTask(argv[1]);
     render(task);
 //    ProfilerStop();
+
 }

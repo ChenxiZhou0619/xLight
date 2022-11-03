@@ -145,7 +145,7 @@ public:
             //* No, escape the medium
             mIts->medium = nullptr;
             mIts->pdf = .0f;
-            SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+            SpectrumRGB tr = getTrans(ray.ori, ray.at(tBounds));
             for (int i = 0; i < 3; ++i) {
                 float pdf =  tr[i];
                 mIts->pdf += pdf / 3;

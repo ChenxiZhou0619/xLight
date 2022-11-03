@@ -89,9 +89,9 @@ protected:
 
     RTCGeometry embreeGeometry;
 
-    bool hasUV;
+    bool hasUV = false;
     
-    bool hasTangent;
+    bool hasTangent = false;
 
     float m_surface_area;
 

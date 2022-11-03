@@ -160,16 +160,6 @@ void configureScene(std::shared_ptr<RenderTask> task,
             task->scene->setEnvMap(envEmitter);
             task->scene->addEmitter(envEmitter);
         } else if (std::strcmp("area", emitterType) == 0){
-            //const auto &emitterName = 
-            //    emitter["name"].GetString();
-            //std::shared_ptr<Emitter> emitter_ptr {
-            //        static_cast<Emitter *>(
-            //        ObjectFactory::createInstance(
-            //            "area", emitter
-            //        )
-            //    )
-            //};
-            //task->emitters[emitterName] = emitter_ptr;
             std::cout << "Area light should be declared directly in mesh!\n";
             std::exit(1);
         } else {
@@ -282,6 +272,12 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 auto empty = task->getBSDF("empty_bsdf");
                 grid.second->setBSDF(empty);
                 task->scene->addShape(grid.second);
+                std::shared_ptr<PhaseFunction> phase {
+                static_cast<PhaseFunction *>(
+                    ObjectFactory::createInstance("isotropic", entity)
+                    )
+                };
+                grid.second->getInsideMedium()->setPhase(phase);
             }
         }
     }

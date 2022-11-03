@@ -1,6 +1,7 @@
 #include "gridmedium.h"
 
 #include <openvdb/openvdb.h>
+#include <openvdb/tools/GridTransformer.h>
 #include "core/render-core/hetergeneous.h"
 
 std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
@@ -26,9 +27,12 @@ loadVdbFile(const std::string &filePath)
     vdbFile.close();
 
     FloatGrid::Ptr densityGrid = gridPtrCast<FloatGrid>(grid);
-    densityGrid->transform().preScale(1.5);
-    densityGrid->transform().preTranslate(openvdb::Vec3d(0, -50, 0));
-    
+
+
+    openvdb::Mat4R m = densityGrid->transform().baseMap()->getAffineMap()->getMat4();
+    auto transform = openvdb::math::Transform::createLinearTransform(m);
+
+    densityGrid->setTransform(transform);
 
     auto worldBound = densityGrid->evalActiveVoxelBoundingBox();
     auto min = densityGrid->indexToWorld(worldBound.min()),
@@ -129,15 +133,15 @@ void rtcGridMediumIntersectFunc(const RTCIntersectFunctionNArguments *args)
     result.geomID = args->geomID;
 
 
-    Point3f hitpoint = ori + nearT * dir;
-    float bias[6];
+    Point3f hitpoint = ori + t * dir;
+    double bias[6];
     for (int axis = 0; axis < 3; ++axis) {
-        float a = bias[axis * 2] = std::abs(hitpoint[axis] - min[axis]);
-        float b = bias[axis * 2 + 1] = std::abs(hitpoint[axis] - max[axis]);
+        double a = bias[axis * 2] = std::abs(hitpoint[axis] - min[axis]);
+        double b = bias[axis * 2 + 1] = std::abs(hitpoint[axis] - max[axis]);
     }
 
     int cloestDimension = -1;
-    float minBias = std::numeric_limits<float>::max();
+    double minBias = std::numeric_limits<float>::max();
     for (int i = 0; i < 6; ++i) {
         if (bias[i] < minBias) {
             minBias = bias[i];

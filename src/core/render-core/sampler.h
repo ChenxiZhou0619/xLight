@@ -43,6 +43,18 @@ public:
         return nullptr;
     }
 
+    static float sample1D() {
+        static std::uniform_real_distribution<> s_dist(0, 1.f);
+        static pcg_extras::seed_seq_from<std::random_device> s_seed_source;
+        static pcg32 s_rng(s_seed_source);
+
+        return s_dist(s_rng);
+    }
+
+    static Point2f sample2D() {
+        return {sample1D(), sample1D()};
+    }
+
 };
 
 class PixelSampler : public Sampler {

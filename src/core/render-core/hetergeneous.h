@@ -12,10 +12,7 @@ public:
         //mPhase = std::make_shared<IsotropicPhase>();
     }
 
-    Hetergeneous(openvdb::FloatGrid::Ptr _density) {
-        density = _density;
-        //mPhase = std::make_shared<IsotropicPhase>();
-    }
+    Hetergeneous(openvdb::FloatGrid::Ptr _density);
 
     virtual bool sampleDistance(MediumSampleRecord *mRec,
                                 const Ray3f &ray, float tmax,
@@ -43,21 +40,18 @@ public:
     virtual ~Hetergeneous() = default;
 
     virtual std::shared_ptr<MediumIntersectionInfo>
-    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override
-    {
-
-    }
+    sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override;
 
     virtual std::shared_ptr<MediumIntersectionInfo>
-    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override
-    {
+    sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override;
 
-    }
 
 protected:
     openvdb::FloatGrid::Ptr density;
 
-    float scale = 10;
+    SpectrumRGB sigmaTMax{.0f};
 
-    float step = 0.03;
+    static constexpr float scale = 1.5;
+
+    float step = 0.1;//delete
 };
