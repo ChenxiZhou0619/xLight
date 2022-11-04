@@ -71,6 +71,11 @@ bool SurfaceIntersectionInfo::terminate() const
     return (!shape || shape->isEmitter());
 }
 
+void SurfaceIntersectionInfo::computeShadingFrame() {
+    if (!terminate())
+        this->shape->getBSDF()->computeShadingFrame(this);
+}
+
 //* MediumIntersectionInfo
 Ray3f MediumIntersectionInfo::scatterRay(const Scene &scene,
                                           Point3f destination) const
@@ -130,4 +135,8 @@ bool MediumIntersectionInfo::terminate() const
 {
     //todo no emission, so always false
     return false;
+}
+
+void MediumIntersectionInfo::computeShadingFrame() {
+    //* do nothing
 }

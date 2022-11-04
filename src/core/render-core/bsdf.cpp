@@ -48,7 +48,7 @@ void BSDF::computeShadingNormal(RayIntersectionRec *i_rec) const {
     
 }
 
-void BSDF::computeShadingFrame(ShapeIntersection *its) const 
+void BSDF::computeShadingFrame(SurfaceIntersectionInfo *its) const 
 {
     if (!m_normalmap) return;
 
@@ -62,7 +62,7 @@ void BSDF::computeShadingFrame(ShapeIntersection *its) const
 
     newT = cross(newB, shadingN);
 
-    its->shadingF = Frame{shadingN, newT, newB};
+    its->shadingFrame = Frame{shadingN, newT, newB};
 }
 
 SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,

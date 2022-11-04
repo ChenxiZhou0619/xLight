@@ -55,6 +55,7 @@ struct IntersectionInfo {
     virtual SpectrumRGB evaluateLe() const = 0;
     virtual float pdfLe() const = 0;
     virtual bool terminate() const = 0;
+    virtual void computeShadingFrame() = 0;
 };
 
 
@@ -68,6 +69,8 @@ struct SurfaceIntersectionInfo : public IntersectionInfo{
     Normal3f        geometryNormal;
     //* The uv coordinate of the hitpoint
     Point2f         uv;
+    //* position differentials
+    Vector3f        dpdu;
 
     virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const override;
     virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;
@@ -77,6 +80,7 @@ struct SurfaceIntersectionInfo : public IntersectionInfo{
     virtual SpectrumRGB evaluateLe() const override;
     virtual float pdfLe() const override;
     virtual bool terminate() const override;
+    virtual void computeShadingFrame() override;
 };
 
 //*   This stores the information of the medium-ray intersection, 
@@ -98,6 +102,7 @@ struct MediumIntersectionInfo : public IntersectionInfo{
     virtual SpectrumRGB evaluateLe() const override;
     virtual float pdfLe() const override;
     virtual bool terminate() const override;
+    virtual void computeShadingFrame() override;
 };
 
 //*   In path-tracing, we usually sample a new path vertex based on the previous one,

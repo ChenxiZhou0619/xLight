@@ -339,6 +339,7 @@ Scene::intersectWithSurface(const Ray3f &ray) const
     info->geometryNormal = itsOpt->geometryN;
     info->shadingFrame = itsOpt->shadingF;
     info->uv = itsOpt->uv;
+    info->dpdu = itsOpt->dpdu;
     return info;
 }
 

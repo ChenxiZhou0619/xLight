@@ -132,7 +132,7 @@ public:
 
     void computeShadingNormal (RayIntersectionRec *i_rec) const;
 
-    void computeShadingFrame (ShapeIntersection *its) const;
+    void computeShadingFrame (SurfaceIntersectionInfo *its) const;
 
     virtual bool isDiffuse() const = 0;
 
