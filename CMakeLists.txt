@@ -108,3 +108,18 @@ target_link_directories(demo PRIVATE
 target_link_libraries(demo
     assimp embree3 tbb openvdb spdlog profiler unwind
 )
+
+add_executable(
+    test ${XLIGHT_TEST_DIR}/test.cpp
+
+    ${XLIGHT_CORE_FILE_DIR}/figure.cpp
+)
+
+target_include_directories(test PRIVATE
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/dependencies 
+)
+
+target_link_libraries(demo
+    fmt
+)
