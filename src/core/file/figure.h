@@ -11,6 +11,8 @@
 #pragma once
 #include <string>
 #include <memory>
+class SpectrumRGB;
+#include <core/geometry/geometry.h>
 
 //* Only 3 channels are allowed now
 class Figure {
@@ -28,6 +30,8 @@ public:
     void saveAsPng(const std::string &filename) const;
 
     void saveAsHdr(const std::string &filename) const;
+
+    SpectrumRGB evaluate(Point2f uv, bool biFilter = false) const;
 
     void setPixel(float rgb[3], int x, int y);
 

@@ -84,13 +84,16 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const{
         its.shadingN = shape->getHitNormal(triangleIndex, uv);
 
         //* Compute dpdu first
-        Vector3f dpdu = shape->dpdu(triangleIndex);
-
+        //Vector3f dpdu = shape->dpdu(triangleIndex);
+        //todo fixme
+        auto [dpdu, dpdv] = shape->positionDifferential(triangleIndex);
+        its.dpdu = dpdu;
+        its.dpdv = dpdv;
         Vector3f tangent = shape->getHitTangent(triangleIndex, uv);
         Vector3f bitangent = normalize(cross(its.shadingN, tangent));
         tangent = normalize(cross(bitangent, its.shadingN));
         its.shadingF = Frame{its.shadingN, tangent, bitangent};
-        its.dpdu = dpdu;
+
         its.geometryN = its.shadingN;
         its.geometryF = its.shadingF;
     }
@@ -340,6 +343,8 @@ Scene::intersectWithSurface(const Ray3f &ray) const
     info->shadingFrame = itsOpt->shadingF;
     info->uv = itsOpt->uv;
     info->dpdu = itsOpt->dpdu;
+    info->dpdv = itsOpt->dpdv;
+    info->computeDifferential(ray);
     return info;
 }
 

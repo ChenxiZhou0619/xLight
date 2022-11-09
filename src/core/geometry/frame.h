@@ -7,6 +7,17 @@
 
 using Vector3f = TVector3<float>;
 
+inline void Coordinate(const Vector3f &n, Vector3f *v1, Vector3f *v2)
+{
+    if (std::abs(n.x) > std::abs(n.y)) {
+        *v1 = Vector3f(-n.z, 0, n.x) / std::sqrt(n.z * n.z + n.x * n.x);
+    } else {
+        *v1 = Vector3f(0, n.z, -n.y) / std::sqrt(n.z * n.z + n.y + n.y);
+    }
+    *v2 = cross(n, *v1);
+}
+
+
 class Frame {
     Vector3f _x, _y, _z;
 

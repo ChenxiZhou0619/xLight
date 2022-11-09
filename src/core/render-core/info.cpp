@@ -1,5 +1,6 @@
 #include <core/render-core/info.h>
 #include <core/scene/scene.h>
+#include <core/math/common.h>
 
 //* IntersectionInfo
 Vector3f IntersectionInfo::toLocal(Vector3f v) const {
@@ -76,6 +77,45 @@ void SurfaceIntersectionInfo::computeShadingFrame() {
         this->shape->getBSDF()->computeShadingFrame(this);
 }
 
+void SurfaceIntersectionInfo::computeDifferential(const Ray3f &ray)
+{
+    if (!ray.is_ray_differential) return;
+    //* Compute dudx, dudy, dvdx and dvdy
+    float d = dot (geometryNormal, Vector3f{position.x, position.y, position.z});
+    float tx = -(dot(geometryNormal, Vector3f{ray.ori.x, ray.ori.y, ray.ori.z}) - d) / dot(geometryNormal, ray.direction_dx),
+          ty = -(dot(geometryNormal, Vector3f{ray.ori.x, ray.ori.y, ray.ori.z}) - d) / dot(geometryNormal, ray.direction_dy);
+
+    if (std::isinf(tx) || std::isnan(tx) || std::isinf(ty) || std::isnan(ty)) {
+        std::cout << "NaN or inf in computeDifferential\n";
+        std::exit(1);
+    }
+
+    Point3f px = ray.at(tx),
+            py = ray.at(ty);
+
+    Vector3f dpdx = px - position,
+             dpdy = py - position;
+    
+    int dim[2];
+    if (std::abs(geometryNormal.x) > std::abs(geometryNormal.y) && std::abs(geometryNormal.x) > std::abs(geometryNormal.z)) {
+        dim[0] = 1;
+        dim[1] = 2;
+    } else if (std::abs(geometryNormal.y) > std::abs(geometryNormal.z)) {
+        dim[0] = 0;
+        dim[1] = 2;
+    } else {
+        dim[0] = 0;
+        dim[1] = 1;
+    }
+    // Initialize _A_, _Bx_, and _By_ matrices for offset computation
+    float A[2][2] = {{dpdu[dim[0]], dpdv[dim[0]]},
+                     {dpdu[dim[1]], dpdv[dim[1]]}};
+    float Bx[2] = {px[dim[0]] - position[dim[0]], px[dim[1]] - position[dim[1]]};
+    float By[2] = {py[dim[0]] - position[dim[0]], py[dim[1]] - position[dim[1]]};
+    if (!solveLinearSys2X2(A, Bx, &dudx, &dvdx)) {dudx = dvdx = 0;}
+    if (!solveLinearSys2X2(A, By, &dudy, &dvdy)) {dudy = dvdy = 0;}
+}
+
 //* MediumIntersectionInfo
 Ray3f MediumIntersectionInfo::scatterRay(const Scene &scene,
                                           Point3f destination) const
@@ -138,5 +178,10 @@ bool MediumIntersectionInfo::terminate() const
 }
 
 void MediumIntersectionInfo::computeShadingFrame() {
+    //* do nothing
+}
+
+void MediumIntersectionInfo::computeDifferential(const Ray3f &ray)
+{
     //* do nothing
 }

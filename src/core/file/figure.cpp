@@ -1,6 +1,11 @@
 #include <memory>
 #include <iostream>
 #include "figure.h"
+#include "image.h"
+#include <core/render-core/spectrum.h>
+#include <core/geometry/point.h>
+#include <string.h>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
@@ -74,6 +79,33 @@ void Figure::saveAsHdr(const std::string &filename) const {
     stbi_write_hdr(filename.c_str(), width, height, 3, (float *)data);
 }
 
+SpectrumRGB Figure::evaluate(Point2f uv, bool biFilter) const {
+    auto float32Spectrum = [](PixelValue v) {
+        return SpectrumRGB{v[0], v[1], v[2]};
+    };
+    
+    if (biFilter) {
+        float x = uv.x * width,
+              y = uv.y * height;
+        int lx = std::min((int)x, width - 2), 
+            ly = std::min((int)y, height - 2);
+        
+        float dx = x - lx, 
+              dy = y - ly;
+
+        SpectrumRGB lerp1 = float32Spectrum(data[lx + width * ly]) * (1 - dx) * (1 - dy),
+                    lerp2 = float32Spectrum(data[lx + 1 + width * ly]) * dx * (1 - dy),
+                    lerp3 = float32Spectrum(data[lx + width * (ly + 1)]) * (1 - dx) * dy,
+                    lerp4 = float32Spectrum(data[lx + 1 + width * (ly + 1)]) * dx * dy;
+
+        return lerp1 + lerp2 + lerp3 + lerp4;
+    }
+
+    int x = uv.x * width,
+        y = uv.y * height;
+    return SpectrumRGB {data[x + y * width][0], data[x + y * width][1], data[x + y * width][2]};
+}
+
 void Figure::setPixel(float rgb[3], int x, int y)
 {
     int offset = x + y * width;
@@ -114,4 +146,16 @@ std::shared_ptr<Figure> Figure::shrinkHalfBox() const {
         }
     }
     return res;
+}
+
+void Image::savePNG() const {
+    uint8_t *data = new uint8_t[size.x * size.y * channels];
+    for (int x = 0; x < size.x; ++x)
+        for (int y = 0; y < size.y; ++y) {
+            data[(x + y * size.x) * channels + 0] = std::min(screen.pixels[x][y][0], 1.f) * 255;
+            data[(x + y * size.x) * channels + 1] = std::min(screen.pixels[x][y][1], 1.f) * 255;
+            data[(x + y * size.x) * channels + 2] = std::min(screen.pixels[x][y][2], 1.f) * 255;
+        }
+    stbi_write_png(filename.c_str(), size.x, size.y, 3, data ,0);
+    delete[] data;
 }

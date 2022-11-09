@@ -140,7 +140,8 @@ public:
         EUnknown = 0,
         EEmpty,
         EGlossy,
-        EDiffuse
+        EDiffuse,
+        ETrans
     } m_type;
 };
 

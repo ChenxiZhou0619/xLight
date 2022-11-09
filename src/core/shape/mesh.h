@@ -40,6 +40,9 @@ public:
 
     virtual void sampleOnSurface(PointQueryRecord *pRec,
                                  Point3f sample) const override;
+
+    virtual std::pair<Vector3f, Vector3f>
+    positionDifferential(int triIdx) const override;
 protected:
     
     virtual Point3f getVertex(int idx) const override;

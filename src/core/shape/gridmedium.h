@@ -33,6 +33,13 @@ public:
     virtual void sampleOnSurface(PointQueryRecord *pRec,
                                  Point3f sample) const override;
 
+    //* Return dpdu and dpdv
+    virtual std::pair<Vector3f, Vector3f>
+    positionDifferential(int triIdx) const override {
+        //* do nothing
+        return {Vector3f{}, Vector3f{}};
+    }
+    
     friend void rtcGridMediumBoundsFunc(const RTCBoundsFunctionArguments *args);
 
     friend void rtcGridMediumIntersectFunc(const RTCIntersectFunctionNArguments *args);

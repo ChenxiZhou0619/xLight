@@ -273,3 +273,39 @@ void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec,
                    + getNormal(triangle.z) * w2;
     pRec->pdf = 1 / m_surface_area;
 }
+
+std::pair<Vector3f, Vector3f> 
+TriangleMesh::positionDifferential(int triIdx) const 
+{
+    //* Return dpdu & dpdv
+    /*
+     * | u01 v01 || dpdu |   | p01 |
+     * |         ||      | = |     |
+     * | u02 v02 || dpdv |   | p02 |
+     */
+    auto [i0, i1, i2] 
+        = this->getFace(triIdx);
+    auto p0 = this->getVertex(i0),
+         p1 = this->getVertex(i1),
+         p2 = this->getVertex(i2);
+    Point2f uv0 = getUV(i0),
+            uv1 = getUV(i1),
+            uv2 = getUV(i2);
+    auto [u01, v01] = uv1 - uv0;
+    auto [u02, v02] = uv2 - uv0;
+    auto p01 = p1 - p0,
+         p02 = p2 - p0;
+    float determinant = u01 * v02 - v01 * u02;
+    bool degenerate = std::abs(determinant) < 1e-8;
+    Vector3f dpdu, dpdv;
+    if (!degenerate) {
+        float invDeterminant = 1.f / determinant;
+        dpdu = (v02 * p01 - v01 * p02) * invDeterminant;
+        dpdv = (-u02 * p01 + u01 * p02) * invDeterminant;
+    }
+    if (degenerate || cross(dpdu, dpdv).length2() == 0) {
+        Normal3f n = cross(p1 - p0, p2 - p0);
+        Coordinate(n, &dpdu, &dpdv);
+    }
+    return {dpdu, dpdv};
+}

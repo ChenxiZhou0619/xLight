@@ -77,6 +77,10 @@ public:
         this->medium = medium;
     } 
 
+    //* Return dpdu and dpdv
+    virtual std::pair<Vector3f, Vector3f>
+    positionDifferential(int triIdx) const = 0;
+
 protected:
    
     virtual Point3f getVertex(int idx) const = 0;
@@ -113,7 +117,7 @@ struct ShapeIntersection {
 
     Point2f uv;
 
-    Vector3f dpdu;
+    Vector3f dpdu, dpdv;
 
     std::shared_ptr<ShapeInterface> shape;
 

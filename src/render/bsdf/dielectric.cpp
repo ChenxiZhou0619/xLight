@@ -12,7 +12,7 @@ public:
     Dielectric() = default;
     
     Dielectric(const rapidjson::Value &_value) {
-        m_type = EBSDFType::EGlossy;
+        m_type = EBSDFType::ETrans;
 
         extIOR = getFloat("extIOR", _value);
         intIOR = getFloat("intIOR", _value);
@@ -36,9 +36,9 @@ public:
         );
         if (Frame::cosTheta(bRec.wi) * Frame::cosTheta(bRec.wo) >= 0) {
             // same side
-            return F;
+            return FINF;
         } else {
-            return 1 - F;
+            return FINF;
         }
     }
 
@@ -53,13 +53,15 @@ public:
         if (sample.x <= F) {
             // reflect
             bRec.wo = reflect(bRec.wi);
-            pdf = F;
+            //pdf = F;
+            pdf = FINF;
             // TODO replace with specular reflectance
             return SpectrumRGB {1.f};
         } else {
             // refract
             bRec.wo = refract(bRec.wi, (intIOR / extIOR), cosThetaT);
-            pdf = 1 - F;
+            //pdf = 1 - F;
+            pdf = FINF;
             // TODO consider the transmittance and factor
             return SpectrumRGB {1.f};
         }

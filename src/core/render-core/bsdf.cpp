@@ -74,7 +74,9 @@ SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,
     bRec.uv = info.uv;
     bRec.wi = wi;
     bRec.wo = wo;
-    bRec.du = bRec.dv = .0f;
+//    bRec.du = bRec.dv = .0f;
+    bRec.du = std::max(std::abs(info.dudx), std::abs(info.dudy));        
+    bRec.dv = std::max(std::abs(info.dvdx), std::abs(info.dvdy));
     return evaluate(bRec);
 }
 
