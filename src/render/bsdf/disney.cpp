@@ -3,6 +3,7 @@
 #include "core/math/warp.h"
 #include "spdlog/spdlog.h"
 #include "ndf.h"
+#include <core/render-core/info.h>
 
 class DisneyDiffuse : public BSDF {
 public:
@@ -48,7 +49,8 @@ public:
     
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, 
                                const Point2f &sample,
-                               float &pdf) const override 
+                               float &pdf,
+                               ScatterSampleType *type) const override 
     {
         if (Frame::cosTheta(bRec.wi) <= 0) {
                 pdf = .0f;
@@ -56,6 +58,7 @@ public:
         }        
         bRec.wo = Warp::squareToCosineHemisphere(sample);
         pdf = Warp::squareToCosineHemispherePdf(bRec.wo);
+        *type = ScatterSampleType::SurfaceReflection;
         return evaluate(bRec) / pdf;
     }
 
@@ -127,8 +130,10 @@ public:
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec,
                                const Point2f &sample,
-                               float &pdf) const override
+                               float &pdf,
+                               ScatterSampleType *type) const override
     {
+        *type = ScatterSampleType::SurfaceReflection;
         auto [half, halfPdf] = ndf->sample(bRec.wi, sample);
         bRec.wo = normalize(2 * dot(half, bRec.wi) * half - bRec.wi);
         pdf = halfPdf / (4 * dot(bRec.wo, half));
@@ -190,8 +195,10 @@ public:
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec,
                                const Point2f &sample,
-                               float &pdf) const override
+                               float &pdf,
+                               ScatterSampleType *type) const override
     {
+        *type = ScatterSampleType::SurfaceReflection;
         float cosElevation = std::sqrt((1 - std::pow(mAlphaG * mAlphaG, 1 - sample.x)) / (1 - mAlphaG * mAlphaG)),
               sinElevation = std::sqrt(1 - cosElevation * cosElevation);
         float azimuth = 2 * M_PI * sample.y;

@@ -30,13 +30,15 @@ public:
         return INV_PI * Frame::cosTheta(bRec.wo);
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override{
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override{
         if (Frame::cosTheta(bRec.wi) <= 0) {
                 pdf = .0f;
                 return SpectrumRGB {.0f};
         }
         bRec.wo = Warp::squareToCosineHemisphere(sample);
         pdf = INV_PI * Frame::cosTheta(bRec.wo);
+        *type = ScatterSampleType::SurfaceReflection;
         return m_texture->evaluate(bRec.uv, bRec.du, bRec.dv);    
     }
 };

@@ -1,5 +1,6 @@
 #include "core/render-core/bsdf.h"
 #include "core/math/common.h"
+#include <core/render-core/info.h>
 class Dielectric : public BSDF {
     float extIOR, intIOR;
     
@@ -42,7 +43,8 @@ public:
         }
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override {
         float cosThetaT;
         float F = fresnelDielectric(
             Frame::cosTheta(bRec.wi),
@@ -55,6 +57,7 @@ public:
             bRec.wo = reflect(bRec.wi);
             //pdf = F;
             pdf = FINF;
+            *type = ScatterSampleType::SurfaceReflection;
             // TODO replace with specular reflectance
             return SpectrumRGB {1.f};
         } else {
@@ -62,6 +65,7 @@ public:
             bRec.wo = refract(bRec.wi, (intIOR / extIOR), cosThetaT);
             //pdf = 1 - F;
             pdf = FINF;
+            *type = ScatterSampleType::SurfaceTransmission;
             // TODO consider the transmittance and factor
             return SpectrumRGB {1.f};
         }

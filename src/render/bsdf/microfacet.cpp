@@ -11,6 +11,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/math/common.h"
 #include "core/math/ndf.h"
+#include <core/render-core/info.h>
 
 class Microfacet : public BSDF {
 protected:    
@@ -46,7 +47,9 @@ public:
                 (4 * dot(bRec.wo, wh));
     }
 
-    virtual SpectrumRGB sample (BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const {
+    virtual SpectrumRGB sample (BSDFQueryRecord &bRec, const Point2f &sample, 
+                                float &pdf, ScatterSampleType *type) const {
+        *type = ScatterSampleType::SurfaceReflection;
         Vector3f wh 
             = BeckmannDistribution::sampleWh(alpha, sample);
         bRec.wo = normalize(

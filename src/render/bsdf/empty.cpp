@@ -1,4 +1,5 @@
 #include "core/render-core/bsdf.h"
+#include <core/render-core/info.h>
 
 class EmptyBSDF : public BSDF {
 public:
@@ -25,9 +26,11 @@ public:
         return .0f;
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override {
         //std::cout << "EmptyBSDF::sample not implement!\n";
         //std::exit(1);
+        *type = ScatterSampleType::SurfaceTransmission;
         bRec.wo = -bRec.wi;
         pdf = FINF;
         return SpectrumRGB{1.f};

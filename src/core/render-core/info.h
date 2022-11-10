@@ -20,12 +20,24 @@
 
 class Scene;
 
+enum class ScatterSampleType {
+    Unknown = 0,
+    //* --- Surface sample ---
+    SurfaceReflection,
+    SurfaceTransmission,
+    //* --- Medium sample ---
+    MediumAbsorbtion,
+    MediumScatter
+};
+
 struct ScatterInfo {
     enum ScatterType {
         Unknown = 0,
         Surface,
         Medium
     } scatterType = Unknown;
+
+    ScatterSampleType type = ScatterSampleType::Unknown;
 
     SpectrumRGB weight;
 

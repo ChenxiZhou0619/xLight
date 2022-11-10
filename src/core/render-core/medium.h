@@ -33,22 +33,7 @@ public:
     Medium(const rapidjson::Value &_value) { }
     virtual ~Medium() = default;
 
-    //* Sample the path length before next scatter
-    virtual bool sampleDistance(MediumSampleRecord *m_rec,
-                                const Ray3f &ray, float tmax,
-                                Sampler *sampler) const = 0;
-
-    virtual bool samplePath(MediumSampleRecord *mRec,
-                            const Ray3f &ray, float tBound,
-                            const LightSourceInfo *info,
-                            Sampler *sampler) const = 0;
-
-    virtual SpectrumRGB getTrans(Point3f start,
-                                 Point3f end) const = 0;
-
-    virtual float pdfFromTo(Point3f from,
-                            Point3f end,
-                            bool isExceed) const = 0;
+    virtual SpectrumRGB evaluateTr(Point3f start, Point3f end) const = 0;
 
     virtual SpectrumRGB Le(const Ray3f &ray) const = 0;
 

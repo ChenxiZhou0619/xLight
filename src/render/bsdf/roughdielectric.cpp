@@ -1,6 +1,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/math/ndf.h"
 #include "core/math/common.h"
+#include <core/render-core/info.h>
 
 class RoughDielectric : public BSDF {
 public:
@@ -75,7 +76,8 @@ public:
         return m_pdf * dwh_dho;
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override {
         //! m_eta = eta_t / eta_i
         float eta = Frame::cosTheta(bRec.wi) > 0 ? (m_eta_t / m_eta_i) : (m_eta_i / m_eta_t);
         float microfacet_pdf;
@@ -87,9 +89,11 @@ public:
         bool is_reflect = 0.5f * (sample[0] + sample[1]) < F;
 
         if (is_reflect) {
+            *type = ScatterSampleType::SurfaceReflection;
             bRec.wo = 2.0f * dot(m, bRec.wi) * m - bRec.wi;
             microfacet_pdf *= F;
         } else {
+            *type = ScatterSampleType::SurfaceTransmission;
             float inv_eta = 1 / eta;
             float cos_theta_i = Frame::cosTheta(bRec.wi);
             float cos_theta_t = 

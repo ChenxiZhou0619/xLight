@@ -1,4 +1,5 @@
 #include "core/render-core/bsdf.h"
+#include <core/render-core/info.h>
 
 class Mirror : public BSDF {
 public:
@@ -18,11 +19,13 @@ public:
         return FINF;
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override{
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override{
         if (Frame::cosTheta(bRec.wi) <= 0) {
             pdf = .0f;
             return SpectrumRGB{.0f};
         }
+        *type = ScatterSampleType::SurfaceReflection;
         bRec.wo = reflect(bRec.wi);
         pdf = FINF;
         bRec.isDelta = true;

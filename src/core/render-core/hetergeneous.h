@@ -14,28 +14,12 @@ public:
 
     Hetergeneous(openvdb::FloatGrid::Ptr _density);
 
-    virtual bool sampleDistance(MediumSampleRecord *mRec,
-                                const Ray3f &ray, float tmax,
-                                Sampler *sampler) const override;
-
-    virtual bool samplePath(MediumSampleRecord *mRec,
-                            const Ray3f &ray, float tmax,
-                            const LightSourceInfo *info,
-                            Sampler *sampler) const override
-    {
-        //todo
-    }
-
-    virtual SpectrumRGB getTrans(Point3f start,
+    virtual SpectrumRGB evaluateTr(Point3f start,
                                  Point3f end) const override;
 
     virtual SpectrumRGB Le(const Ray3f &ray) const override {
         return SpectrumRGB(0.0);
     }
-
-    virtual float pdfFromTo(Point3f from,
-                            Point3f end,
-                            bool isExceed) const override;
 
     virtual ~Hetergeneous() = default;
 

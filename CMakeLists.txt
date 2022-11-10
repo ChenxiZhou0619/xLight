@@ -57,11 +57,8 @@ add_executable(
     # render/integrator
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/deep.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/normal.cpp
-#    ${XLIGHT_RENDER_INTEGRATOR_DIR}/path.cpp
-#    ${XLIGHT_RENDER_INTEGRATOR_DIR}/whitted.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/pathtracer.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/volpathtracer.cpp
-#    ${XLIGHT_RENDER_INTEGRATOR_DIR}/trvisual.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp

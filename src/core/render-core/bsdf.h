@@ -6,6 +6,7 @@
 
 struct SurfaceIntersectionInfo;
 struct ScatterInfo;
+enum class ScatterSampleType;
 
 struct BSDFQueryRecord {
     // ! both point from the origin in local
@@ -126,7 +127,8 @@ public:
      * @param iRec 
      * @return SpectrumRGB 
      */
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const = 0;
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const = 0;
 
     virtual void bumpComputeShadingNormal(RayIntersectionRec *i_rec) const;
 
@@ -165,10 +167,6 @@ public:
 
     virtual float pdf(const BSDFQueryRecord &bRec) const override {return .0f;}
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, 
-                               const Point2f &sample, 
-                               float &pdf) const override
-    {
-        return SpectrumRGB{.0f};
-    }
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override;
 };

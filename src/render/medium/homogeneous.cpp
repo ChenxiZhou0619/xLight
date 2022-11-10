@@ -12,77 +12,10 @@ public:
         
     }
 
-    virtual bool sampleDistance(MediumSampleRecord *mRec,
-                                const Ray3f &ray, float tmax,
-                                Sampler *sampler) const override
-    {
-        auto [x, y] = sampler->next2D();
+    virtual ~Homogeneous() = default;
 
-        //* Choose a channel using y
-        int channel = std::min(int(y * 3), 2);
-
-        float sigmaT = mDensity[channel];
-
-
-        float distance = -std::log(1 - x) / sigmaT;
-        if (distance <= tmax) {
-            mRec->pathLength = distance;
-            mRec->isValid = true;
-            mRec->medium = this;
-            mRec->sigmaS = mDensity * mAlbedo;
-            mRec->sigmaA = mDensity * (SpectrumRGB{1} - mAlbedo);
-            mRec->transmittance = getTrans(ray.ori, ray.at(distance));
-            mRec->pdf = .0f;
-            for (int i = 0; i < 3; ++i) {
-                float pdf = mDensity[i] * mRec->transmittance[i];
-                mRec->pdf += pdf / 3;
-            }
-            mRec->albedo = mAlbedo;
-        } else {
-            mRec->pathLength = tmax;
-            mRec->isValid = false;
-            mRec->medium = nullptr;
-            mRec->transmittance = getTrans(ray.ori, ray.at(tmax));
-            mRec->pdf = .0f;
-            for (int i = 0; i < 3; ++i) {
-                float pdf = mRec->transmittance[i];
-                mRec->pdf += pdf / 3;
-            }
-        }
-        return mRec->isValid;
-    }
-
-    virtual bool samplePath(MediumSampleRecord *mRec,
-                            const Ray3f &ray, float tmax,
-                            const LightSourceInfo *info,
-                            Sampler *sampler) const override
-    {
-        auto[dist, distPdf] = 
-            pathSampler->sampleDistance(ray.ori, 
-                                        ray.dir, 
-                                        tmax, info, 
-                                        sampler->next2D());
-        if (dist <= tmax) {
-            mRec->pathLength = dist;
-            mRec->isValid = true;
-            mRec->medium = this;
-            mRec->sigmaS = mDensity * mAlbedo;
-            mRec->sigmaA = mDensity * (SpectrumRGB{1} - mAlbedo);
-            mRec->transmittance = getTrans(ray.ori, ray.at(dist));
-            mRec->pdf = info->pdf * distPdf;
-            mRec->albedo = mAlbedo;
-        } else {
-            //todo test if equi-angular can archive here
-            mRec->pathLength = tmax;
-            mRec->isValid = false;
-            mRec->medium = nullptr;
-            mRec->pdf = info->pdf * distPdf;
-        }
-        return mRec->isValid;
-    }
-
-    virtual SpectrumRGB getTrans(Point3f start,
-                                 Point3f end) const override
+    virtual SpectrumRGB evaluateTr(Point3f start,
+                           Point3f end) const override
     {
         float dist = (end - start).length();
         return SpectrumRGB{
@@ -94,27 +27,6 @@ public:
 
     virtual SpectrumRGB Le(const Ray3f &ray) const override {
         return mEmission;
-    }
-
-    virtual ~Homogeneous() = default;
-
-    virtual float pdfFromTo(Point3f from,
-                            Point3f end,
-                            bool isExceed) const override
-    {
-        float dist = (end - from).length();
-        float pdf = .0f;
-        
-        if (isExceed) {
-            for (int i = 0; i < 3; ++i) {
-                pdf += std::exp(-mDensity[i] * dist) / 3;
-            }
-        } else {
-            for (int i = 0; i < 3; ++i) {
-                pdf += std::exp(-mDensity[i] * dist) * mDensity[i] / 3;
-            }
-        }
-        return pdf;
     }
 
     virtual std::shared_ptr<MediumIntersectionInfo>
@@ -134,7 +46,7 @@ public:
             mIts->wi = ray.dir;
             mIts->shadingFrame = Frame{mIts->wi};
             mIts->pdf = .0f;
-            SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+            SpectrumRGB tr = evaluateTr(ray.ori, mIts->position);
             for (int i = 0; i < 3; ++i) {
                 float pdf = mDensity[i] * tr[i];
                 mIts->pdf += pdf / 3;
@@ -145,7 +57,7 @@ public:
             //* No, escape the medium
             mIts->medium = nullptr;
             mIts->pdf = .0f;
-            SpectrumRGB tr = getTrans(ray.ori, ray.at(tBounds));
+            SpectrumRGB tr = evaluateTr(ray.ori, ray.at(tBounds));
             for (int i = 0; i < 3; ++i) {
                 float pdf =  tr[i];
                 mIts->pdf += pdf / 3;
@@ -174,7 +86,7 @@ public:
         mIts->position = ray.at(distance);
         mIts->wi = ray.dir;
         mIts->shadingFrame = Frame{mIts->wi};
-        SpectrumRGB tr = getTrans(ray.ori, mIts->position);
+        SpectrumRGB tr = evaluateTr(ray.ori, mIts->position);
         mIts->pdf = .0f;
         for (int i = 0; i < 3; ++i) {
             float pdf = mDensity[i] * tr[i] / (1 - thick);

@@ -10,28 +10,7 @@ public:
     }
     virtual ~Beerslaw() = default;
 
-    //* Sample the path length before next scatter
-    virtual bool sampleDistance(MediumSampleRecord *m_rec,
-                                const Ray3f &ray, float tmax,
-                                Sampler *sampler) const override
-    {
-        // only scatter, so distance is infinity
-        m_rec->pathLength = std::numeric_limits<float>::max();
-        m_rec->pdf = 1;
-        m_rec->transmittance = getTrans(ray.ori, ray.at(tmax));
-        m_rec->medium = this;
-        return false;
-    }
-
-    virtual bool samplePath(MediumSampleRecord *mRec,
-                            const Ray3f &ray, float tmax,
-                            const LightSourceInfo *info,
-                            Sampler *sampler) const override
-    {
-        //todo 
-    }
-
-    virtual SpectrumRGB getTrans(Point3f start,
+    virtual SpectrumRGB evaluateTr(Point3f start,
                                  Point3f end) const override
     {
         auto r = m_absorbtion.r(),
@@ -52,20 +31,12 @@ public:
         return SpectrumRGB{0};
     }
 
-    virtual float pdfFromTo(Point3f from,
-                            Point3f end,
-                            bool isExceed) const override
-    {
-        if (isExceed) return 1;
-        else return 0;
-    }
-
     virtual std::shared_ptr<MediumIntersectionInfo>
     sampleIntersection(Ray3f ray, float tBounds, Point2f sample) const override
     {
         auto mIts = std::make_shared<MediumIntersectionInfo>();
         mIts->medium = nullptr; //* Cuz no possibility for inside intersection
-        mIts->weight = getTrans(ray.ori, ray.at(tBounds));
+        mIts->weight = evaluateTr(ray.ori, ray.at(tBounds));
         //* This is a delta distribution
         mIts->pdf = FINF;
         return mIts;

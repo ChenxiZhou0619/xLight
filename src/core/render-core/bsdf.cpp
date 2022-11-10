@@ -88,8 +88,9 @@ ScatterInfo BSDF::sample(const SurfaceIntersectionInfo &info,
     BSDFQueryRecord bRec;
     bRec.uv = info.uv;
     bRec.wi = wi;
-    bRec.du = bRec.dv = .0f;
-    scatterInfo.weight = sample(bRec, uv, scatterInfo.pdf);
+    bRec.du = std::max(std::abs(info.dudx), std::abs(info.dudy));        
+    bRec.dv = std::max(std::abs(info.dvdx), std::abs(info.dvdy));
+    scatterInfo.weight = sample(bRec, uv, scatterInfo.pdf, &scatterInfo.type);
     scatterInfo.wo = info.toWorld(bRec.wo);
 
     return scatterInfo;
@@ -106,4 +107,11 @@ float BSDF::pdf(const SurfaceIntersectionInfo &info,
     bRec.wo = wo;
     bRec.du = bRec.dv = .0f;
     return pdf(bRec);
+}
+
+SpectrumRGB BlackHole::sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                              float &pdf, ScatterSampleType *type) const 
+{
+    *type = ScatterSampleType::SurfaceReflection;
+    return SpectrumRGB{.0f};
 }

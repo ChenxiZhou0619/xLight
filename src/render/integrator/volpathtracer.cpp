@@ -74,7 +74,7 @@ protected:
             do {
                 sIts = scene.intersectWithSurface(ray);
                 if (auto medium = ray.medium; medium) {
-                    pathInfo.weight *= medium->getTrans(ray.ori, sIts->position);
+                    pathInfo.weight *= medium->evaluateTr(ray.ori, sIts->position);
                 }
                 pathInfo.length += sIts->distance;
                 if (sIts->terminate()) break;
@@ -121,13 +121,13 @@ protected:
                 break;
             }else if (!info->shape) {
                 if (auto medium = ray.medium; medium) {
-                    Tr *= medium->getTrans(ray.ori, destination);
+                    Tr *= medium->evaluateTr(ray.ori, destination);
                 }
                 break;
             }
             else if (info->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
                 if (auto medium = ray.medium; medium) {
-                    Tr *= medium->getTrans(ray.ori, info->position);
+                    Tr *= medium->evaluateTr(ray.ori, info->position);
                 }
                 ray = info->scatterRay(scene, ray.dir);
                 info = scene.intersectWithSurface(ray);
@@ -253,7 +253,7 @@ protected:
         do {
             sIts = scene.intersectWithSurface(ray);
             if (auto medium = ray.medium; medium && !mediumPath.itsInfo) {
-                surfacePath.weight *= medium->getTrans(ray.ori, sIts->position);
+                surfacePath.weight *= medium->evaluateTr(ray.ori, sIts->position);
                 if (!mediumPath.itsInfo && (!info || info && info->scatterType == ScatterInfo::ScatterType::Surface)) {
                     auto mIts = medium->sampleIntersectionDeterministic(ray, sIts->distance, sampler->next2D());
                     if (mIts) {
@@ -284,13 +284,13 @@ protected:
                 break;
             }else if (!info->shape) {
                 if (auto medium = ray.medium; medium) {
-                    Tr *= medium->getTrans(ray.ori, destination);
+                    Tr *= medium->evaluateTr(ray.ori, destination);
                 }
                 break;
             }
             else if (info->shape->getBSDF()->m_type == BSDF::EBSDFType::EEmpty) {
                 if (auto medium = ray.medium; medium) {
-                    Tr *= medium->getTrans(ray.ori, info->position);
+                    Tr *= medium->evaluateTr(ray.ori, info->position);
                 }
                 ray = info->scatterRay(scene, ray.dir);
                 info = scene.intersectWithSurface(ray);

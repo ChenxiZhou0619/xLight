@@ -27,8 +27,6 @@ public:
 
     bool occlude(const Ray3f &ray) const;
 
-    SpectrumRGB evaluateEnvironment(const Ray3f &ray) const;
-
     void setEnvMap(std::shared_ptr<Emitter> _environment) {
         environment = _environment;
     }
@@ -45,25 +43,12 @@ public:
         envMedium = medium;
     }
 
-    /* 
-        todo from should be replace with an info struct to do get a better sample 
-    */    
-    void sampleDirectLumin(DirectIlluminationRecord *dRec,
-                           Point3f from,
-                           Sampler *sampler) const;
-
     float pdfEmitter(std::shared_ptr<Emitter> emitter) const;
 
     std::shared_ptr<Emitter> getEnvEmitter() const {
         return environment;
     }
 
-    virtual std::pair<Point3f, float> sampleLightPoint(float u, Point3f sample) const 
-    {
-        auto[light, lightPdf] = lightDistrib.sample(u);
-        auto [p, pdf] = light->samplePoint(sample);
-        return {p, pdf * lightPdf};
-    }
 private:
     //* Embree 
     RTCDevice device;

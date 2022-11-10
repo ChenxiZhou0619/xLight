@@ -65,10 +65,6 @@ public:
         // do nothing
     }
 
-    virtual SpectrumRGB evaluate(const EmitterQueryRecord &eRec) const = 0;
-
-    virtual SpectrumRGB evaluate(const Ray3f &ray) const = 0;
-
     virtual SpectrumRGB evaluate(const LightSourceInfo &info,
                                  Point3f destination) const = 0;
 
@@ -79,16 +75,9 @@ public:
     virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info, 
                                               Point3f sample) const = 0;
 
-    //TODO, old function
-    virtual void sample (PointQueryRecord* pRec, Point2f sample) const = 0;
-
     virtual void setTexture(Texture *envmap) = 0;
 
-    virtual void sample(DirectIlluminationRecord *d_rec, 
-                        Point3f sample, 
-                        Point3f position) const = 0;
-
-    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const = 0;
+//    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const = 0;
 
     virtual float pdf(const EmitterHitInfo &info)const = 0;
 

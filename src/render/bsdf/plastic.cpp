@@ -3,6 +3,7 @@
 #include "core/math/common.h"
 #include "core/math/ndf.h"
 #include "core/math/warp.h"
+#include <core/render-core/info.h>
 
 class Plastic : public BSDF {
 public:
@@ -64,7 +65,8 @@ public:
         return specular_pdf + diffuse_pdf;
     }
 
-    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, float &pdf) const override {
+    virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 
+                               float &pdf, ScatterSampleType *type) const override {
         float prob = .5f * (sample[0] + sample[1]);
         float microfacet_pdf;
         if (prob < m_specular_weight) {
@@ -76,6 +78,7 @@ public:
             bRec.wo = Warp::squareToCosineHemisphere(sample);
         }
         SpectrumRGB bsdf_value = evaluate(bRec);
+        *type = ScatterSampleType::SurfaceReflection;
         if (bsdf_value.isZero())
             return SpectrumRGB {.0f};
         pdf = this->pdf(bRec);
