@@ -3,7 +3,7 @@
 #include <openvdb/tools/ValueTransformer.h>
 #include <core/render-core/info.h>
 
-Hetergeneous::Hetergeneous(openvdb::FloatGrid::Ptr _density) {
+Hetergeneous::Hetergeneous(openvdb::FloatGrid::Ptr _density, float scale) {
     density = _density;
     float tmax = .0f;
     openvdb::tools::foreach(

@@ -267,7 +267,8 @@ void configureScene(std::shared_ptr<RenderTask> task,
                 }
             }
         } else if (std::strcmp("grid-medium", fileType) == 0) {
-            const auto &grids = loadVdbFile(filepath);
+            float scale = entity["scale"].GetFloat();
+            const auto &grids = loadVdbFile(filepath, scale);
             for (auto grid : grids) {
                 auto empty = task->getBSDF("empty_bsdf");
                 grid.second->setBSDF(empty);

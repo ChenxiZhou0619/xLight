@@ -3,7 +3,7 @@
 #include "shape.h"
 
 std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
-loadVdbFile(const std::string &filePath);
+loadVdbFile(const std::string &filePath, float scale);
 
 
 class GridMedium : public ShapeInterface {

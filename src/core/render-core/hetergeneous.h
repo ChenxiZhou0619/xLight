@@ -12,7 +12,7 @@ public:
         //mPhase = std::make_shared<IsotropicPhase>();
     }
 
-    Hetergeneous(openvdb::FloatGrid::Ptr _density);
+    Hetergeneous(openvdb::FloatGrid::Ptr _density, float scale);
 
     virtual SpectrumRGB evaluateTr(Point3f start,
                                  Point3f end) const override;
@@ -35,7 +35,7 @@ protected:
 
     SpectrumRGB sigmaTMax{.0f};
 
-    static constexpr float scale = 1.5;
+    float scale;
 
     float step = 0.1;//delete
 };

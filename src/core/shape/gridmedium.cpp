@@ -5,7 +5,7 @@
 #include "core/render-core/hetergeneous.h"
 
 std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
-loadVdbFile(const std::string &filePath) 
+loadVdbFile(const std::string &filePath, float scale) 
 {
     std::unordered_map<std::string, 
                        std::shared_ptr<ShapeInterface>> result;
@@ -42,7 +42,7 @@ loadVdbFile(const std::string &filePath)
     result[gridName] = std::make_shared<GridMedium>(
         Point3f (min.x(), min.y(), min.z()),
         Point3f (max.x(), max.y(), max.z()),
-        std::make_shared<Hetergeneous>(densityGrid)
+        std::make_shared<Hetergeneous>(densityGrid, scale)
     );
 
     return result;
