@@ -28,16 +28,15 @@ public:
                 Li += beta * Le * misw;
             }
             if (itsInfo->terminate()) break;
-
             //* Sample direct
             {
                 LightSourceInfo lightSourceInfo = scene.sampleLightSource(*itsInfo, sampler);
                 Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                 SpectrumRGB Tr = tr(scene, shadowRay);
                 auto light = lightSourceInfo.light;
-                SpectrumRGB LeWeight = light->evaluate(lightSourceInfo, itsInfo->position);
+                auto [LeWeight, pdf] = light->evaluate(lightSourceInfo, itsInfo->position);
                 SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
-                float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
+                float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
                 Li += beta * f * LeWeight * Tr * misw;
             }
             //* Sample the scatter
@@ -113,7 +112,7 @@ protected:
     SpectrumRGB tr(const Scene &scene, Ray3f ray) const
     {
         SpectrumRGB Tr{1.f};
-        Point3f destination = ray.at(ray.tmax);
+        Point3f destination = ray.at(ray.tmax - 0.001);
         auto info = scene.intersectWithSurface(ray);
         while(true) {
             if (info->shape && info->shape->getBSDF()->m_type != BSDF::EBSDFType::EEmpty) {
@@ -150,6 +149,7 @@ public:
     virtual SpectrumRGB getLi(const Scene &scene, Ray3f ray,
                               Sampler *sampler) const override
     {
+        return equi_angular(scene, ray, sampler);
         SpectrumRGB Li{.0f}, beta{1.f};
         int bounces = 0;
         auto paths 
@@ -165,7 +165,8 @@ public:
                 SpectrumRGB Le = surfacePath.itsInfo->evaluateLe();
                 float pdf = surfacePath.itsInfo->pdfLe();
                 float misw = powerHeuristic(surfacePath.pdfDirection, pdf);
-                Li += beta * surfacePath.weight * Le * misw;
+                if (!surfacePath.weight.isZero())
+                    Li += beta * surfacePath.weight * Le * misw;
             }
 
             //* Evaluate direct
@@ -177,10 +178,11 @@ public:
                     Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                     SpectrumRGB Tr = tr(scene, shadowRay);
                     auto light= lightSourceInfo.light;
-                    SpectrumRGB LeWeight = light->evaluate(lightSourceInfo, itsInfo->position);
+                    auto [LeWeight, pdf] = light->evaluate(lightSourceInfo, itsInfo->position);
                     SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
-                    float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
-                    Li += beta * mediumPath.weight * f * LeWeight * Tr * misw;
+                    float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
+                    if (!mediumPath.weight.isZero())
+                        Li += beta * mediumPath.weight * f * LeWeight * Tr * misw;
                 }
                 //* Evaluate surface direct
                 if (!surfacePath.itsInfo->terminate()) {
@@ -189,10 +191,11 @@ public:
                     Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
                     SpectrumRGB Tr = tr(scene, shadowRay);
                     auto light= lightSourceInfo.light;
-                    SpectrumRGB LeWeight = light->evaluate(lightSourceInfo, itsInfo->position);
+                    auto [LeWeight, pdf] = light->evaluate(lightSourceInfo, itsInfo->position);
                     SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
-                    float misw = powerHeuristic(lightSourceInfo.pdf, itsInfo->pdfScatter(shadowRay.dir));
-                    Li += beta * surfacePath.weight * f * LeWeight * Tr * misw;
+                    float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
+                    if (!surfacePath.weight.isZero())
+                        Li += beta * surfacePath.weight * f * LeWeight * Tr * misw;
                 }
             }
             //* If no mediumIntersection and surfaceIntersection terminate
@@ -208,6 +211,7 @@ public:
                 float xi = sampler->next1D(),
                       ratio = mediumPath.weight.average() + surfacePath.weight.average(),
                       sample = xi * ratio;
+//                if (ratio == 0) break;
                 if (sample < mediumPath.weight.average()) {
                     //* Choose medium scatter
                     pathInfo = mediumPath;
@@ -233,6 +237,95 @@ public:
         return Li;
     }
 
+    SpectrumRGB equi_angular(const Scene &scene, Ray3f ray,
+                             Sampler *sampler) const 
+    {
+        SpectrumRGB Li{.0f}, beta{1.f};
+        int bounces = 0;
+        LightSourceInfo lightInfo = scene.sampleLightSource(sampler);
+        auto paths 
+            = samplePath(scene, ray, sampler, nullptr, &lightInfo);
+        const auto &surfacePath = paths.first,
+                   &mediumPath = paths.second;
+
+        while(bounces <= mMaxDepth) {
+            //* Evaluate Le
+            // medium no emission now
+            // ...
+            //* Surface emission
+            {
+                SpectrumRGB Le = surfacePath.itsInfo->evaluateLe();
+                float pdf = surfacePath.itsInfo->pdfLe();
+                float misw = powerHeuristic(surfacePath.pdfDirection, pdf);
+                if (!surfacePath.weight.isZero())
+                    Li += beta * surfacePath.weight * Le * misw;
+            }
+
+            //* Evaluate direct
+            {   
+                //* Evaluate medium direct
+                if (mediumPath.itsInfo) {
+                    const auto &itsInfo = mediumPath.itsInfo;
+                    Ray3f shadowRay = itsInfo->scatterRay(scene, lightInfo.position);
+                    SpectrumRGB Tr = tr(scene, shadowRay);
+                    auto light = lightInfo.light;
+                    auto [LeWeight, pdf] = light->evaluate(lightInfo, itsInfo->position);
+                    SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
+                    float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
+                    if (!mediumPath.weight.isZero())
+                        Li += beta * mediumPath.weight * f * LeWeight * Tr * misw;
+                }
+                //* Evaluate surface direct
+                if (!surfacePath.itsInfo->terminate()) {
+                    const auto &itsInfo = surfacePath.itsInfo;
+                    Ray3f shadowRay = itsInfo->scatterRay(scene, lightInfo.position);
+                    SpectrumRGB Tr = tr(scene, shadowRay);
+                    auto light = lightInfo.light;
+                    auto [LeWeight, pdf] = light->evaluate(lightInfo, itsInfo->position);
+                    SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
+                    float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
+                    if (!surfacePath.weight.isZero())
+                        Li += beta * surfacePath.weight * f * LeWeight * Tr * misw;
+                }
+            }
+            if (!mediumPath.itsInfo && surfacePath.itsInfo->terminate()) break;
+
+            //* Choose one path to continue
+            PathInfo pathInfo;
+            if (surfacePath.itsInfo->terminate()) {
+                pathInfo = mediumPath;
+            } else if (!mediumPath.itsInfo) {
+                pathInfo = surfacePath;
+            } else {
+                float xi = Sampler::sample1D(),
+                      ratio = mediumPath.weight.average() + surfacePath.weight.average(),
+                      sample = xi * ratio;
+                if (ratio == 0) break;
+                if (sample < mediumPath.weight.average()) {
+                    //* Choose medium scatter
+                    pathInfo = mediumPath;
+                    pathInfo.weight /= (mediumPath.weight.average() / ratio);
+                } else {
+                    //* Choose surface scatter
+                    pathInfo = surfacePath;
+                    pathInfo.weight /= (surfacePath.weight.average()) / ratio;
+                }
+            }
+
+            beta *= pathInfo.weight;
+            ScatterInfo scatterInfo = pathInfo.itsInfo->sampleScatter(sampler->next2D());
+            ray = pathInfo.itsInfo->scatterRay(scene, scatterInfo.wo);
+            lightInfo = scene.sampleLightSource(sampler);
+            paths = samplePath(scene, ray, sampler, &scatterInfo, &lightInfo);
+            //* rr
+            if (bounces++ > mRRThreshold) {
+                if (sampler->next1D() > 0.95f) break;
+                beta /= 0.95;
+            }
+        }
+        return Li;
+    }
+
 protected:
     int mMaxDepth;
     int mRRThreshold;
@@ -243,7 +336,8 @@ protected:
     //*     2. If the scatter is surface, return two
     std::pair<PathInfo, PathInfo>
     samplePath(const Scene &scene, Ray3f ray, Sampler *sampler,
-               const ScatterInfo *info = nullptr) const
+               const ScatterInfo *info = nullptr,
+               const LightSourceInfo *lightInfo = nullptr) const
     {   
         PathInfo surfacePath, mediumPath;
         surfacePath.pdfDirection = mediumPath.pdfDirection = info ? info->pdf : FINF;
@@ -255,7 +349,10 @@ protected:
             if (auto medium = ray.medium; medium && !mediumPath.itsInfo) {
                 surfacePath.weight *= medium->evaluateTr(ray.ori, sIts->position);
                 if (!mediumPath.itsInfo && (!info || info && info->scatterType == ScatterInfo::ScatterType::Surface)) {
-                    auto mIts = medium->sampleIntersectionDeterministic(ray, sIts->distance, sampler->next2D());
+                    
+                    auto mIts = lightInfo ? 
+                        medium->sampleIntersectionEquiAngular(ray, sIts->distance, sampler->next2D(), *lightInfo) : 
+                        medium->sampleIntersectionDeterministic(ray, sIts->distance, sampler->next2D());
                     if (mIts) {
                         mediumPath.weight *= mIts->weight;
                         mediumPath.vertex = mIts->position;

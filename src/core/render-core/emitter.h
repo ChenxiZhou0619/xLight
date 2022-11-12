@@ -65,8 +65,9 @@ public:
         // do nothing
     }
 
-    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
-                                 Point3f destination) const = 0;
+    //* return the LeWeight and pdf with respect to the destination
+    virtual std::pair<SpectrumRGB, float> 
+    evaluate(const LightSourceInfo &info, Point3f destination) const = 0;
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &itsInfo) const = 0;
 
@@ -74,6 +75,8 @@ public:
 
     virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info, 
                                               Point3f sample) const = 0;
+
+    virtual LightSourceInfo sampleLightSource(Point3f sample) const = 0;
 
     virtual void setTexture(Texture *envmap) = 0;
 

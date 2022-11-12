@@ -124,6 +124,10 @@ public:
             );
     }
 
+    bool hasNan() const {
+        return std::isnan(rgb[0]) || std::isnan(rgb[1]) || std::isnan(rgb[2]);
+    }
+
     float average() const {
         return (rgb[0] + rgb[1] + rgb[2]) / 3;
     }

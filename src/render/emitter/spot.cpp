@@ -19,10 +19,13 @@ public:
         return 1;
     }
 
-    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
-                                 Point3f destination) const override
+    virtual std::pair<SpectrumRGB, float> 
+    evaluate(const LightSourceInfo &info, Point3f destination) const override
     {
-        return lightEnergy / (destination - info.position).length2();
+        return {
+            lightEnergy / (destination - info.position).length2(),
+            FINF
+        };
     }
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &itsInfo) const override
@@ -44,6 +47,16 @@ public:
         lightInfo.lightType = LightSourceInfo::LightType::Spot;
         lightInfo.light = this;
         lightInfo.direction = normalize(position - info.position);
+        lightInfo.position = position;
+        lightInfo.pdf = FINF;
+        return lightInfo;
+    }
+
+    virtual LightSourceInfo sampleLightSource(Point3f sample) const override
+    {
+        LightSourceInfo lightInfo;
+        lightInfo.lightType = LightSourceInfo::LightType::Spot;
+        lightInfo.light = this;
         lightInfo.position = position;
         lightInfo.pdf = FINF;
         return lightInfo;

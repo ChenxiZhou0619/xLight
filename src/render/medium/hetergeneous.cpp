@@ -89,15 +89,27 @@ std::shared_ptr<MediumIntersectionInfo>
 Hetergeneous::sampleIntersectionDeterministic(Ray3f ray, float tBounds, 
                                               Point2f sample) const 
 {
-        auto [x, y] = sample;
-        auto mIts = std::make_shared<MediumIntersectionInfo>();
-        //* Choose a channel using y
-        int channel = std::min(int(y * 3), 2);
-        //float sigmaT = mDensity[channel];
-
-        //* Just return out
-        mIts->medium = nullptr;
-        mIts->pdf = FINF;
-        mIts->weight = evaluateTr(ray.ori, ray.at(tBounds));
-        return mIts;
+    auto [x, y] = sample;
+    auto mIts = std::make_shared<MediumIntersectionInfo>();
+    //* Choose a channel using y
+    int channel = std::min(int(y * 3), 2);
+    //float sigmaT = mDensity[channel];
+    //* Just return out
+    mIts->medium = nullptr;
+    mIts->pdf = FINF;
+    mIts->weight = evaluateTr(ray.ori, ray.at(tBounds));
+    return mIts;
 }         
+
+//todo fixme
+SpectrumRGB Hetergeneous::sigmaS(Point3f p) const 
+{
+    static auto constAccessor = density->getConstAccessor();
+    static openvdb::tools::GridSampler<
+        openvdb::FloatGrid::ConstAccessor, 
+        openvdb::tools::PointSampler
+    > mediumQuery(constAccessor, density->constTransform());
+
+    float sigma_t = mediumQuery.wsSample(openvdb::Vec3R(p.x, p.y, p.z));
+    return SpectrumRGB{sigma_t};
+}

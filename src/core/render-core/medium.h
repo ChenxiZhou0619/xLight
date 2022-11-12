@@ -37,6 +37,8 @@ public:
 
     virtual SpectrumRGB Le(const Ray3f &ray) const = 0;
 
+    virtual SpectrumRGB sigmaS(Point3f p) const = 0;
+
     SpectrumRGB evaluatePhase(const PhaseQueryRecord &pRec) const {
         return mPhase->evaluate(pRec);
     }
@@ -59,6 +61,8 @@ public:
     virtual std::shared_ptr<MediumIntersectionInfo>
     sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const = 0;
 
+    std::shared_ptr<MediumIntersectionInfo>
+    sampleIntersectionEquiAngular(Ray3f ray, float tBounds, Point2f sample, const LightSourceInfo &info) const;
 
 protected:
     std::shared_ptr<PhaseFunction> mPhase;

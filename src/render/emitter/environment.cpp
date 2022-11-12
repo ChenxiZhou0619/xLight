@@ -73,8 +73,8 @@ public:
         
     }
 
-    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
-                                 Point3f destination) const override
+    virtual std::pair<SpectrumRGB, float> 
+    evaluate(const LightSourceInfo &info, Point3f destination) const override
     {
         double cosTheta = info.direction.y,
                tanPhi = info.direction.z / (info.direction.x + EPSILON);
@@ -85,10 +85,10 @@ public:
         else {
             phi += info.direction.x > 0 ? .0f : M_PI;
         }
-        return m_envmap->evaluate(Point2f(
+        return {m_envmap->evaluate(Point2f(
             phi / (2 * M_PI),
             theta / M_PI
-        )) * m_energy_scale / info.pdf;
+        )) * m_energy_scale / info.pdf, info.pdf};
     }
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
@@ -149,6 +149,29 @@ public:
         );
         LightSourceInfo lightInfo;
         lightInfo.position = info.position + m_envshpere_radius * dir;
+        lightInfo.lightType = LightSourceInfo::LightType::Environment;
+        lightInfo.light = this;
+        lightInfo.direction = dir;
+        lightInfo.pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
+        return lightInfo;
+    }
+
+    virtual LightSourceInfo sampleLightSource(Point3f sample) const override 
+    {
+        auto [width, height] = m_envmap->getResolution();
+        float pdf = .0;
+        Vector2i vu = m_env_distribution->sample({sample[1], sample[2]}, &pdf);
+        double u = (double)vu[1] / width,
+               v = (double)vu[0] / height;  
+        double theta = v * M_PI,
+               phi   = u * 2 * M_PI;
+        Vector3f dir (
+            std::sin(theta) * std::cos(phi),
+            std::cos(theta),
+            std::sin(theta) * std::sin(phi)
+        );
+        LightSourceInfo lightInfo;
+        lightInfo.position = Point3f(0) + m_envshpere_radius * dir;
         lightInfo.lightType = LightSourceInfo::LightType::Environment;
         lightInfo.light = this;
         lightInfo.direction = dir;

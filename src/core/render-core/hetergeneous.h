@@ -29,7 +29,7 @@ public:
     virtual std::shared_ptr<MediumIntersectionInfo>
     sampleIntersectionDeterministic(Ray3f ray, float tBounds, Point2f sample) const override;
 
-
+    virtual SpectrumRGB sigmaS(Point3f) const override;
 protected:
     openvdb::FloatGrid::Ptr density;
 

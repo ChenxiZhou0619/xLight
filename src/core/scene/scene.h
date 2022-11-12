@@ -65,8 +65,7 @@ private:
 public:
     std::shared_ptr<SurfaceIntersectionInfo> 
     intersectWithSurface(const Ray3f &ray) const;
-    LightSourceInfo sampleLightSource(const SurfaceIntersectionInfo &surfaceIts,
-                                      Sampler *sampler) const;
     LightSourceInfo sampleLightSource(const IntersectionInfo &info,
                                       Sampler *sampler) const;
+    LightSourceInfo sampleLightSource(Sampler *sampler) const;
 };

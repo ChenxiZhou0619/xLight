@@ -48,6 +48,11 @@ public:
         return nullptr;
     }
 
+    virtual SpectrumRGB sigmaS(Point3f) const override
+    {
+        return SpectrumRGB{0};
+    }
+
 
 private:
     SpectrumRGB m_absorbtion;

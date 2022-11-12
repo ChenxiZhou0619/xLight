@@ -94,10 +94,12 @@ public:
         }
         mIts->weight = mDensity * mAlbedo * tr / mIts->pdf;
         mIts->distance = distance;
-        float tmp = mIts->weight.average() + thick;
         return mIts;
     }
     
+    virtual SpectrumRGB sigmaS(Point3f p) const override {
+        return mDensity * mAlbedo;
+    }
 private:
     SpectrumRGB mDensity;
     SpectrumRGB mAlbedo;

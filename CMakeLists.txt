@@ -45,6 +45,7 @@ add_executable(
 
     # core/render-core
     ${XLIGHT_CORE_RENDER_DIR}/bsdf.cpp
+    ${XLIGHT_CORE_RENDER_DIR}/medium.cpp
     ${XLIGHT_CORE_RENDER_DIR}/texture.cpp
     ${XLIGHT_CORE_RENDER_DIR}/sampler.cpp
     ${XLIGHT_CORE_RENDER_DIR}/info.cpp

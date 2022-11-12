@@ -29,10 +29,13 @@ public:
         return .0f;             
     }
 
-    virtual SpectrumRGB evaluate(const LightSourceInfo &info,
-                                 Point3f destination) const override
+    virtual std::pair<SpectrumRGB, float> 
+    evaluate(const LightSourceInfo &info, Point3f destination) const override
     {
-        return m_lightEnergy / info.pdf;
+        Vector3f light2point = destination - info.position;
+        float jacob = light2point.length2() / std::abs(dot(info.normal, normalize(light2point))),
+              pdf = info.pdf * jacob;            
+        return {m_lightEnergy / pdf, pdf};
     }
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
@@ -64,8 +67,26 @@ public:
         lightInfo.normal = pRec.normal;
         lightInfo.direction = normalize(pRec.p - info.position);
         lightInfo.light = this;
-        lightInfo.pdf = pRec.pdf * (lightInfo.position - info.position).length2() / 
-                        std::abs(dot(pRec.normal, normalize(pRec.p - info.position)));       
+//        lightInfo.pdf = pRec.pdf * (lightInfo.position - info.position).length2() / 
+//                        std::abs(dot(pRec.normal, normalize(pRec.p - info.position)));       
+        lightInfo.pdf = pRec.pdf;
+        return lightInfo;
+    }
+
+    virtual LightSourceInfo sampleLightSource(Point3f sample) const override
+    {
+        auto shape_ptr = shape.lock();
+        assert(shape_ptr != nullptr);
+
+        PointQueryRecord pRec;
+        shape_ptr->sampleOnSurface(&pRec, sample);
+
+        LightSourceInfo lightInfo;
+        lightInfo.lightType = LightSourceInfo::LightType::Area;
+        lightInfo.position = pRec.p;
+        lightInfo.normal = pRec.normal;
+        lightInfo.light = this;
+        lightInfo.pdf = pRec.pdf;
         return lightInfo;
     }
 

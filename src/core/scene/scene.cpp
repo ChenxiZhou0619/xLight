@@ -134,15 +134,6 @@ Scene::intersectWithSurface(const Ray3f &ray) const
     info->dpdv = itsOpt->dpdv;
     info->computeDifferential(ray);
     return info;
-}
-
-LightSourceInfo Scene::sampleLightSource(const SurfaceIntersectionInfo &itsInfo, 
-                                         Sampler *sampler) const 
-{
-    auto [light, pdfLight] = lightDistrib.sample(sampler->next1D()); 
-    LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
-    info.pdf *= pdfLight;
-    return info;    
 }    
 
 LightSourceInfo Scene::sampleLightSource(const IntersectionInfo &itsInfo, 
@@ -152,4 +143,12 @@ LightSourceInfo Scene::sampleLightSource(const IntersectionInfo &itsInfo,
     LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
     info.pdf *= pdfLight;
     return info;    
+}
+
+LightSourceInfo Scene::sampleLightSource(Sampler *sampler) const 
+{
+    auto [light, pdfLight] = lightDistrib.sample(sampler->next1D());
+    LightSourceInfo info = light->sampleLightSource(sampler->next3D());
+    info.pdf *= pdfLight;
+    return info;
 }
