@@ -19,6 +19,7 @@ public:
         };
         return SpectrumRGB {.0f};
     }
+
 };
 
 REGISTER_CLASS(DeepIntegrator, "deep")

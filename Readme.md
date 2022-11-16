@@ -1,4 +1,4 @@
-render for learning
-## 2022.5.21
-todo  
--   accel::rayIntersect
+# Todo
+## 2022.11.16
+- [ ] Pre-compute for stratified sampler is expensive 
+- [ ] BDPT (on dev)

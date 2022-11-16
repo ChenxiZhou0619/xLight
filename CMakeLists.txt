@@ -57,6 +57,7 @@ add_executable(
 
     
     # render/integrator
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/integrator.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/deep.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/normal.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/pathtracer.cpp
