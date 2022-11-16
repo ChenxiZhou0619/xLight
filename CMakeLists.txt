@@ -35,6 +35,7 @@ add_executable(
     demo    ${XLIGHT_TEST_DIR}/demo.cpp
 
     ${XLIGHT_CORE_UTIL_DIR}/factory.cpp
+    ${XLIGHT_CORE_UTIL_DIR}/configurable.cpp
     
     ${XLIGHT_CORE_SHAPE_DIR}/mesh.cpp
     ${XLIGHT_CORE_SHAPE_DIR}/gridmedium.cpp
