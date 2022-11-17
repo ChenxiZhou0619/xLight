@@ -25,7 +25,7 @@ public:
     ~Sampler() = default;
 
     
-    virtual void startPixel(const Point2f &p) { };
+    virtual void startPixel(const Point2i &p) { };
     virtual float next1D() = 0;
     virtual Point2f next2D() = 0;
     virtual Point3f next3D() = 0;
@@ -91,7 +91,7 @@ public:
     }
 
     ~PixelSampler() = default;
-    virtual void startPixel(const Point2f &p) override{
+    virtual void startPixel(const Point2i &p) override{
         currentDimension1D = currentDimension2D = currentSamplePixelIndex = 0;
     };
     virtual void nextSample() override {

@@ -11,7 +11,7 @@ public:
 
     ~Independent() { }
 
-    virtual void startPixel(const Point2f &p) override {
+    virtual void startPixel(const Point2i &p) override {
         // do nothing
     }
 

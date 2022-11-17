@@ -109,8 +109,9 @@ public:
 
     void savePNG() const;
 
-    Vector2i getSize() const {
-        return size;
+    Point2i getSize() const {
+        auto [x, y] = size;
+        return {x, y};
     }
 
     int getWidth() const {

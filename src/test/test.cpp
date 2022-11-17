@@ -19,6 +19,7 @@ int main() {
                     for (int i = 0; i < tile_size; ++i) {
                         for (int j = 0; j < tile_size; ++j) {
                             Point2i p_pixel = tile->pixel_location({i, j});
+
                             
                         }
                     }                    

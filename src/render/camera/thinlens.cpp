@@ -50,8 +50,8 @@ public:
         };
     }
 
-    virtual Ray3f sampleRayDifferential (const Vector2i &offset,
-                                         const Vector2i &resolution,
+    virtual Ray3f sampleRayDifferential (const Point2i &offset,
+                                         const Point2i &resolution,
                                          const CameraSample &sample) const override {
         std::cout << "Thinlens::sampleRayDifferential not implement!\n";
         std::exit(1);

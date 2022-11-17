@@ -106,8 +106,9 @@ SpectrumRGB Figure::evaluate(Point2f uv, bool biFilter) const {
     return SpectrumRGB {data[x + y * width][0], data[x + y * width][1], data[x + y * width][2]};
 }
 
-void Figure::setPixel(float rgb[3], int x, int y)
+void Figure::setPixel(float rgb[3], Point2i pixel)
 {
+    auto [x, y] = pixel;
     int offset = x + y * width;
     for (int channel = 0; channel < 3; ++channel) {
         data[offset][channel] = rgb[channel];
@@ -120,7 +121,7 @@ std::shared_ptr<Figure> Figure::shrinkHalfNearest() const {
         for (int j = 0; j < height -1; j+=2) {
             int offset = i + j * width;
             auto rgb = data[offset];
-            res->setPixel(rgb, i/2, j/2);
+            res->setPixel(rgb, {i/2, j/2});
         }
     }
     return res;
@@ -142,7 +143,7 @@ std::shared_ptr<Figure> Figure::shrinkHalfBox() const {
                 rgb[i] = 0.25 * (rgb1[i] + rgb2[i] + rgb3[i] + rgb4[i]);
             }
 
-            res->setPixel(rgb, i/2, j/2);
+            res->setPixel(rgb, {i/2, j/2});
         }
     }
     return res;

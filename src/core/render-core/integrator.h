@@ -31,6 +31,4 @@ public:
     virtual SpectrumRGB getLi(const Scene &scene, Ray3f ray, Sampler *sampler) const = 0;
 
     virtual void render(std::shared_ptr<RenderTask> task) const;
-protected:
-    virtual void render_block(std::shared_ptr<ImageBlock> block, std::shared_ptr<RenderTask> task) const;
 };

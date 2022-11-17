@@ -42,7 +42,7 @@ public:
 
     ~Stratified() = default;
 
-    virtual void startPixel(const Point2f &p) override {
+    virtual void startPixel(const Point2i &p) override {
         // generate the stratified samples and shuffle
         for (int i = 0; i < nDimensions; ++i) {
             StratifiedSample1D(samples1D[i], samplesPerPixel);

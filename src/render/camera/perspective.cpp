@@ -54,8 +54,8 @@ public:
         };
     }
 
-    virtual Ray3f sampleRayDifferential (const Vector2i &offset,
-                                         const Vector2i &resolution,
+    virtual Ray3f sampleRayDifferential (const Point2i &offset,
+                                         const Point2i &resolution,
                                          const CameraSample &sample) const override {
         Point3f pointOnFilm = sampleToFilm * Point3f {
             ((float)offset.x + sample.sampleXY.x) / (float)resolution.x,

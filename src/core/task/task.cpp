@@ -49,7 +49,7 @@ RenderTask::getMedium(const std::string &mediumName) const {
     return m_itr->second;
 }
 
-Vector2i RenderTask::getImgSize() const {
+Point2i RenderTask::getImgSize() const {
     return image->getSize();
 }
 
@@ -73,6 +73,7 @@ void configureOutPut(std::shared_ptr<RenderTask> task,
         output_name,
         spp
     );
+    task->file_name = output_name;
 
     std::cout << "===== Output setting =====\n";
     std::cout << "filename : " << output_name << std::endl;

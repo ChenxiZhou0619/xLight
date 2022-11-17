@@ -16,6 +16,7 @@ struct RenderTask {
     std::shared_ptr<Sampler>    sampler;
     std::shared_ptr<Camera>     camera;
     std::shared_ptr<Integrator> integrator;
+    std::string file_name;
 
     std::unordered_map<std::string, std::shared_ptr<Texture>>   textures;
     std::unordered_map<std::string, std::shared_ptr<BSDF>>      bsdfs;
@@ -32,7 +33,7 @@ struct RenderTask {
         scene = std::make_shared<Scene>();
     }
 
-    Vector2i getImgSize() const;
+    Point2i getImgSize() const;
 
     int getSpp() const;
 

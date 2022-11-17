@@ -33,7 +33,7 @@ public:
 
     SpectrumRGB evaluate(Point2f uv, bool biFilter = false) const;
 
-    void setPixel(float rgb[3], int x, int y);
+    void setPixel(float rgb[3], Point2i pixel);
 
     std::shared_ptr<Figure> shrinkHalfNearest() const;
 
