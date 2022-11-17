@@ -16,6 +16,7 @@
 using Point2f = TPoint2<float>;
 using Point3f = TPoint3<float>;
 using Point3ui = TPoint3<unsigned int>;
+using Point2i = TPoint2<int>;
 
 #include "vector.h"
 using Vector2f = TVector2<float>;

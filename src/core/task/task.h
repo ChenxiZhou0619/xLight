@@ -8,6 +8,7 @@
 #include "core/render-core/medium.h"
 #include "core/render-core/camera.h"
 #include "core/file/image.h"
+#include "core/file/figure.h"
 
 struct RenderTask {
     std::shared_ptr<Image>      image;

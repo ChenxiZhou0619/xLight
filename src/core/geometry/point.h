@@ -126,6 +126,13 @@ inline TPoint2<int>& TPoint2<int>::operator/=(int i) {
     return *this; 
 }
 
+inline TPoint2<float> operator+(const TPoint2<int> &p1, const TPoint2<float> &p2)
+{
+    float x = p2.x + p1.x,
+          y = p2.y + p1.y;
+    return {x, y};
+}
+
 
 template <typename T>
 struct TPoint3 {

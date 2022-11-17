@@ -5,17 +5,6 @@
 #include <tbb/tbb.h>
 #include <mutex>
 
-#define PBSTR "||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||"
-#define PBWIDTH 60
-
-void printProgress(double percentage) {
-    int val = (int) (percentage * 100);
-    int lpad = (int) (percentage * PBWIDTH);
-    int rpad = PBWIDTH - lpad;
-    printf("\r%3d%% [%.*s%*s]", val, lpad, PBSTR, rpad, "");
-    fflush(stdout);
-}
-
 void Integrator::render(std::shared_ptr<RenderTask> task) const 
 {
     auto start = std::chrono::high_resolution_clock::now();
