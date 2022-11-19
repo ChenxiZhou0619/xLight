@@ -11,12 +11,14 @@
 #include "core/file/figure.h"
 
 struct RenderTask {
-    std::shared_ptr<Image>      image;
     std::shared_ptr<Scene>      scene;
     std::shared_ptr<Sampler>    sampler;
     std::shared_ptr<Camera>     camera;
     std::shared_ptr<Integrator> integrator;
+
     std::string file_name;
+    Point2i film_size;
+    int spp;
 
     std::unordered_map<std::string, std::shared_ptr<Texture>>   textures;
     std::unordered_map<std::string, std::shared_ptr<BSDF>>      bsdfs;

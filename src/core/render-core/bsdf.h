@@ -113,6 +113,8 @@ public:
 
     float pdf(const SurfaceIntersectionInfo &info, Vector3f wo) const;
 
+    float pdf(const SurfaceIntersectionInfo &info, Vector3f wi, Vector3f wo) const;
+
     /**
      * @brief return the pdf of given wo
      * 

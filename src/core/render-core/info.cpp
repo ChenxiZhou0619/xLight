@@ -47,6 +47,11 @@ float SurfaceIntersectionInfo::pdfScatter(Vector3f wo) const
     return shape->getBSDF()->pdf(*this, wo);
 }
 
+float SurfaceIntersectionInfo::pdfScatter(Vector3f wi, Vector3f wo) const {
+    assert(shape);
+    return shape->getBSDF()->pdf(*this, wi, wo);
+}
+
 ScatterInfo SurfaceIntersectionInfo::sampleScatter(Point2f sample) const
 {
     assert(shape);
@@ -144,6 +149,13 @@ float MediumIntersectionInfo::pdfScatter(Vector3f wo) const
 {
     assert(medium);
     PhaseQueryRecord pRec{position, wi, wo};
+    return medium->pdfPhase(pRec);
+}
+
+float MediumIntersectionInfo::pdfScatter(Vector3f _wi, Vector3f _wo) const 
+{
+    assert(medium);
+    PhaseQueryRecord pRec{position, _wi, _wo};
     return medium->pdfPhase(pRec);
 }
 

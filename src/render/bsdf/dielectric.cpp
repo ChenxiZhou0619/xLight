@@ -28,19 +28,20 @@ public:
     }
 
     virtual float pdf(const BSDFQueryRecord &bRec) const override {
-        // F if reflect, 1 - F if refract
-        float cosThetaT;
-        float F = fresnelDielectric(
-            Frame::cosTheta(bRec.wi), 
-            (intIOR / extIOR), 
-            cosThetaT
-        );
-        if (Frame::cosTheta(bRec.wi) * Frame::cosTheta(bRec.wo) >= 0) {
-            // same side
-            return FINF;
-        } else {
-            return FINF;
-        }
+//        // F if reflect, 1 - F if refract
+//        float cosThetaT;
+//        float F = fresnelDielectric(
+//            Frame::cosTheta(bRec.wi), 
+//            (intIOR / extIOR), 
+//            cosThetaT
+//        );
+//        if (Frame::cosTheta(bRec.wi) * Frame::cosTheta(bRec.wo) >= 0) {
+//            // same side
+//            return FINF;
+//        } else {
+//            return FINF;
+//        }
+        return 0;
     }
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 

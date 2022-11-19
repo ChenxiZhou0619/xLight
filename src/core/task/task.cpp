@@ -50,11 +50,11 @@ RenderTask::getMedium(const std::string &mediumName) const {
 }
 
 Point2i RenderTask::getImgSize() const {
-    return image->getSize();
+    return film_size;
 }
 
 int RenderTask::getSpp() const {
-    return image->getSpp();
+    return spp;
 }
 
 
@@ -67,17 +67,18 @@ void configureOutPut(std::shared_ptr<RenderTask> task,
         config["filename"].GetString();
     const auto &output_size = 
         config["size"].GetArray();
-    int spp = config["spp"].GetInt();
-    task->image = std::make_shared<Image>(
-        Vector2i{output_size[0].GetInt(), output_size[1].GetInt()},
-        output_name,
-        spp
-    );
+//    task->image = std::make_shared<Image>(
+//        Vector2i{output_size[0].GetInt(), output_size[1].GetInt()},
+//        output_name,
+//        spp
+//    );
+    task->spp = config["spp"].GetInt();
     task->file_name = output_name;
+    task->film_size = Point2i{output_size[0].GetInt(), output_size[1].GetInt()};
 
     std::cout << "===== Output setting =====\n";
     std::cout << "filename : " << output_name << std::endl;
-    std::cout << "filesize : " << task->image->getSize() << std::endl;
+    std::cout << "filmsize : " << task->spp << std::endl;
 }
 
 void configureScene(std::shared_ptr<RenderTask> task,

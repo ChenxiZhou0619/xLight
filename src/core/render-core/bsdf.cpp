@@ -109,6 +109,19 @@ float BSDF::pdf(const SurfaceIntersectionInfo &info,
     return pdf(bRec);
 }
 
+float BSDF::pdf(const SurfaceIntersectionInfo &info,
+                Vector3f wi, Vector3f wo) const 
+{
+    wi = info.toLocal(wi),
+    wo = info.toLocal(wo);
+    BSDFQueryRecord bRec;
+    bRec.uv = info.uv;
+    bRec.wi = wi;
+    bRec.wo = wo;
+    bRec.du = bRec.dv = .0f;
+    return pdf(bRec);
+}
+
 SpectrumRGB BlackHole::sample(BSDFQueryRecord &bRec, const Point2f &sample, 
                               float &pdf, ScatterSampleType *type) const 
 {

@@ -51,6 +51,7 @@ public:
 
     virtual float pdf(const EmitterHitInfo &info) const override 
     {
+/*
         assert(m_envmap != nullptr);
         double cosTheta = info.dir.y,
                tanPhi = info.dir.z / info.dir.x;
@@ -70,14 +71,48 @@ public:
                 (2 * M_PI * M_PI * std::sin(theta)) * 
                 m_envmap->getResolution().x *
                 m_envmap->getResolution().y;
-        
+*/
+        assert(m_envmap != nullptr);
+        double cosTheta = info.dir.z,
+               tanPhi = info.dir.y / info.dir.x;
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
+        if (phi < 0) 
+            phi += info.dir.x > 0 ? 2 * M_PI : M_PI;
+        else {
+            phi += info.dir.x > 0 ? .0f : M_PI;
+        }
+        double u = phi / (2 * M_PI),
+               v = theta / M_PI;
+
+        int x = u * m_envmap->getResolution().x,
+            y = v * m_envmap->getResolution().y;
+        return m_env_distribution->pdf(Vector2i{y, x}) / 
+                (2 * M_PI * M_PI * std::sin(theta)) * 
+                m_envmap->getResolution().x *
+                m_envmap->getResolution().y;
     }
 
     virtual std::pair<SpectrumRGB, float> 
     evaluate(const LightSourceInfo &info, Point3f destination) const override
     {
+/*
         double cosTheta = info.direction.y,
                tanPhi = info.direction.z / (info.direction.x + EPSILON);
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
+        if (phi < 0) 
+            phi += info.direction.x > 0 ? 2 * M_PI : M_PI;
+        else {
+            phi += info.direction.x > 0 ? .0f : M_PI;
+        }
+        return {m_envmap->evaluate(Point2f(
+            phi / (2 * M_PI),
+            theta / M_PI
+        )) * m_energy_scale / info.pdf, info.pdf};
+*/
+        double cosTheta = info.direction.z,
+               tanPhi = info.direction.y / (info.direction.x + EPSILON);
         double theta = std::acos(cosTheta),
                phi = std::atan(tanPhi);
         if (phi < 0) 
@@ -93,8 +128,24 @@ public:
 
     virtual SpectrumRGB evaluate(const SurfaceIntersectionInfo &info) const override
     {
+/*
         double cosTheta = info.wi.y,
                tanPhi = info.wi.z / info.wi.x;
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
+        if (phi < 0) 
+            phi += info.wi.x > 0 ? 2 * M_PI : M_PI;
+        else {
+            phi += info.wi.x > 0 ? .0f : M_PI;
+        }
+//        spdlog::info("Theta {}, Phi {}", theta, phi);
+        return m_envmap->evaluate(Point2f(
+            phi / (2 * M_PI),
+            theta / M_PI
+        )) * m_energy_scale;
+*/      
+        double cosTheta = info.wi.z,
+               tanPhi = info.wi.y / info.wi.x;
         double theta = std::acos(cosTheta),
                phi = std::atan(tanPhi);
         if (phi < 0) 
@@ -111,6 +162,7 @@ public:
 
     virtual float pdf(const SurfaceIntersectionInfo &info) const override
     {
+        /*
         assert(m_envmap != nullptr);
         double cosTheta = info.wi.y,
                tanPhi = info.wi.z / info.wi.x;
@@ -130,6 +182,27 @@ public:
                 (2 * M_PI * M_PI * std::sin(theta)) * 
                 m_envmap->getResolution().x *
                 m_envmap->getResolution().y;
+        */
+        assert(m_envmap != nullptr);
+        double cosTheta = info.wi.z,
+               tanPhi = info.wi.y / info.wi.x;
+        double theta = std::acos(cosTheta),
+               phi = std::atan(tanPhi);
+        if (phi < 0) 
+            phi += info.wi.x > 0 ? 2 * M_PI : M_PI;
+        else {
+            phi += info.wi.x > 0 ? .0f : M_PI;
+        }
+        double u = phi / (2 * M_PI),
+               v = theta / M_PI;
+
+        int x = u * m_envmap->getResolution().x,
+            y = v * m_envmap->getResolution().y;
+        return m_env_distribution->pdf(Vector2i{y, x}) / 
+                (2 * M_PI * M_PI * std::sin(theta)) * 
+                m_envmap->getResolution().x *
+                m_envmap->getResolution().y;
+
     }
 
     virtual LightSourceInfo sampleLightSource(const IntersectionInfo &info, 
@@ -142,10 +215,17 @@ public:
                v = (double)vu[0] / height;  
         double theta = v * M_PI,
                phi   = u * 2 * M_PI;
+/*
         Vector3f dir (
             std::sin(theta) * std::cos(phi),
             std::cos(theta),
             std::sin(theta) * std::sin(phi)
+        );
+*/      
+        Vector3f dir (
+            std::sin(theta) * std::cos(phi),
+            std::sin(theta) * std::sin(phi),
+            std::cos(theta)
         );
         LightSourceInfo lightInfo;
         lightInfo.position = info.position + m_envshpere_radius * dir;
@@ -165,10 +245,17 @@ public:
                v = (double)vu[0] / height;  
         double theta = v * M_PI,
                phi   = u * 2 * M_PI;
+/*
         Vector3f dir (
             std::sin(theta) * std::cos(phi),
             std::cos(theta),
             std::sin(theta) * std::sin(phi)
+        );
+*/
+        Vector3f dir (
+            std::sin(theta) * std::cos(phi),
+            std::sin(theta) * std::sin(phi),
+            std::cos(theta)
         );
         LightSourceInfo lightInfo;
         lightInfo.position = Point3f(0) + m_envshpere_radius * dir;

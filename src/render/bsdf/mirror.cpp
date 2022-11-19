@@ -16,7 +16,8 @@ public:
     }
 
     virtual float pdf(const BSDFQueryRecord &bRec) const override{
-        return FINF;
+        //return FINF;
+        return 0;
     }
 
     virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample, 

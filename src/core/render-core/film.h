@@ -88,6 +88,12 @@ public:
         figure->saveAsPng(file_name);
     }
 
+    //TODO 
+    void add_splat(Point2i pixel, SpectrumRGB value, float weight) const 
+    {
+        
+    }
+
 private:
     Point2i film_size;
     std::shared_ptr<Figure> figure = nullptr;

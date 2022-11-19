@@ -10,7 +10,7 @@ void Integrator::render(std::shared_ptr<RenderTask> task) const
 {
     auto start = std::chrono::high_resolution_clock::now();
     
-    Film film {task->image->getSize(), 32};
+    Film film {task->film_size, 32};
     auto [x, y] = film.tile_range();
     
     std::vector<std::shared_ptr<FilmTile>> film_tiles; film_tiles.reserve(x * y);
@@ -40,7 +40,7 @@ void Integrator::render(std::shared_ptr<RenderTask> task) const
                                 for (int spp = 0; spp < task->getSpp(); ++spp) {
                                     Ray3f ray = camera->sampleRayDifferential(
                                         p_pixel, 
-                                        task->image->getSize(), 
+                                        task->film_size, 
                                         sampler->getCameraSample()
                                     );
                                     ray.medium = scene->getEnvMedium().get();

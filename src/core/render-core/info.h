@@ -63,6 +63,7 @@ struct IntersectionInfo {
     virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const = 0;
     virtual SpectrumRGB evaluateScatter(Vector3f wo) const = 0;
     virtual float pdfScatter(Vector3f wo) const = 0;
+    virtual float pdfScatter(Vector3f wi, Vector3f wo) const = 0;
     virtual ScatterInfo sampleScatter(Point2f sample) const = 0;
     virtual SpectrumRGB evaluateLe() const = 0;
     virtual float pdfLe() const = 0;
@@ -92,6 +93,7 @@ struct SurfaceIntersectionInfo : public IntersectionInfo{
     virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;
     virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
     virtual float pdfScatter(Vector3f wo) const override;
+    virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;
     virtual ScatterInfo sampleScatter(Point2f sample) const override;
     virtual SpectrumRGB evaluateLe() const override;
     virtual float pdfLe() const override;
@@ -115,6 +117,7 @@ struct MediumIntersectionInfo : public IntersectionInfo{
     virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;
     virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
     virtual float pdfScatter(Vector3f wo) const override;
+    virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;    
     virtual ScatterInfo sampleScatter(Point2f sample) const override;
     virtual SpectrumRGB evaluateLe() const override;
     virtual float pdfLe() const override;

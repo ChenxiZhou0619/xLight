@@ -38,7 +38,7 @@ public:
      */
 
     Camera(const Point3f& _pos, const Point3f lookAt, const Vector3f &up) 
-        : pos(_pos), aspectRatio(1.7778f), vertFov(30.f), distToFilm(1.f) {
+        : pos(_pos), aspectRatio(1.7778f), vertFov(39.f), distToFilm(1.f) {
         // initialize the translation part
         cameraToWorld(0, 3) = _pos.x;
         cameraToWorld(1, 3) = _pos.y;
@@ -47,12 +47,12 @@ public:
 
         // initial the rotation part
         Vector3f dir = normalize(lookAt - _pos);
-        Vector3f left = normalize(cross(normalize(up), dir));
-        Vector3f newUp = cross(dir, left);
+        Vector3f right = normalize(cross(normalize(up), dir));
+        Vector3f newUp = cross(dir, right);
 
-        cameraToWorld(0, 0) = left.x;
-        cameraToWorld(1, 0) = left.y;
-        cameraToWorld(2, 0) = left.z;
+        cameraToWorld(0, 0) = right.x;
+        cameraToWorld(1, 0) = right.y;
+        cameraToWorld(2, 0) = right.z;
         cameraToWorld(3, 0) = .0f;
         cameraToWorld(0, 1) = newUp.x;
         cameraToWorld(1, 1) = newUp.y;
@@ -62,6 +62,8 @@ public:
         cameraToWorld(1, 2) = dir.y;
         cameraToWorld(2, 2) = dir.z;
         cameraToWorld(3, 2) = .0f;
+
+//        cameraToWorld = cameraToWorld.inverse();
     }
 
     Camera(const Mat4f& _cameraToWorld):
