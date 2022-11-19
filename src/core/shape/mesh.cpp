@@ -10,7 +10,7 @@ loadObjFile(const std::string &filePath) {
     Assimp::Importer importer;
     const aiScene *ai_scene = importer.ReadFile(
         filePath,
-        aiProcess_ConvertToLeftHanded |
+//        aiProcess_ConvertToLeftHanded |
         aiProcess_JoinIdenticalVertices |
         aiProcess_CalcTangentSpace | 
         aiProcess_Triangulate
