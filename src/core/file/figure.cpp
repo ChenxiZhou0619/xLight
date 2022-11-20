@@ -5,12 +5,16 @@
 #include <core/render-core/spectrum.h>
 #include <core/geometry/point.h>
 #include <string.h>
+#include <vector>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
+
+#define TINYEXR_IMPLEMENTATION
+#include <tinyexr/tinyexr.h>
 
 Figure::Figure(int _width, int _height)
     : width(_width), height(_height), channels(3)
@@ -77,6 +81,61 @@ void Figure::saveAsPng(const std::string &filename) const {
 
 void Figure::saveAsHdr(const std::string &filename) const {
     stbi_write_hdr(filename.c_str(), width, height, 3, (float *)data);
+}
+
+void Figure::saveAsExr(const std::string &filename) const {
+    EXRHeader header;
+    InitEXRHeader(&header);
+
+    EXRImage image;
+    InitEXRImage(&image);
+
+    image.num_channels = 3;
+
+    std::vector<float> images[3];
+    images[0].resize(width * height);
+    images[1].resize(width * height);
+    images[2].resize(width * height);
+
+    for (int i = 0; i < width * height; ++i) {
+        images[0][i] = data[i][0];
+        images[1][i] = data[i][1];
+        images[2][i] = data[i][2];
+    }
+
+    float *image_ptr[3];
+    image_ptr[0] = &(images[2].at(0));
+    image_ptr[1] = &(images[1].at(0));
+    image_ptr[2] = &(images[0].at(0));
+
+    image.images = (unsigned char **) image_ptr;
+    image.width = width;
+    image.height = height;
+
+    header.num_channels = 3;
+    header.channels = (EXRChannelInfo *)malloc(sizeof(EXRChannelInfo) * header.num_channels);
+    strncpy(header.channels[0].name, "B", 255); header.channels[0].name[strlen("B")] = '\0';
+    strncpy(header.channels[1].name, "G", 255); header.channels[1].name[strlen("G")] = '\0';
+    strncpy(header.channels[2].name, "R", 255); header.channels[2].name[strlen("R")] = '\0';
+
+    header.pixel_types = (int *)malloc(sizeof(int) * header.num_channels);
+    header.requested_pixel_types = (int *)malloc(sizeof(int) * header.num_channels);
+    for (int i = 0; i < header.num_channels; ++i) {
+        header.pixel_types[i] = TINYEXR_PIXELTYPE_FLOAT;
+        header.requested_pixel_types[i] = TINYEXR_PIXELTYPE_HALF;
+    }
+
+    const char *err;
+    int ret = SaveEXRImageToFile(&image, &header, filename.c_str(), &err);
+    if (ret != TINYEXR_SUCCESS) {
+        fprintf(stderr, "Save EXR err: %s\n", err);
+    }
+
+    printf("Saved exr file. [ %s ] \n", filename.c_str());
+
+    free(header.channels);
+    free(header.pixel_types);
+    free(header.requested_pixel_types);    
 }
 
 SpectrumRGB Figure::evaluate(Point2f uv, bool biFilter) const {

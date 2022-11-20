@@ -85,7 +85,9 @@ public:
         }
     }
     void save_film(const std::string & file_name) const {
-        figure->saveAsPng(file_name);
+        //figure->saveAsPng(file_name);
+        //figure->saveAsHdr(file_name);
+        figure->saveAsExr(file_name);
     }
 
     //TODO 

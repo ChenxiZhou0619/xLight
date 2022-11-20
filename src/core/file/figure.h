@@ -31,6 +31,8 @@ public:
 
     void saveAsHdr(const std::string &filename) const;
 
+    void saveAsExr(const std::string &filename) const;
+
     SpectrumRGB evaluate(Point2f uv, bool biFilter = false) const;
 
     void setPixel(float rgb[3], Point2i pixel);
