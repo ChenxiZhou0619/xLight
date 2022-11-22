@@ -4,45 +4,46 @@
  * @brief The object handle the images in rendering (output, image-texture etc.)
  * @version 0.1
  * @date 2022-11-04
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #pragma once
-#include <string>
 #include <memory>
+#include <string>
 class SpectrumRGB;
 #include <core/geometry/geometry.h>
 
 //* Only 3 channels are allowed now
 class Figure {
-public:
-    int width, height, channels;
-    
-    Figure() = delete;
+ public:
+  int width, height, channels;
 
-    Figure(int _width, int _height);
+  Figure() = delete;
 
-    Figure(const std::string &filename);
+  Figure(int _width, int _height);
 
-    ~Figure();
+  Figure(const std::string &filename);
 
-    void saveAsPng(const std::string &filename) const;
+  ~Figure();
 
-    void saveAsHdr(const std::string &filename) const;
+  void saveAsPng(const std::string &filename) const;
 
-    void saveAsExr(const std::string &filename) const;
+  void saveAsHdr(const std::string &filename) const;
 
-    SpectrumRGB evaluate(Point2f uv, bool biFilter = false) const;
+  void saveAsExr(const std::string &filename) const;
 
-    void setPixel(float rgb[3], Point2i pixel);
+  SpectrumRGB evaluate(Point2f uv, bool biFilter = false) const;
 
-    std::shared_ptr<Figure> shrinkHalfNearest() const;
+  SpectrumRGB evaluate(Point2i pixel) const;
 
-    std::shared_ptr<Figure> shrinkHalfBox() const;
+  void setPixel(float rgb[3], Point2i pixel);
 
-private:
+  std::shared_ptr<Figure> shrinkHalfNearest() const;
 
-    using PixelValue = float[3];
-    PixelValue *data = nullptr;
+  std::shared_ptr<Figure> shrinkHalfBox() const;
+
+ private:
+  using PixelValue = float[3];
+  PixelValue *data = nullptr;
 };

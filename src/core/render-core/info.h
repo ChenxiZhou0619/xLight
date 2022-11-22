@@ -4,170 +4,166 @@
  * @brief all Info / Sample structs
  * @version 0.1
  * @date 2022-10-22
- * 
+ *
  * @copyright Copyright (c) 2022
- * 
+ *
  */
 #pragma once
 
-#include <variant>
-#include <optional>
-
 #include <core/geometry/geometry.h>
+#include <core/render-core/bsdf.h>
 #include <core/render-core/spectrum.h>
 #include <core/shape/shape.h>
-#include <core/render-core/bsdf.h>
+
+#include <optional>
+#include <variant>
 
 class Scene;
 
 enum class ScatterSampleType {
-    Unknown = 0,
-    //* --- Surface sample ---
-    SurfaceReflection,
-    SurfaceTransmission,
-    //* --- Medium sample ---
-    MediumAbsorbtion,
-    MediumScatter
+  Unknown = 0,
+  //* --- Surface sample ---
+  SurfaceReflection,
+  SurfaceTransmission,
+  //* --- Medium sample ---
+  MediumAbsorbtion,
+  MediumScatter
 };
 
 struct ScatterInfo {
-    enum ScatterType {
-        Unknown = 0,
-        Surface,
-        Medium
-    } scatterType = Unknown;
+  enum ScatterType { Unknown = 0, Surface, Medium } scatterType = Unknown;
 
-    ScatterSampleType type = ScatterSampleType::Unknown;
+  ScatterSampleType type = ScatterSampleType::Unknown;
 
-    SpectrumRGB weight;
+  SpectrumRGB weight;
 
-    Vector3f    wo;
+  Vector3f wo;
 
-    float       pdf;
+  float pdf;
 };
 //*   Currently, There are two kinds of intersections can be held in rendering,
 //* surface intersection and medium intersection
 struct IntersectionInfo {
-    //* The position of the intersection
-    Point3f         position;
-    //* The distance between ray.ori and hitpoint
-    float           distance;
-    //* Direction of the wi (towards camera)
-    Vector3f        wi;
-    //* The local shading frame
-    Frame           shadingFrame;
+  //* The position of the intersection
+  Point3f position;
+  //* The distance between ray.ori and hitpoint
+  float distance;
+  //* Direction of the wi (towards camera)
+  Vector3f wi;
+  //* The local shading frame
+  Frame shadingFrame;
 
-    Vector3f toLocal(Vector3f v) const;
-    Vector3f toWorld(Vector3f v) const;
-    virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const = 0;
-    virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const = 0;
-    virtual SpectrumRGB evaluateScatter(Vector3f wo) const = 0;
-    virtual float pdfScatter(Vector3f wo) const = 0;
-    virtual float pdfScatter(Vector3f wi, Vector3f wo) const = 0;
-    virtual ScatterInfo sampleScatter(Point2f sample) const = 0;
-    virtual SpectrumRGB evaluateLe() const = 0;
-    virtual float pdfLe() const = 0;
-    virtual bool terminate() const = 0;
-    virtual void computeShadingFrame() = 0;
-    virtual void computeDifferential(const Ray3f &ray) = 0;
+  Vector3f toLocal(Vector3f v) const;
+  Vector3f toWorld(Vector3f v) const;
+  virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const = 0;
+  virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const = 0;
+  virtual SpectrumRGB evaluateScatter(Vector3f wo) const = 0;
+  virtual float pdfScatter(Vector3f wo) const = 0;
+  virtual float pdfScatter(Vector3f wi, Vector3f wo) const = 0;
+  virtual ScatterInfo sampleScatter(Point2f sample) const = 0;
+  virtual SpectrumRGB evaluateLe() const = 0;
+  virtual float pdfLe() const = 0;
+  virtual bool terminate() const = 0;
+  virtual void computeShadingFrame() = 0;
+  virtual void computeDifferential(const Ray3f &ray) = 0;
 };
-
 
 //* This stores the information of the surface-ray intersection
-struct SurfaceIntersectionInfo : public IntersectionInfo{
-    //* Optional, if the ray hit environment, shape will be nullptr
-    ShapeInterface  *shape = nullptr;
-    //* Optional, depends on whether hit an emitter
-    std::shared_ptr<Emitter> light;
-    //* Geometry normal of the hitpoint
-    Normal3f        geometryNormal;
-    //* The uv coordinate of the hitpoint
-    Point2f         uv;
-    //* position differentials
-    Vector3f        dpdu;
-    Vector3f        dpdv;
-    //* uv differentials
-    float dudx, dudy, dvdx, dvdy;
+struct SurfaceIntersectionInfo : public IntersectionInfo {
+  //* Optional, if the ray hit environment, shape will be nullptr
+  ShapeInterface *shape = nullptr;
+  //* Optional, depends on whether hit an emitter
+  std::shared_ptr<Emitter> light;
+  //* Geometry normal of the hitpoint
+  Normal3f geometryNormal;
+  //* The uv coordinate of the hitpoint
+  Point2f uv;
+  //* position differentials
+  Vector3f dpdu;
+  Vector3f dpdv;
+  //* uv differentials
+  float dudx, dudy, dvdx, dvdy;
 
-    virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const override;
-    virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;
-    virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
-    virtual float pdfScatter(Vector3f wo) const override;
-    virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;
-    virtual ScatterInfo sampleScatter(Point2f sample) const override;
-    virtual SpectrumRGB evaluateLe() const override;
-    virtual float pdfLe() const override;
-    virtual bool terminate() const override;
-    virtual void computeShadingFrame() override;
-    virtual void computeDifferential(const Ray3f &ray) override;
+  virtual Ray3f scatterRay(const Scene &scene,
+                           Point3f destination) const override;
+  virtual Ray3f scatterRay(const Scene &scene,
+                           Vector3f direction) const override;
+  virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
+  virtual float pdfScatter(Vector3f wo) const override;
+  virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;
+  virtual ScatterInfo sampleScatter(Point2f sample) const override;
+  virtual SpectrumRGB evaluateLe() const override;
+  virtual float pdfLe() const override;
+  virtual bool terminate() const override;
+  virtual void computeShadingFrame() override;
+  virtual void computeDifferential(const Ray3f &ray) override;
 };
 
-//*   This stores the information of the medium-ray intersection, 
-//* which is not generated by GeometryIntersection engine, it's usually generated by
+//*   This stores the information of the medium-ray intersection,
+//* which is not generated by GeometryIntersection engine, it's usually
+//generated by
 //* sampling a point in the medium
-struct MediumIntersectionInfo : public IntersectionInfo{
-    //* The medium where occurs the medium intersection
-    const Medium    *medium = nullptr;
-    //* The weight of sampling this medium intersection
-    SpectrumRGB     weight;
-    //* The pdf of sampling this medium intersection
-    float           pdf;
+struct MediumIntersectionInfo : public IntersectionInfo {
+  //* The medium where occurs the medium intersection
+  const Medium *medium = nullptr;
+  //* The weight of sampling this medium intersection
+  SpectrumRGB weight;
+  //* The pdf of sampling this medium intersection
+  float pdf;
 
-    virtual Ray3f scatterRay(const Scene &scene, Point3f destination) const override;
-    virtual Ray3f scatterRay(const Scene &scene, Vector3f direction) const override;
-    virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
-    virtual float pdfScatter(Vector3f wo) const override;
-    virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;    
-    virtual ScatterInfo sampleScatter(Point2f sample) const override;
-    virtual SpectrumRGB evaluateLe() const override;
-    virtual float pdfLe() const override;
-    virtual bool terminate() const override;
-    virtual void computeShadingFrame() override;
-    virtual void computeDifferential(const Ray3f &ray) override;
+  virtual Ray3f scatterRay(const Scene &scene,
+                           Point3f destination) const override;
+  virtual Ray3f scatterRay(const Scene &scene,
+                           Vector3f direction) const override;
+  virtual SpectrumRGB evaluateScatter(Vector3f wo) const override;
+  virtual float pdfScatter(Vector3f wo) const override;
+  virtual float pdfScatter(Vector3f wi, Vector3f wo) const override;
+  virtual ScatterInfo sampleScatter(Point2f sample) const override;
+  virtual SpectrumRGB evaluateLe() const override;
+  virtual float pdfLe() const override;
+  virtual bool terminate() const override;
+  virtual void computeShadingFrame() override;
+  virtual void computeDifferential(const Ray3f &ray) override;
 };
 
-//*   In path-tracing, we usually sample a new path vertex based on the previous one,
-//* the sampled path has its weight (to the final contribution) and pdf (in solid angle x distance measure)
+//*   In path-tracing, we usually sample a new path vertex based on the previous
+//one,
+//* the sampled path has its weight (to the final contribution) and pdf (in
+//solid angle x distance measure)
 struct PathInfo {
-    //* The position of the new path vertex
-    Point3f     vertex;
-    //* The length of this path segment
-    float       length;
-    //* The weight of the sampled new path vertex
-    SpectrumRGB weight;
-    //* The pdf of sampling the path direction
-    float       pdfDirection;
-    //* The pdf of sampling the path length
-    float       pdfLength;
-    //* The scatter information on new path vertex
-    std::shared_ptr<IntersectionInfo> itsInfo = nullptr;
+  //* The position of the new path vertex
+  Point3f vertex;
+  //* The length of this path segment
+  float length;
+  //* The weight of the sampled new path vertex
+  SpectrumRGB weight;
+  //* The pdf of sampling the path direction
+  float pdfDirection;
+  //* The pdf of sampling the path length
+  float pdfLength;
+  //* The scatter information on new path vertex
+  std::shared_ptr<IntersectionInfo> itsInfo = nullptr;
 
-    float pdf() const;    
+  float pdf() const;
 };
-
 
 //*   When sampling, all light sources in scene will be represented
 //* as a luminous point, this struct is used to hide the differences
 //* between different lightsources.
 struct LightSourceInfo {
-    enum LightType {
-        Unknown = 0,
-        Area,
-        Spot,
-        Environment
-    } lightType;
+  enum LightType { Unknown = 0, Area, Spot, Environment } lightType;
 
-    //* The light source
-    const Emitter   *light;
-    //* The position of the lumin point 
-    Point3f         position;  
-    //* Optional, normal at the lumin point
-    Normal3f        normal;
-    //* Direction, from path vertex to luminous point
-    Vector3f        direction;
-    //* The pdf of the sampling result
-    //* If pdf == inf, it represents sampling a Dirac delta distribution
-    float           pdf;        
+  //* The light source
+  const Emitter *light;
+  //* The position of the lumin point
+  Point3f position;
+  //* Optional, normal at the lumin point
+  Normal3f normal;
+  //* Direction, from path vertex to luminous point
+  Vector3f direction;
+  //* The pdf of the sampling result
+  //* If pdf == inf, it represents sampling a Dirac delta distribution
+  float pdf;
+  //* Le
+  SpectrumRGB Le;
 };
-
-
