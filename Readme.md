@@ -4,4 +4,7 @@
 - [ ] BDPT (on dev)
 
 ## 2022.11.19
-- [ ] tone-mapping (on dev)
+- [x] tone-mapping (save as exr)
+
+## 2022.11.22
+- [ ] light-tracer (on dev)
