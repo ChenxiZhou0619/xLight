@@ -23,9 +23,6 @@ class Camera : public Configurable {
                getVector3f("up", _value)) {
     aspectRatio = getFloat("aspectRatio", _value);
     vertFov = getFloat("vertFov", _value);
-    Point3f pmin = sampleToFilm * Point3f(0, 0, 0),
-            pmax = sampleToFilm * Point3f(1, 1, 0);
-    A = std::abs((pmin.x - pmax.x) * (pmin.y - pmax.y));
   }
 
   ~Camera() = default;

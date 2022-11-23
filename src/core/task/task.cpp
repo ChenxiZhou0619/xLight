@@ -68,7 +68,7 @@ void configureOutPut(std::shared_ptr<RenderTask> task,
 
   std::cout << "===== Output setting =====\n";
   std::cout << "filename : " << output_name << std::endl;
-  std::cout << "filmsize : " << task->spp << std::endl;
+  std::cout << "spp : " << task->spp << std::endl;
 }
 
 void configureScene(std::shared_ptr<RenderTask> task,
@@ -187,11 +187,6 @@ void configureScene(std::shared_ptr<RenderTask> task,
           std::cerr << "No such a mesh : \"" << meshName << "\"\n";
           std::exit(1);
         }
-        if (property.HasMember("BSDFRef")) {
-          const auto &bsdfName = property["BSDFRef"].GetString();
-          auto bsdf = task->getBSDF(bsdfName);
-          mesh->second->setBSDF(bsdf);
-        }
         if (property.HasMember("emitter")) {
           auto emitter = property["emitter"].GetObject();
           auto emitterType = emitter["type"].GetString();
@@ -202,6 +197,11 @@ void configureScene(std::shared_ptr<RenderTask> task,
           mesh->second->setEmitter(emitter_ptr);
           mesh->second->setBSDF(std::make_shared<BlackHole>());
           task->scene->addEmitter(emitter_ptr);
+        }
+        if (property.HasMember("BSDFRef")) {
+          const auto &bsdfName = property["BSDFRef"].GetString();
+          auto bsdf = task->getBSDF(bsdfName);
+          mesh->second->setBSDF(bsdf);
         }
         if (property.HasMember("mediumRef")) {
           const auto mediumName = property["mediumRef"].GetString();

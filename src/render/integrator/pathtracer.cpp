@@ -42,7 +42,7 @@ class PathTracer : public PixelIntegrator {
               light->evaluate(lightSourceInfo, itsInfo->position);
           SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
           float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
-          Li += beta * f * LeWeight * misw;
+          if (!f.isZero()) Li += beta * f * LeWeight * misw;
         }
       }
       //* Sample the bsdf

@@ -31,6 +31,7 @@ class AreaEmitter : public Emitter {
   virtual std::pair<SpectrumRGB, float> evaluate(
       const LightSourceInfo &info, Point3f destination) const override {
     Vector3f light2point = destination - info.position;
+    if (dot(light2point, info.normal) <= 0) return {SpectrumRGB{0}, .0f};
     float jacob = light2point.length2() /
                   std::abs(dot(info.normal, normalize(light2point))),
           pdf = info.pdf * jacob;
@@ -39,6 +40,7 @@ class AreaEmitter : public Emitter {
 
   virtual SpectrumRGB evaluate(
       const SurfaceIntersectionInfo &info) const override {
+    if (dot(info.wi, info.geometryNormal) <= 0) return SpectrumRGB{0};
     return m_lightEnergy;
   }
 

@@ -61,9 +61,7 @@ float SurfaceIntersectionInfo::pdfLe() const {
   return light ? light->pdf(*this) : .0f;
 }
 
-bool SurfaceIntersectionInfo::terminate() const {
-  return (!shape || shape->isEmitter());
-}
+bool SurfaceIntersectionInfo::terminate() const { return (!shape); }
 
 void SurfaceIntersectionInfo::computeShadingFrame() {
   if (!terminate()) this->shape->getBSDF()->computeShadingFrame(this);

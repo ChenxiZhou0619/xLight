@@ -24,10 +24,11 @@ class Mirror : public BSDF {
   virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample,
                              float &pdf,
                              ScatterSampleType *type) const override {
-    if (Frame::cosTheta(bRec.wi) <= 0) {
-      pdf = .0f;
-      return SpectrumRGB{.0f};
-    }
+    // TODO add a two side params
+    //    if (Frame::cosTheta(bRec.wi) <= 0) {
+    //      pdf = .0f;
+    //      return SpectrumRGB{.0f};
+    //    }
     *type = ScatterSampleType::SurfaceReflection;
     bRec.wo = reflect(bRec.wi);
     pdf = FINF;

@@ -13,6 +13,7 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
   Film film{task->film_size, 32};
   auto [x, y] = film.tile_range();
 
+  std::mutex tile_vec;
   std::vector<std::shared_ptr<FilmTile>> film_tiles;
   film_tiles.reserve(x * y);
 
@@ -45,8 +46,9 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
                   tile->add_sample(p_pixel, L, 1.f);
                 }
               }
-
+            tile_vec.lock();
             film_tiles.emplace_back(tile);
+            tile_vec.unlock();
             finished_tiles++;
             if (finished_tiles % 5 == 0) {
               printProgress((double)finished_tiles / total_tiles);

@@ -11,7 +11,8 @@ std::unordered_map<std::string, std::shared_ptr<ShapeInterface>> loadObjFile(
       importer.ReadFile(filePath,
                         //        aiProcess_ConvertToLeftHanded |
                         aiProcess_JoinIdenticalVertices |
-                            aiProcess_CalcTangentSpace | aiProcess_Triangulate);
+                            // aiProcess_CalcTangentSpace |
+                            aiProcess_Triangulate);
 
   if (ai_scene == nullptr) {
     std::cerr << "Error: Parsing obj file!\n";
