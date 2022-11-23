@@ -43,6 +43,11 @@ class ThinLens : public Camera {
     std::cout << "Thinlens::sampleRayDifferential not implement!\n";
     std::exit(1);
   }
+
+  virtual SpectrumRGB sampleWi(Point3f ref_p, Point2f u, Vector3f *wi,
+                               float *pdf, Point2f *pRaster) const override {
+    std::exit(1);
+  }
 };
 
 REGISTER_CLASS(ThinLens, "thinlens")

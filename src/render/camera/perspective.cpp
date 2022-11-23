@@ -13,6 +13,9 @@ class PerspectiveCamera : public Camera {
                    Mat4f::Translate(Vector3f{1.f, -1.f, .0f}) * sampleToFilm;
     filmToSample = sampleToFilm;
     sampleToFilm = sampleToFilm.inverse();
+    Point3f pmin = sampleToFilm * Point3f(0, 0, 0),
+            pmax = sampleToFilm * Point3f(1, 1, 0);
+    A = std::abs((pmin.x - pmax.x) * (pmin.y - pmax.y));
   }
 
   PerspectiveCamera(const Point3f &pos, const Point3f lookAt,
@@ -81,6 +84,21 @@ class PerspectiveCamera : public Camera {
 
     ray.is_ray_differential = true;
     return ray;
+  }
+
+  virtual SpectrumRGB sampleWi(Point3f ref_p, Point2f u, Vector3f *wi,
+                               float *pdf, Point2f *pRaster) const override {
+    Vector3f pinhole_normal = cameraToWorld.rotate(Vector3f(0, 0, 1));
+    *wi = pos - ref_p;
+    float dist = wi->length();
+    *wi /= dist;
+
+    Point3f pfilm = local2film(vec2local(-*wi));
+    *pRaster = {pfilm.x, pfilm.y};
+    float lens_area = 1;
+    *pdf = (dist * dist) / (std::abs(dot(*wi, pinhole_normal)) * lens_area);
+
+    return SpectrumRGB{1 / (A * std::pow(dot(*wi, pinhole_normal), 4.f))};
   }
 };
 

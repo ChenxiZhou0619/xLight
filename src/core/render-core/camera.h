@@ -1,4 +1,6 @@
 #pragma once
+#include <core/render-core/info.h>
+
 #include "core/geometry/geometry.h"
 #include "core/math/math.h"
 #include "core/utils/configurable.h"
@@ -21,6 +23,9 @@ class Camera : public Configurable {
                getVector3f("up", _value)) {
     aspectRatio = getFloat("aspectRatio", _value);
     vertFov = getFloat("vertFov", _value);
+    Point3f pmin = sampleToFilm * Point3f(0, 0, 0),
+            pmax = sampleToFilm * Point3f(1, 1, 0);
+    A = std::abs((pmin.x - pmax.x) * (pmin.y - pmax.y));
   }
 
   ~Camera() = default;
@@ -78,6 +83,9 @@ class Camera : public Configurable {
                                       const Point2i &resolution,
                                       const CameraSample &sample) const = 0;
 
+  virtual SpectrumRGB sampleWi(Point3f ref_p, Point2f u, Vector3f *wi,
+                               float *pdf, Point2f *pRaster) const = 0;
+
   Point3f get_position() const { return pos; }
 
   Vector3f vec2local(Vector3f v) const {
@@ -99,4 +107,6 @@ class Camera : public Configurable {
   Mat4f cameraToWorld;
 
   Mat4f sampleToFilm, filmToSample;
+
+  float A;
 };

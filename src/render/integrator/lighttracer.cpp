@@ -24,24 +24,45 @@ class LightTracer : public FilmIntegrator {
     bool delta = false;
     float pdf_fwd = 0, pdf_rev = 0;
     std::shared_ptr<IntersectionInfo> info = nullptr;
+    Normal3f normal;
+    Point3f position;
 
     PathVertex() = default;
 
-    Point3f get_position() const {
-      assert(info);
-      return info->position;
+    Point3f get_position() const { return position; }
+
+    Normal3f get_normal() const { return normal; }
+
+    float convert_pdf(float pdf_solid_angle, const PathVertex &next) const {
+      Vector3f w = next.get_position() - get_position();
+      if (w.length2() == 0) return 0;
+      float inv_dist2 = 1.f / w.length2();
+      // todo assert whether next is on surface
+      if (next.type == VertexType::SurfaceVertex) {
+        pdf_solid_angle *=
+            std::abs(dot(next.get_normal(), w * std::sqrt(inv_dist2)));
+      }
+      return pdf_solid_angle * inv_dist2;
     }
 
-    static PathVertex create_light() {
+    static PathVertex create_light(const LightSourceInfo &info) {
       PathVertex res;
       res.type = VertexType::LightVertex;
+      res.beta = info.Le;
+      res.pdf_fwd = info.pdf;
+      res.position = info.position;
       return res;
     }
 
-    static PathVertex create_surface(std::shared_ptr<IntersectionInfo> info) {
+    static PathVertex create_surface(std::shared_ptr<IntersectionInfo> info,
+                                     SpectrumRGB beta, float pdf_fwd,
+                                     const PathVertex &prev) {
       PathVertex res;
       res.type = VertexType::SurfaceVertex;
       res.info = info;
+      res.beta = beta;
+      res.position = info->position;
+      res.pdf_fwd = prev.convert_pdf(pdf_fwd, res);
       return res;
     }
   };
@@ -66,7 +87,7 @@ class LightTracer : public FilmIntegrator {
     if (pdf_pos == 0 || pdf_dir == 0) return 0;
 
     // todo
-    (*lightpath)[0] = PathVertex::create_light();
+    (*lightpath)[0] = PathVertex::create_light(light_info);
 
     SpectrumRGB beta = light_info.Le *
                        std::abs(dot(light_info.normal, dir_world)) /
@@ -79,11 +100,21 @@ class LightTracer : public FilmIntegrator {
     while (true) {
       auto sits = scene.intersectWithSurface(ray);
       if (sits->shape) {
-        (*lightpath)[1] = PathVertex::create_surface(sits);
-        bounces++;
-      }
-      return bounces + 1;
+        ++bounces;
+        if (bounces >= max_depth) break;
+        (*lightpath)[bounces] = PathVertex::create_surface(
+            sits, beta, pdf_fwd, (*lightpath)[bounces - 1]);
+        auto scatter_info = sits->sampleScatter(sampler->next2D());
+        ray = sits->scatterRay(scene, scatter_info.wo);
+        pdf_fwd = scatter_info.pdf;
+        beta *= scatter_info.weight;
+        if (pdf_fwd == FINF) {
+          (*lightpath)[bounces].delta = true;
+        }
+      } else
+        break;
     }
+    return bounces + 1;
   }
 
   SpectrumRGB connect_camera(const Scene &scene, std::shared_ptr<Camera> camera,
@@ -98,14 +129,20 @@ class LightTracer : public FilmIntegrator {
         break;
       case VertexType::SurfaceVertex:
         Point3f vertex_position = vertex.get_position();
-        Point3f camera_position = camera->get_position();
-        Ray3f vis_ray{camera_position, vertex_position};
-        if (!scene.occlude(vis_ray)) {
-          Point3f p_film = camera->local2film(camera->vec2local(vis_ray.dir));
-          if (0 <= p_film.x && p_film.x < 1 && 0 <= p_film.y && p_film.y < 1) {
-            *pixel = Point2i{int(resolution.x * p_film.x),
-                             int(resolution.y * p_film.y)};
-            result = SpectrumRGB{1};
+        Vector3f wi;
+        float pdf;
+        Point2f p_raster;
+        // todo no sampling now
+        SpectrumRGB we =
+            camera->sampleWi(vertex_position, Point2f(), &wi, &pdf, &p_raster);
+        Ray3f vis_ray{camera->get_position(), vertex_position};
+        if (!scene.occlude(vis_ray) && !vertex.delta) {
+          if ((0 <= p_raster.x && p_raster.x < 1) &&
+              (0 <= p_raster.y && p_raster.y < 1)) {
+            *pixel = Point2i{int(resolution.x * p_raster.x),
+                             int(resolution.y * p_raster.y)};
+            SpectrumRGB f = vertex.info->evaluateScatter(wi);
+            result = vertex.beta * f * (we / pdf);
           }
         }
     }
