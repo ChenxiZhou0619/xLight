@@ -208,6 +208,10 @@ void configureScene(std::shared_ptr<RenderTask> task,
           auto medium = task->getMedium(mediumName);
           mesh->second->setMedium(medium);
         }
+        if (property.HasMember("twoSide")) {
+          bool twoSide = property["twoSide"].GetBool();
+          mesh->second->two_side = true;
+        }
       }
     } else if (std::strcmp("grid-medium", fileType) == 0) {
       float scale = entity["scale"].GetFloat();

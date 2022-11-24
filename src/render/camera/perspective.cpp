@@ -18,9 +18,9 @@ class PerspectiveCamera : public Camera {
     A = std::abs((pmin.x - pmax.x) * (pmin.y - pmax.y));
   }
 
-  PerspectiveCamera(const Point3f &pos, const Point3f lookAt,
-                    const Vector3f &up)
-      : Camera(pos, lookAt, up) {}
+  //  PerspectiveCamera(const Point3f &pos, const Point3f lookAt,
+  //                    const Vector3f &up)
+  //      : Camera(pos, lookAt, up) {}
 
   PerspectiveCamera(const Mat4f &_cameraToWorld) : Camera(_cameraToWorld) {}
 

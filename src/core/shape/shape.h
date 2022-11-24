@@ -7,6 +7,7 @@ class BSDF;
 
 class ShapeInterface {
  public:
+  bool two_side = false;
   friend class Scene;
 
   ShapeInterface() = default;

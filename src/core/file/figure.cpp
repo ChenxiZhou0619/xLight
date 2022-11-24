@@ -178,9 +178,10 @@ SpectrumRGB Figure::evaluate(Point2i pixel) const {
 void Figure::setPixel(float rgb[3], Point2i pixel) {
   auto [x, y] = pixel;
   int offset = x + y * width;
-  for (int channel = 0; channel < 3; ++channel) {
-    data[offset][channel] = rgb[channel];
-  }
+  if (0 <= x && x < width && 0 <= y && y < height)
+    for (int channel = 0; channel < 3; ++channel) {
+      data[offset][channel] = rgb[channel];
+    }
 }
 
 std::shared_ptr<Figure> Figure::shrinkHalfNearest() const {

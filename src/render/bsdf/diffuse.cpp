@@ -21,13 +21,13 @@ class Diffuse : public BSDF {
     if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
       return SpectrumRGB{.0f};
     return m_texture->evaluate(bRec.uv, bRec.du, bRec.dv) * INV_PI *
-           Frame::cosTheta(bRec.wo);
+           std::abs(Frame::cosTheta(bRec.wo));
   }
 
   virtual float pdf(const BSDFQueryRecord &bRec) const override {
     if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
       return .0f;
-    return INV_PI * Frame::cosTheta(bRec.wo);
+    return INV_PI * std::abs(Frame::cosTheta(bRec.wo));
   }
 
   virtual SpectrumRGB sample(BSDFQueryRecord &bRec, const Point2f &sample,
@@ -38,7 +38,7 @@ class Diffuse : public BSDF {
       return SpectrumRGB{.0f};
     }
     bRec.wo = Warp::squareToCosineHemisphere(sample);
-    pdf = INV_PI * Frame::cosTheta(bRec.wo);
+    pdf = INV_PI * std::abs(Frame::cosTheta(bRec.wo));
     *type = ScatterSampleType::SurfaceReflection;
     return m_texture->evaluate(bRec.uv, bRec.du, bRec.dv);
   }

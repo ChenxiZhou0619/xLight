@@ -20,10 +20,8 @@ class Camera : public Configurable {
 
   Camera(const rapidjson::Value &_value)
       : Camera(getPoint3f("position", _value), getPoint3f("lookAt", _value),
-               getVector3f("up", _value)) {
-    aspectRatio = getFloat("aspectRatio", _value);
-    vertFov = getFloat("vertFov", _value);
-  }
+               getVector3f("up", _value), getFloat("aspectRatio", _value),
+               getFloat("vertFov", _value)) {}
 
   ~Camera() = default;
 
@@ -35,8 +33,12 @@ class Camera : public Configurable {
    * @param up
    */
 
-  Camera(const Point3f &_pos, const Point3f lookAt, const Vector3f &up)
-      : pos(_pos), aspectRatio(1.7778f), vertFov(39.f), distToFilm(1.f) {
+  Camera(const Point3f &_pos, const Point3f lookAt, const Vector3f &up,
+         float aspect_ratio, float vert_fov)
+      : pos(_pos),
+        aspectRatio(aspect_ratio),
+        vertFov(vert_fov),
+        distToFilm(1.f) {
     // initialize the translation part
     cameraToWorld(0, 3) = _pos.x;
     cameraToWorld(1, 3) = _pos.y;

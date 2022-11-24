@@ -8,11 +8,10 @@ std::unordered_map<std::string, std::shared_ptr<ShapeInterface>> loadObjFile(
 
   Assimp::Importer importer;
   const aiScene *ai_scene =
-      importer.ReadFile(filePath,
-                        //        aiProcess_ConvertToLeftHanded |
-                        aiProcess_JoinIdenticalVertices |
-                            // aiProcess_CalcTangentSpace |
-                            aiProcess_Triangulate);
+      importer.ReadFile(filePath, aiProcess_ConvertToLeftHanded |
+                                      aiProcess_JoinIdenticalVertices |
+                                      // aiProcess_CalcTangentSpace |
+                                      aiProcess_Triangulate);
 
   if (ai_scene == nullptr) {
     std::cerr << "Error: Parsing obj file!\n";

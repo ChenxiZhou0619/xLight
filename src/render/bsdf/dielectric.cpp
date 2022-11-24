@@ -67,7 +67,7 @@ class Dielectric : public BSDF {
       pdf = FINF;
       *type = ScatterSampleType::SurfaceTransmission;
       // TODO consider the transmittance and factor
-      return SpectrumRGB{1.f};
+      return SpectrumRGB{1};
     }
   }
 

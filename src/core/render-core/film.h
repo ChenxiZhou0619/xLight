@@ -59,8 +59,9 @@ class Film {
   }
   virtual ~Film() { delete[] light_figure; }
   Point2i tile_range() const {
-    assert(film_size.x % tile_size == 0 && film_size.y % tile_size == 0);
-    return {film_size.x / tile_size, film_size.y / tile_size};
+    int x_range = film_size.x / tile_size + ((film_size.x % tile_size) ? 1 : 0),
+        y_range = film_size.y / tile_size + ((film_size.y % tile_size) ? 1 : 0);
+    return {x_range, y_range};
   }
 
   std::shared_ptr<FilmTile> get_tile(Point2i tile_index) const {

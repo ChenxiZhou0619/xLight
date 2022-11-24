@@ -63,6 +63,11 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const {
   Point2f uv{rayhit.hit.u, rayhit.hit.v};
   its.hitPoint = ray.at(its.distance);
   its.geometryN = Normal3f(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
+
+  if (its.shape->two_side) {
+    if (dot(its.geometryN, -ray.dir) < 0) its.geometryN = -its.geometryN;
+  }
+
   its.geometryF = Frame{its.geometryN};
   its.shadingN = its.geometryN;
   its.shadingF = Frame{its.shadingN};
@@ -73,7 +78,7 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const {
 
     //* Compute dpdu first
     // Vector3f dpdu = shape->dpdu(triangleIndex);
-    // todo fixme
+    // todo potential bug cuz two side
     auto [dpdu, dpdv] = shape->positionDifferential(triangleIndex);
     its.dpdu = dpdu;
     its.dpdv = dpdv;

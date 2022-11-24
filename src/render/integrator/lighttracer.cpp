@@ -111,6 +111,7 @@ class LightTracer : public FilmIntegrator {
         if (pdf_fwd == FINF) {
           (*lightpath)[bounces].delta = true;
         }
+        if (beta.isZero()) break;
       } else
         break;
     }
