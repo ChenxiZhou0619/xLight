@@ -1,8 +1,9 @@
 #include <core/math/common.h>
 #include <core/render-core/integrator.h>
+#include <spdlog/spdlog.h>
 
 class PathTracer : public PixelIntegrator {
- public:
+public:
   PathTracer() : mMaxDepth(5), mRRThreshold(3) {}
 
   PathTracer(const rapidjson::Value &_value) {
@@ -16,9 +17,10 @@ class PathTracer : public PixelIntegrator {
     int bounces = 0;
     PathInfo pathInfo = samplePath(scene, ray, FINF, SpectrumRGB{1});
     const auto &itsInfo = pathInfo.itsInfo;
-    while (bounces <= mMaxDepth) {
+    while (true) {
       beta *= pathInfo.weight;
-      if (beta.isZero()) break;
+      if (beta.isZero())
+        break;
       //* Evaluate the Le using mis
       //* <L> = beta * Le * misw(pdfPath, pdfLe)
       {
@@ -30,19 +32,29 @@ class PathTracer : public PixelIntegrator {
         Li += beta * Le * misw;
       }
       //* Not hit the scene, terminate
-      if (itsInfo->terminate()) break;
+      if (itsInfo->terminate())
+        break;
+      if (bounces >= mMaxDepth)
+        break;
       //* Sample the direct
       {
         LightSourceInfo lightSourceInfo =
             scene.sampleLightSource(*itsInfo, sampler);
         Ray3f shadowRay = itsInfo->scatterRay(scene, lightSourceInfo.position);
         if (!scene.occlude(shadowRay)) {
-          auto *light = lightSourceInfo.light;
+          auto light = lightSourceInfo.light;
           auto [LeWeight, pdf] =
               light->evaluate(lightSourceInfo, itsInfo->position);
           SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
           float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
-          if (!f.isZero()) Li += beta * f * LeWeight * misw;
+          if (!f.isZero()) {
+            // Li += beta * f * LeWeight * misw;
+            //             spdlog::info("pdf = {}, le = [{}, {}, {}]\n", pdf,
+            //             LeWeight.r(),
+            //                          LeWeight.g(), LeWeight.b());
+            Li = f;
+            return Li;
+          }
         }
       }
       //* Sample the bsdf
@@ -50,14 +62,15 @@ class PathTracer : public PixelIntegrator {
       ray = itsInfo->scatterRay(scene, scatterInfo.wo);
       pathInfo = samplePath(scene, ray, scatterInfo.pdf, scatterInfo.weight);
       if (bounces++ > mRRThreshold) {
-        if (sampler->next1D() > 0.95f) break;
+        if (sampler->next1D() > 0.95f)
+          break;
         beta /= 0.95;
       }
     }
     return Li;
   }
 
- protected:
+protected:
   PathInfo samplePath(const Scene &scene, Ray3f ray, float pdfDirection,
                       SpectrumRGB weight) const {
     PathInfo pathInfo;
@@ -73,7 +86,7 @@ class PathTracer : public PixelIntegrator {
     return pathInfo;
   }
 
- protected:
+protected:
   int mMaxDepth;
   int mRRThreshold;
 };

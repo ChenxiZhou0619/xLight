@@ -63,6 +63,7 @@ add_executable(
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/normal.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/pathtracer.cpp
     ${XLIGHT_RENDER_INTEGRATOR_DIR}/volpathtracer.cpp
+    ${XLIGHT_RENDER_INTEGRATOR_DIR}/bidirpathtracer.cpp
 
     # render/sampler
     ${XLIGHT_RENDER_SAMPLER_DIR}/independent.cpp

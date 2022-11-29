@@ -34,7 +34,8 @@ void Scene::postProcess() {
   }
   lightDistrib.postProcess();
 
-  if (environment) environment->initialize();
+  if (environment)
+    environment->initialize();
 }
 
 std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const {
@@ -65,7 +66,8 @@ std::optional<ShapeIntersection> Scene::intersect(const Ray3f &ray) const {
   its.geometryN = Normal3f(rayhit.hit.Ng_x, rayhit.hit.Ng_y, rayhit.hit.Ng_z);
 
   if (its.shape->two_side) {
-    if (dot(its.geometryN, -ray.dir) < 0) its.geometryN = -its.geometryN;
+    if (dot(its.geometryN, -ray.dir) < 0)
+      its.geometryN = -its.geometryN;
   }
 
   its.geometryF = Frame{its.geometryN};
@@ -105,8 +107,8 @@ float Scene::pdfEmitter(std::shared_ptr<Emitter> emitter) const {
   return lightDistrib.pdf(emitter);
 }
 
-std::shared_ptr<SurfaceIntersectionInfo> Scene::intersectWithSurface(
-    const Ray3f &ray) const {
+std::shared_ptr<SurfaceIntersectionInfo>
+Scene::intersectWithSurface(const Ray3f &ray) const {
   auto info = std::make_shared<SurfaceIntersectionInfo>();
   // todo replace the old interface
   auto itsOpt = intersect(ray);
@@ -139,6 +141,7 @@ LightSourceInfo Scene::sampleLightSource(const IntersectionInfo &itsInfo,
                                          Sampler *sampler) const {
   auto [light, pdfLight] = lightDistrib.sample(sampler->next1D());
   LightSourceInfo info = light->sampleLightSource(itsInfo, sampler->next3D());
+  info.light = light;
   info.pdf *= pdfLight;
   return info;
 }
@@ -146,6 +149,7 @@ LightSourceInfo Scene::sampleLightSource(const IntersectionInfo &itsInfo,
 LightSourceInfo Scene::sampleLightSource(Sampler *sampler) const {
   auto [light, pdfLight] = lightDistrib.sample(sampler->next1D());
   LightSourceInfo info = light->sampleLightSource(sampler->next3D());
+  info.light = light;
   info.pdf *= pdfLight;
   return info;
 }

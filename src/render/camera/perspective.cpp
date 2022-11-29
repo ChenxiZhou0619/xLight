@@ -1,7 +1,7 @@
 #include "core/render-core/camera.h"
 
 class PerspectiveCamera : public Camera {
- public:
+public:
   PerspectiveCamera() = delete;
 
   PerspectiveCamera(const rapidjson::Value &_value) : Camera(_value) {
@@ -49,9 +49,9 @@ class PerspectiveCamera : public Camera {
     return Ray3f{pos, rayDirWorld};
   }
 
-  virtual Ray3f sampleRayDifferential(
-      const Point2i &offset, const Point2i &resolution,
-      const CameraSample &sample) const override {
+  virtual Ray3f
+  sampleRayDifferential(const Point2i &offset, const Point2i &resolution,
+                        const CameraSample &sample) const override {
     Point3f pointOnFilm =
         sampleToFilm *
         Point3f{((float)offset.x + sample.sampleXY.x) / (float)resolution.x,
@@ -99,6 +99,15 @@ class PerspectiveCamera : public Camera {
     *pdf = (dist * dist) / (std::abs(dot(*wi, pinhole_normal)) * lens_area);
 
     return SpectrumRGB{1 / (A * std::pow(dot(*wi, pinhole_normal), 4.f))};
+  }
+
+  virtual void pdfWe(const Ray3f &ray, float *pdf_pos,
+                     float *pdf_dir) const override {
+    //* Suppose ray is generate by sampleRay
+    Vector3f pinhole_normal = cameraToWorld.rotate(Vector3f(0, 0, 1));
+    float cos_theta = std::abs(dot(pinhole_normal, ray.dir));
+    *pdf_pos = 1;
+    *pdf_dir = 1 / (A * cos_theta * cos_theta * cos_theta);
   }
 };
 

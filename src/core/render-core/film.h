@@ -18,7 +18,7 @@ struct FilmPixel {
 };
 
 class FilmTile {
- public:
+public:
   FilmTile() = delete;
   FilmTile(int _tile_size, Point2i _tile_offset)
       : tile_size(_tile_size), tile_offset(_tile_offset) {
@@ -30,7 +30,7 @@ class FilmTile {
   void add_sample(Point2i pixel, SpectrumRGB _value, float _weight) {
     auto [i, j] = pixel - tile_offset;
     int offset = i + j * tile_size;
-    auto& film_pixel = data[offset];
+    auto &film_pixel = data[offset];
     film_pixel.value += _value;
     film_pixel.weight += _weight;
   }
@@ -41,14 +41,14 @@ class FilmTile {
     return {data[offset].value, data[offset].weight};
   }
 
- private:
+private:
   int tile_size;
   Point2i tile_offset;
-  FilmPixel* data = nullptr;
+  FilmPixel *data = nullptr;
 };
 
 class Film {
- public:
+public:
   int tile_size;
 
   Film() = delete;
@@ -82,7 +82,7 @@ class Film {
       }
     }
   }
-  void save_film(const std::string& file_name) const {
+  void save_film(const std::string &file_name) const {
     // figure->saveAsPng(file_name);
     // figure->saveAsHdr(file_name);
     eye_figure->saveAsExr(file_name);
@@ -91,7 +91,7 @@ class Film {
   // TODO
   void add_splat(Point2i pixel, SpectrumRGB _value, float _weight) const {
     int offset = pixel.x + film_size.x * pixel.y;
-    auto& splat_pixel = light_figure[offset];
+    auto &splat_pixel = light_figure[offset];
     splat_pixel.splat_lock.lock();
     splat_pixel.value += _value * _weight;
     splat_pixel.weight += _weight;
@@ -99,7 +99,7 @@ class Film {
   }
 
   // todo delete this
-  void save_splat(const std::string& filename) const {
+  void save_splat(const std::string &filename) const {
     std::shared_ptr<Figure> splat_figure =
         std::make_shared<Figure>(film_size.x, film_size.y);
 
@@ -107,19 +107,22 @@ class Film {
       for (int j = 0; j < film_size.y; ++j) {
         int offset = i + j * film_size.x;
 
-        const auto& splat_pixel = light_figure[offset];
+        const auto &splat_pixel = light_figure[offset];
         SpectrumRGB res = splat_pixel.value;
-        //                if (splat_pixel.weight != 0) res /=
-        //                splat_pixel.weight;
         float rgb[] = {res.r(), res.g(), res.b()};
+        float rgb1[] = {0, 0, 0};
+        eye_figure->getPixel(rgb1, {i, j});
+        rgb[0] += rgb1[0];
+        rgb[1] += rgb1[1];
+        rgb[2] += rgb1[2];
         splat_figure->setPixel(rgb, {i, j});
       }
     }
     splat_figure->saveAsExr(filename);
   }
 
- private:
+private:
   Point2i film_size;
   std::shared_ptr<Figure> eye_figure = nullptr;
-  FilmPixel* light_figure = nullptr;
+  FilmPixel *light_figure = nullptr;
 };

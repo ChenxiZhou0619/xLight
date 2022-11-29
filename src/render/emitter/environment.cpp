@@ -10,7 +10,7 @@
 #include "stb/stb_image_write.h"
 
 class EnvironmentEmitter : public Emitter {
- public:
+public:
   EnvironmentEmitter() = default;
 
   EnvironmentEmitter(const rapidjson::Value &_value) {
@@ -85,8 +85,8 @@ class EnvironmentEmitter : public Emitter {
            m_envmap->getResolution().y;
   }
 
-  virtual std::pair<SpectrumRGB, float> evaluate(
-      const LightSourceInfo &info, Point3f destination) const override {
+  virtual std::pair<SpectrumRGB, float>
+  evaluate(const LightSourceInfo &info, Point3f destination) const override {
     /*
             double cosTheta = info.direction.y,
                    tanPhi = info.direction.z / (info.direction.x + EPSILON);
@@ -115,8 +115,8 @@ class EnvironmentEmitter : public Emitter {
             info.pdf};
   }
 
-  virtual SpectrumRGB evaluate(
-      const SurfaceIntersectionInfo &info) const override {
+  virtual SpectrumRGB
+  evaluate(const SurfaceIntersectionInfo &info) const override {
     /*
             double cosTheta = info.wi.y,
                    tanPhi = info.wi.z / info.wi.x;
@@ -203,7 +203,6 @@ class EnvironmentEmitter : public Emitter {
     LightSourceInfo lightInfo;
     lightInfo.position = info.position + m_envshpere_radius * dir;
     lightInfo.lightType = LightSourceInfo::LightType::Environment;
-    lightInfo.light = this;
     lightInfo.direction = dir;
     lightInfo.pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
     return lightInfo;
@@ -227,13 +226,16 @@ class EnvironmentEmitter : public Emitter {
     LightSourceInfo lightInfo;
     lightInfo.position = Point3f(0) + m_envshpere_radius * dir;
     lightInfo.lightType = LightSourceInfo::LightType::Environment;
-    lightInfo.light = this;
     lightInfo.direction = dir;
     lightInfo.pdf = width * height * pdf / (2 * M_PI * M_PI * std::sin(theta));
     return lightInfo;
   }
 
- private:
+  // TODO
+  virtual void pdf_le(Ray3f ray, Normal3f light_normal, float *pdf_pos,
+                      float *pdf_dir) const override {}
+
+private:
   Texture *m_envmap = nullptr;
 
   std::unique_ptr<Distribution2D> m_env_distribution;

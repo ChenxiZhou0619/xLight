@@ -16,7 +16,7 @@ class SpectrumRGB;
 
 //* Only 3 channels are allowed now
 class Figure {
- public:
+public:
   int width, height, channels;
 
   Figure() = delete;
@@ -39,11 +39,13 @@ class Figure {
 
   void setPixel(float rgb[3], Point2i pixel);
 
+  void getPixel(float rgb[3], Point2i pixel) const;
+
   std::shared_ptr<Figure> shrinkHalfNearest() const;
 
   std::shared_ptr<Figure> shrinkHalfBox() const;
 
- private:
+private:
   using PixelValue = float[3];
   PixelValue *data = nullptr;
 };

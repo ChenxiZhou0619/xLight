@@ -31,7 +31,8 @@ struct EmitterQueryRecord {
       : pRec(_pRec), ray(_ray) {}
 
   const Emitter *getEmitter() const {
-    if (pRec.mesh == nullptr) return pRec.emitter;
+    if (pRec.mesh == nullptr)
+      return pRec.emitter;
     return pRec.mesh->getEmitter();
   }
 };
@@ -58,7 +59,7 @@ struct EmitterHitInfo {
 // TODO, setTexture method, and maybe Emitter holds a mesh / entity is a good
 // choice
 class Emitter : public Configurable {
- public:
+public:
   Emitter() = default;
   Emitter(const rapidjson::Value &_value);
   virtual ~Emitter() = default;
@@ -71,8 +72,8 @@ class Emitter : public Configurable {
   virtual std::pair<SpectrumRGB, float> evaluate(const LightSourceInfo &info,
                                                  Point3f destination) const = 0;
 
-  virtual SpectrumRGB evaluate(
-      const SurfaceIntersectionInfo &itsInfo) const = 0;
+  virtual SpectrumRGB
+  evaluate(const SurfaceIntersectionInfo &itsInfo) const = 0;
 
   virtual float pdf(const SurfaceIntersectionInfo &info) const = 0;
 
@@ -83,9 +84,10 @@ class Emitter : public Configurable {
 
   virtual void setTexture(Texture *envmap) = 0;
 
-  //    virtual std::pair<Point3f, float> samplePoint(Point3f sample) const = 0;
-
   virtual float pdf(const EmitterHitInfo &info) const = 0;
+
+  virtual void pdf_le(Ray3f ray, Normal3f light_normal, float *pdf_pos,
+                      float *pdf_dir) const = 0;
 
   std::weak_ptr<ShapeInterface> shape;
 };

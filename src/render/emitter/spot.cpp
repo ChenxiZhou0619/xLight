@@ -3,7 +3,7 @@
 #include "core/render-core/emitter.h"
 
 class SpotEmitter : public Emitter {
- public:
+public:
   SpotEmitter() = default;
 
   SpotEmitter(const rapidjson::Value &_value) {
@@ -18,13 +18,13 @@ class SpotEmitter : public Emitter {
 
   virtual float pdf(const EmitterHitInfo &info) const override { return 1; }
 
-  virtual std::pair<SpectrumRGB, float> evaluate(
-      const LightSourceInfo &info, Point3f destination) const override {
+  virtual std::pair<SpectrumRGB, float>
+  evaluate(const LightSourceInfo &info, Point3f destination) const override {
     return {lightEnergy / (destination - info.position).length2(), FINF};
   }
 
-  virtual SpectrumRGB evaluate(
-      const SurfaceIntersectionInfo &itsInfo) const override {
+  virtual SpectrumRGB
+  evaluate(const SurfaceIntersectionInfo &itsInfo) const override {
     //* No implement
     std::cout << "No implement!\n";
     std::exit(1);
@@ -38,7 +38,6 @@ class SpotEmitter : public Emitter {
                                             Point3f sample) const override {
     LightSourceInfo lightInfo;
     lightInfo.lightType = LightSourceInfo::LightType::Spot;
-    lightInfo.light = this;
     lightInfo.direction = normalize(position - info.position);
     lightInfo.position = position;
     lightInfo.pdf = FINF;
@@ -49,14 +48,16 @@ class SpotEmitter : public Emitter {
   virtual LightSourceInfo sampleLightSource(Point3f sample) const override {
     LightSourceInfo lightInfo;
     lightInfo.lightType = LightSourceInfo::LightType::Spot;
-    lightInfo.light = this;
     lightInfo.position = position;
     lightInfo.pdf = FINF;
     lightInfo.Le = lightEnergy;
     return lightInfo;
   }
 
- protected:
+  virtual void pdf_le(Ray3f ray, Normal3f light_normal, float *pdf_pos,
+                      float *pdf_dir) const override {}
+
+protected:
   Point3f position;
   SpectrumRGB lightEnergy;
 };

@@ -184,6 +184,15 @@ void Figure::setPixel(float rgb[3], Point2i pixel) {
     }
 }
 
+void Figure::getPixel(float *rgb, Point2i pixel) const {
+  auto [x, y] = pixel;
+  int offset = x + y * width;
+  if (0 <= x && x < width && 0 <= y && y < height)
+    for (int channel = 0; channel < 3; ++channel) {
+      rgb[channel] = data[offset][channel];
+    }
+}
+
 std::shared_ptr<Figure> Figure::shrinkHalfNearest() const {
   std::shared_ptr<Figure> res = std::make_shared<Figure>(width / 2, height / 2);
   for (int i = 0; i < width - 1; i += 2) {

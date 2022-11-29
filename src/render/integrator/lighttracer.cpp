@@ -9,67 +9,12 @@
 #include <chrono>
 #include <mutex>
 
-enum class VertexType {
-  CameraVertex,
-  LightVertex,
-  SurfaceVertex,
-  MediumVertex
-};
-
 class LightTracer : public FilmIntegrator {
- protected:
-  struct PathVertex {
-    SpectrumRGB beta;
-    VertexType type;
-    bool delta = false;
-    float pdf_fwd = 0, pdf_rev = 0;
-    std::shared_ptr<IntersectionInfo> info = nullptr;
-    Normal3f normal;
-    Point3f position;
-
-    PathVertex() = default;
-
-    Point3f get_position() const { return position; }
-
-    Normal3f get_normal() const { return normal; }
-
-    float convert_pdf(float pdf_solid_angle, const PathVertex &next) const {
-      Vector3f w = next.get_position() - get_position();
-      if (w.length2() == 0) return 0;
-      float inv_dist2 = 1.f / w.length2();
-      // todo assert whether next is on surface
-      if (next.type == VertexType::SurfaceVertex) {
-        pdf_solid_angle *=
-            std::abs(dot(next.get_normal(), w * std::sqrt(inv_dist2)));
-      }
-      return pdf_solid_angle * inv_dist2;
-    }
-
-    static PathVertex create_light(const LightSourceInfo &info) {
-      PathVertex res;
-      res.type = VertexType::LightVertex;
-      res.beta = info.Le;
-      res.pdf_fwd = info.pdf;
-      res.position = info.position;
-      return res;
-    }
-
-    static PathVertex create_surface(std::shared_ptr<IntersectionInfo> info,
-                                     SpectrumRGB beta, float pdf_fwd,
-                                     const PathVertex &prev) {
-      PathVertex res;
-      res.type = VertexType::SurfaceVertex;
-      res.info = info;
-      res.beta = beta;
-      res.position = info->position;
-      res.pdf_fwd = prev.convert_pdf(pdf_fwd, res);
-      return res;
-    }
-  };
-
+protected:
   int generate_lightpath(const Scene &scene, Sampler *sampler, int max_depth,
                          std::vector<PathVertex> *lightpath) const {
-    if (max_depth == 0) return 0;
+    if (max_depth == 0)
+      return 0;
     auto light_info = scene.sampleLightSource(sampler);
 
     if (light_info.lightType == LightSourceInfo::LightType::Environment) {
@@ -84,7 +29,8 @@ class LightTracer : public FilmIntegrator {
     float pdf_pos = light_info.pdf,
           pdf_dir = Warp::squareToCosineHemispherePdf(dir_local);
 
-    if (pdf_pos == 0 || pdf_dir == 0) return 0;
+    if (pdf_pos == 0 || pdf_dir == 0)
+      return 0;
 
     // todo
     (*lightpath)[0] = PathVertex::create_light(light_info);
@@ -101,7 +47,8 @@ class LightTracer : public FilmIntegrator {
       auto sits = scene.intersectWithSurface(ray);
       if (sits->shape) {
         ++bounces;
-        if (bounces >= max_depth) break;
+        if (bounces >= max_depth)
+          break;
         (*lightpath)[bounces] = PathVertex::create_surface(
             sits, beta, pdf_fwd, (*lightpath)[bounces - 1]);
         auto scatter_info = sits->sampleScatter(sampler->next2D());
@@ -111,7 +58,8 @@ class LightTracer : public FilmIntegrator {
         if (pdf_fwd == FINF) {
           (*lightpath)[bounces].delta = true;
         }
-        if (beta.isZero()) break;
+        if (beta.isZero())
+          break;
       } else
         break;
     }
@@ -123,34 +71,34 @@ class LightTracer : public FilmIntegrator {
                              Point2i *pixel) const {
     SpectrumRGB result{.0f};
     switch (vertex.type) {
-      case VertexType::CameraVertex:
-      case VertexType::MediumVertex:
-      case VertexType::LightVertex:
-        *pixel = Point2i(-1);
-        break;
-      case VertexType::SurfaceVertex:
-        Point3f vertex_position = vertex.get_position();
-        Vector3f wi;
-        float pdf;
-        Point2f p_raster;
-        // todo no sampling now
-        SpectrumRGB we =
-            camera->sampleWi(vertex_position, Point2f(), &wi, &pdf, &p_raster);
-        Ray3f vis_ray{camera->get_position(), vertex_position};
-        if (!scene.occlude(vis_ray) && !vertex.delta) {
-          if ((0 <= p_raster.x && p_raster.x < 1) &&
-              (0 <= p_raster.y && p_raster.y < 1)) {
-            *pixel = Point2i{int(resolution.x * p_raster.x),
-                             int(resolution.y * p_raster.y)};
-            SpectrumRGB f = vertex.info->evaluateScatter(wi);
-            result = vertex.beta * f * (we / pdf);
-          }
+    case VertexType::CameraVertex:
+    case VertexType::MediumVertex:
+    case VertexType::LightVertex:
+      *pixel = Point2i(-1);
+      break;
+    case VertexType::SurfaceVertex:
+      Point3f vertex_position = vertex.position;
+      Vector3f wi;
+      float pdf;
+      Point2f p_raster;
+      // todo no sampling now
+      SpectrumRGB we =
+          camera->sampleWi(vertex_position, Point2f(), &wi, &pdf, &p_raster);
+      Ray3f vis_ray{camera->get_position(), vertex_position};
+      if (!scene.occlude(vis_ray) && !vertex.delta) {
+        if ((0 <= p_raster.x && p_raster.x < 1) &&
+            (0 <= p_raster.y && p_raster.y < 1)) {
+          *pixel = Point2i{int(resolution.x * p_raster.x),
+                           int(resolution.y * p_raster.y)};
+          SpectrumRGB f = vertex.info->evaluateScatter(wi);
+          result = vertex.beta * f * (we / pdf);
         }
+      }
     }
     return result;
   }
 
- public:
+public:
   LightTracer() : max_depth(5) {}
 
   LightTracer(const rapidjson::Value &_value) {
@@ -249,27 +197,8 @@ class LightTracer : public FilmIntegrator {
     film.save_splat(splat_name);
   }
 
- private:
+private:
   int max_depth;
 };
 
 REGISTER_CLASS(LightTracer, "light-tracer")
-
-/*                                        LightSourceInfo light_info =
-scene->sampleLightSource(sampler.get()); Vector3f dir =
-normalize(light_info.position - pinehole), dir_local = camera->vec2local(dir);
-                                        Point3f p_film =
-camera->local2film(normalize(dir_local)); if (0 <= p_film.x && p_film.x < 1 &&
-0
-<= p_film.y && p_film.y < 1) { Point2i pixel{int(task->film_size.x *
-p_film.x), int(task->film_size.y * p_film.y)};
-//                                            auto [value, weight] =
-light_info.light->evaluate(light_info, pinehole); SpectrumRGB value =
-SpectrumRGB{10}; auto cos_term = std::abs(dot(dir, light_info.normal)); auto
-invdist2 = 1.f / (light_info.position - pinehole).length2(); value = value *
-cos_term * invdist2 / light_info.pdf; film.add_splat(pixel,
-value, 1.f/(task->spp));
-                                        }
-
- *
- */

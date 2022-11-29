@@ -7,7 +7,7 @@
 #include "sampler.h"
 
 class Camera : public Configurable {
- public:
+public:
   /**
    * @brief
    * Generate ray in local coordinate (lefthand)
@@ -35,9 +35,7 @@ class Camera : public Configurable {
 
   Camera(const Point3f &_pos, const Point3f lookAt, const Vector3f &up,
          float aspect_ratio, float vert_fov)
-      : pos(_pos),
-        aspectRatio(aspect_ratio),
-        vertFov(vert_fov),
+      : pos(_pos), aspectRatio(aspect_ratio), vertFov(vert_fov),
         distToFilm(1.f) {
     // initialize the translation part
     cameraToWorld(0, 3) = _pos.x;
@@ -67,9 +65,7 @@ class Camera : public Configurable {
   }
 
   Camera(const Mat4f &_cameraToWorld)
-      : cameraToWorld(_cameraToWorld),
-        aspectRatio(1.7778f),
-        vertFov(30.f),
+      : cameraToWorld(_cameraToWorld), aspectRatio(1.7778f), vertFov(30.f),
         distToFilm(1.f) {
     pos = Point3f{_cameraToWorld(0, 3), _cameraToWorld(1, 3),
                   _cameraToWorld(2, 3)};
@@ -85,6 +81,9 @@ class Camera : public Configurable {
   virtual SpectrumRGB sampleWi(Point3f ref_p, Point2f u, Vector3f *wi,
                                float *pdf, Point2f *pRaster) const = 0;
 
+  virtual void pdfWe(const Ray3f &ray, float *pdf_pos,
+                     float *pdf_dir) const = 0;
+
   Point3f get_position() const { return pos; }
 
   Vector3f vec2local(Vector3f v) const {
@@ -92,13 +91,14 @@ class Camera : public Configurable {
   }
 
   Point3f local2film(Vector3f v) const {
-    if (v.z < 0) return Point3f(-1, -1, 0);
+    if (v.z < 0)
+      return Point3f(-1, -1, 0);
     Point3f point_on_film = Point3f(0) + v / v.z;
     Point3f sample = filmToSample * point_on_film;
     return sample;
   }
 
- protected:
+protected:
   Point3f pos;
 
   float aspectRatio, vertFov, distToFilm;

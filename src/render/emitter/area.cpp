@@ -1,11 +1,12 @@
 #include <core/render-core/info.h>
 
+#include "core/math/warp.h"
 #include "core/render-core/emitter.h"
 #include "core/shape/shape.h"
 class AreaEmitter : public Emitter {
   SpectrumRGB m_lightEnergy;
 
- public:
+public:
   AreaEmitter() = default;
   AreaEmitter(const rapidjson::Value &_value) {
     m_lightEnergy = getSpectrumRGB("lightEnergy", _value);
@@ -28,19 +29,21 @@ class AreaEmitter : public Emitter {
     return .0f;
   }
 
-  virtual std::pair<SpectrumRGB, float> evaluate(
-      const LightSourceInfo &info, Point3f destination) const override {
+  virtual std::pair<SpectrumRGB, float>
+  evaluate(const LightSourceInfo &info, Point3f destination) const override {
     Vector3f light2point = destination - info.position;
-    if (dot(light2point, info.normal) <= 0) return {SpectrumRGB{0}, .0f};
+    if (dot(light2point, info.normal) <= 0)
+      return {SpectrumRGB{0}, .0f};
     float jacob = light2point.length2() /
                   std::abs(dot(info.normal, normalize(light2point))),
           pdf = info.pdf * jacob;
     return {m_lightEnergy / pdf, pdf};
   }
 
-  virtual SpectrumRGB evaluate(
-      const SurfaceIntersectionInfo &info) const override {
-    if (dot(info.wi, info.geometryNormal) <= 0) return SpectrumRGB{0};
+  virtual SpectrumRGB
+  evaluate(const SurfaceIntersectionInfo &info) const override {
+    if (dot(info.wi, info.geometryNormal) <= 0)
+      return SpectrumRGB{0};
     return m_lightEnergy;
   }
 
@@ -66,7 +69,6 @@ class AreaEmitter : public Emitter {
     lightInfo.position = pRec.p;
     lightInfo.normal = pRec.normal;
     lightInfo.direction = normalize(pRec.p - info.position);
-    lightInfo.light = this;
     lightInfo.Le = m_lightEnergy;
     //        lightInfo.pdf = pRec.pdf * (lightInfo.position -
     //        info.position).length2() /
@@ -87,10 +89,18 @@ class AreaEmitter : public Emitter {
     lightInfo.lightType = LightSourceInfo::LightType::Area;
     lightInfo.position = pRec.p;
     lightInfo.normal = pRec.normal;
-    lightInfo.light = this;
     lightInfo.pdf = pRec.pdf;
     lightInfo.Le = m_lightEnergy;
     return lightInfo;
+  }
+
+  virtual void pdf_le(Ray3f ray, Normal3f light_normal, float *pdf_pos,
+                      float *pdf_dir) const override {
+    auto shape_ptr = shape.lock();
+    assert(shape_ptr != nullptr);
+
+    *pdf_pos = 1 / shape_ptr->getSurfaceArea();
+    *pdf_dir = std::abs(dot(light_normal, ray.dir)) * INV_PI;
   }
 };
 

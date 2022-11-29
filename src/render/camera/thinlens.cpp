@@ -4,7 +4,7 @@
 class ThinLens : public Camera {
   float mApertureRadius, mFocalLen, mFocalDistance;
 
- public:
+public:
   ThinLens() = delete;
 
   ThinLens(const rapidjson::Value &_value) : Camera(_value) {
@@ -37,15 +37,21 @@ class ThinLens : public Camera {
     return Ray3f{cameraToWorld * pointOnAperture, rayDirWorld};
   }
 
-  virtual Ray3f sampleRayDifferential(
-      const Point2i &offset, const Point2i &resolution,
-      const CameraSample &sample) const override {
+  virtual Ray3f
+  sampleRayDifferential(const Point2i &offset, const Point2i &resolution,
+                        const CameraSample &sample) const override {
     std::cout << "Thinlens::sampleRayDifferential not implement!\n";
     std::exit(1);
   }
 
   virtual SpectrumRGB sampleWi(Point3f ref_p, Point2f u, Vector3f *wi,
                                float *pdf, Point2f *pRaster) const override {
+    std::exit(1);
+  }
+
+  virtual void pdfWe(const Ray3f &ray, float *pdf_pos,
+                     float *pdf_dir) const override {
+    std::cout << "Thinlens::pdfWe no implemented!\n";
     std::exit(1);
   }
 };
