@@ -48,12 +48,7 @@ public:
           SpectrumRGB f = itsInfo->evaluateScatter(shadowRay.dir);
           float misw = powerHeuristic(pdf, itsInfo->pdfScatter(shadowRay.dir));
           if (!f.isZero()) {
-            // Li += beta * f * LeWeight * misw;
-            //             spdlog::info("pdf = {}, le = [{}, {}, {}]\n", pdf,
-            //             LeWeight.r(),
-            //                          LeWeight.g(), LeWeight.b());
-            Li = f;
-            return Li;
+            Li += beta * f * LeWeight * misw;
           }
         }
       }

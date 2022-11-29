@@ -13,10 +13,6 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
   Film film{task->film_size, 32};
   auto [x, y] = film.tile_range();
 
-  std::mutex tile_vec;
-  std::vector<std::shared_ptr<FilmTile>> film_tiles;
-  film_tiles.reserve(x * y);
-
   int finished_tiles = 0, tile_size = film.tile_size;
   double total_tiles = x * y;
 
@@ -43,12 +39,9 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
                   ray.medium = scene->getEnvMedium().get();
                   SpectrumRGB L = integrator->getLi(*scene, ray, sampler.get());
                   sampler->nextSample();
-                  tile->add_sample(p_pixel, L, 1.f);
+                  film.add_sample(p_pixel, L, 1);
                 }
               }
-            tile_vec.lock();
-            film_tiles.emplace_back(tile);
-            tile_vec.unlock();
             finished_tiles++;
             if (finished_tiles % 5 == 0) {
               printProgress((double)finished_tiles / total_tiles);
@@ -56,16 +49,13 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
           }
       });
   printProgress(1);
-  for (auto tile : film_tiles) {
-    film.fill_tile(tile);
-  }
   auto end = std::chrono::high_resolution_clock::now();
   std::cout << tfm::format(
       "\nRendering costs : %.2f seconds\n",
       (float)std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
               .count() /
           1000.f);
-  film.save_film(task->file_name);
+  film.save_as(task->file_name, 0);
 }
 
 void FilmIntegrator::render(std::shared_ptr<RenderTask> task) const {

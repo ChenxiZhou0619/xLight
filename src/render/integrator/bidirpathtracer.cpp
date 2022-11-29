@@ -349,8 +349,8 @@ public:
     Film film{task->film_size, 32};
     auto [x, y] = film.tile_range();
 
-    std::vector<std::shared_ptr<FilmTile>> film_tiles;
-    film_tiles.reserve(x * y);
+    //    std::vector<std::shared_ptr<FilmTile>> film_tiles;
+    //    film_tiles.reserve(x * y);
 
     int finished_tiles = 0, tile_size = film.tile_size;
     double total_tiles = x * y;
@@ -409,11 +409,12 @@ public:
                       }
                     }
                     sampler->nextSample();
-                    tile->add_sample(p_pixel, L, 1);
+                    //                    tile->add_sample(p_pixel, L, 1);
+                    film.add_sample(p_pixel, L, 1);
                   }
                 }
 
-              film_tiles.emplace_back(tile);
+              //              film_tiles.emplace_back(tile);
               finished_tiles++;
               if (finished_tiles % 5 == 0) {
                 printProgress((double)finished_tiles / total_tiles);
@@ -421,9 +422,9 @@ public:
             }
         });
     printProgress(1);
-    for (auto tile : film_tiles) {
-      film.fill_tile(tile);
-    }
+    //    for (auto tile : film_tiles) {
+    //      film.fill_tile(tile);
+    //    }
     auto end = std::chrono::high_resolution_clock::now();
     auto cost =
         std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -432,7 +433,8 @@ public:
     // TODO add splat_film and eye_film
     //    film.save_film(task->file_name);
     //    std::string splat_name = task->file_name + "splat.exr";
-    film.save_splat(task->file_name);
+    // film.save_splat(task->file_name);
+    film.save_as(task->file_name, 0);
   }
 
 private:

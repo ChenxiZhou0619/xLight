@@ -149,7 +149,7 @@ public:
                     Ray3f ray = camera->sampleRayDifferential(
                         p_pixel, task->film_size, sampler->getCameraSample());
                     SpectrumRGB t2s0 = getLi(*scene, ray, sampler.get());
-                    tile->add_sample(p_pixel, t2s0, 1);
+                    film.add_sample(p_pixel, t2s0, 1);
 
                     std::vector<PathVertex> light_path(max_depth + 1);
                     //* generate light subpath
@@ -182,9 +182,6 @@ public:
             }
         });
     printProgress(1);
-    for (auto tile : film_tiles) {
-      film.fill_tile(tile);
-    }
     auto end = std::chrono::high_resolution_clock::now();
     std::cout << tfm::format(
         "\nRendering costs : %.2f seconds\n",
@@ -192,9 +189,7 @@ public:
                                                                      start)
                 .count() /
             1000.f);
-    film.save_film(task->file_name);
-    std::string splat_name = task->file_name + "splat.exr";
-    film.save_splat(splat_name);
+    film.save_as(task->file_name, 0);
   }
 
 private:

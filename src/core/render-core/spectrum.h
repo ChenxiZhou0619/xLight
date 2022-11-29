@@ -4,18 +4,18 @@
 #include <tinyformat/tinyformat.h>
 
 class Spectrum {
- public:
+public:
   Spectrum() = default;
   Spectrum(unsigned _nSpectrumSamples) : nSpectrumSamples(_nSpectrumSamples) {}
   virtual ~Spectrum() = default;
   virtual std::string toString() const = 0;
 
- protected:
+protected:
   unsigned nSpectrumSamples;
 };
 
 class SpectrumRGB : public Spectrum {
- public:
+public:
   SpectrumRGB() = default;
 
   explicit SpectrumRGB(float v) : rgb(v) {}
@@ -97,7 +97,7 @@ class SpectrumRGB : public Spectrum {
   float g() const { return rgb.y; }
   float b() const { return rgb.z; }
 
- private:
+private:
   Vector3f rgb;
 };
 
