@@ -2,6 +2,7 @@
 
 #include <core/file/figure.h>
 #include <core/geometry/geometry.h>
+#include <core/render-core/filter.h>
 #include <core/render-core/spectrum.h>
 
 #include <mutex>
@@ -71,13 +72,21 @@ public:
   void add_sample(Point2i pixel_location, SpectrumRGB _value,
                   float _weight) const {
     auto [x, y] = pixel_location;
-    if (0 <= x && x < film_size.x && 0 <= y && y < film_size.y) {
-      int offset = x + y * film_size.x;
-      auto &film_pixel = film_pixels[offset];
-      film_pixel.write_lock.lock();
-      film_pixel.value += _value * _weight;
-      film_pixel.weight += _weight;
-      film_pixel.write_lock.unlock();
+    float filter_raidus = filter ? filter->radius : 0;
+    for (int i = x - filter_raidus; i <= x + filter_raidus; ++i) {
+      for (int j = y - filter_raidus; j <= y + filter_raidus; ++j) {
+        if (0 <= i && i < film_size.x && 0 <= j && j < film_size.y) {
+          int offset = i + j * film_size.x;
+          auto &film_pixel = film_pixels[offset];
+          Point2f filter_offset{(i - x) / (filter_raidus + 0.5f),
+                                (j - y) / (filter_raidus + 0.5f)};
+          float filter_weight = filter ? filter->evaluate(filter_offset) : 1;
+          film_pixel.write_lock.lock();
+          film_pixel.value += _value * _weight * filter_weight;
+          film_pixel.weight += _weight * filter_weight;
+          film_pixel.write_lock.unlock();
+        }
+      }
     }
   }
 
@@ -105,6 +114,8 @@ public:
 
     final_figure->saveAsExr(film_name);
   }
+
+  std::shared_ptr<Filter> filter = nullptr;
 
 private:
   Point2i film_size;

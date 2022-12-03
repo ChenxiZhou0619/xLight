@@ -4,13 +4,14 @@
 #include <functional>
 #include <iostream>
 
+#include "core/render-core/film.h"
 #include "core/shape/gridmedium.h"
 #include "core/shape/mesh.h"
 #include "core/utils/configurable.h"
 #include "rapidjson/document.h"
 
-std::shared_ptr<Texture> RenderTask::getTexture(
-    const std::string &textureName) const {
+std::shared_ptr<Texture>
+RenderTask::getTexture(const std::string &textureName) const {
   auto t_itr = textures.find(textureName);
   if (t_itr == textures.end()) {
     std::cerr << "No such a texture : \n" << textureName;
@@ -28,8 +29,8 @@ std::shared_ptr<BSDF> RenderTask::getBSDF(const std::string &bsdfName) const {
   return b_itr->second;
 }
 
-std::shared_ptr<Emitter> RenderTask::getEmitter(
-    const std::string &emitterName) const {
+std::shared_ptr<Emitter>
+RenderTask::getEmitter(const std::string &emitterName) const {
   auto e_itr = emitters.find(emitterName);
   if (e_itr == emitters.end()) {
     std::cerr << "No such an emitter : \n" << emitterName;
@@ -38,8 +39,8 @@ std::shared_ptr<Emitter> RenderTask::getEmitter(
   return e_itr->second;
 }
 
-std::shared_ptr<Medium> RenderTask::getMedium(
-    const std::string &mediumName) const {
+std::shared_ptr<Medium>
+RenderTask::getMedium(const std::string &mediumName) const {
   auto m_itr = mediums.find(mediumName);
   if (m_itr == mediums.end()) {
     std::cerr << "No such a medium : \n" << mediumName;
@@ -251,6 +252,20 @@ void configureRenderer(std::shared_ptr<RenderTask> task,
           integratorType, config["integrator"].GetObject()))};
   std::cout << "Integrator : " << integratorType << std::endl;
   task->integrator = integrator_ptr;
+
+  task->film = std::make_shared<Film>(task->film_size, 32);
+
+  if (config.HasMember("film")) {
+    const auto &film_config = config["film"].GetObject();
+    std::shared_ptr<Filter> filter = nullptr;
+    if (film_config.HasMember("filter")) {
+      auto filter_type = film_config["filter"]["type"].GetString();
+      filter = std::shared_ptr<Filter>{
+          static_cast<Filter *>(ObjectFactory::createInstance(
+              filter_type, film_config["filter"].GetObject()))};
+    }
+    task->film->filter = filter;
+  }
 }
 
 static std::unordered_map<std::string,

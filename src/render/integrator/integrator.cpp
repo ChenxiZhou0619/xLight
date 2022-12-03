@@ -10,7 +10,7 @@
 void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
   auto start = std::chrono::high_resolution_clock::now();
 
-  Film film{task->film_size, 32};
+  Film &film = *task->film;
   auto [x, y] = film.tile_range();
 
   int finished_tiles = 0, tile_size = film.tile_size;
@@ -58,6 +58,7 @@ void PixelIntegrator::render(std::shared_ptr<RenderTask> task) const {
   film.save_as(task->file_name, 0);
 }
 
+// TODO abstract this
 void FilmIntegrator::render(std::shared_ptr<RenderTask> task) const {
   auto start = std::chrono::high_resolution_clock::now();
 

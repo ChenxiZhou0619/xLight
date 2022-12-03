@@ -346,7 +346,7 @@ public:
   virtual void render(std::shared_ptr<RenderTask> task) const override {
     auto start = std::chrono::high_resolution_clock::now();
 
-    Film film{task->film_size, 32};
+    Film &film = *task->film;
     auto [x, y] = film.tile_range();
 
     //    std::vector<std::shared_ptr<FilmTile>> film_tiles;

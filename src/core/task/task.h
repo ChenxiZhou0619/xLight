@@ -5,6 +5,7 @@
 #include "core/render-core/bsdf.h"
 #include "core/render-core/camera.h"
 #include "core/render-core/emitter.h"
+#include "core/render-core/film.h"
 #include "core/render-core/integrator.h"
 #include "core/render-core/medium.h"
 #include "core/render-core/sampler.h"
@@ -15,6 +16,7 @@ struct RenderTask {
   std::shared_ptr<Sampler> sampler;
   std::shared_ptr<Camera> camera;
   std::shared_ptr<Integrator> integrator;
+  std::shared_ptr<Film> film;
 
   std::string file_name;
   Point2i film_size;
