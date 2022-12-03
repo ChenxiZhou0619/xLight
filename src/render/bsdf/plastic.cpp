@@ -7,7 +7,7 @@
 #include "core/render-core/bsdf.h"
 
 class Plastic : public BSDF {
- public:
+public:
   Plastic() = default;
 
   Plastic(const rapidjson::Value &_value) {
@@ -24,8 +24,8 @@ class Plastic : public BSDF {
 
   virtual void initialize() override {
     assert(m_texture != nullptr);
-    m_diffuse_weight = m_texture->average().max();
-    m_specular_weight = 1 - m_diffuse_weight;
+    //    m_diffuse_weight = m_texture->average().max();
+    //    m_specular_weight = 1 - m_diffuse_weight;
   }
 
   virtual bool isDiffuse() const override { return false; }
@@ -33,7 +33,9 @@ class Plastic : public BSDF {
   virtual SpectrumRGB evaluate(const BSDFQueryRecord &bRec) const override {
     if (Frame::cosTheta(bRec.wi) <= 0 || Frame::cosTheta(bRec.wo) <= 0)
       return SpectrumRGB{0.f};
-    SpectrumRGB diffuse_term = m_texture->evaluate(bRec.uv) * m_diffuse_weight *
+    float diffuse_weight = m_texture->evaluate(bRec.uv).max(),
+          specular_weight = 1 - diffuse_weight;
+    SpectrumRGB diffuse_term = m_texture->evaluate(bRec.uv) * diffuse_weight *
                                INV_PI * Frame::cosTheta(bRec.wo);
 
     Vector3f m = normalize(bRec.wi + bRec.wo);
@@ -42,9 +44,8 @@ class Plastic : public BSDF {
     float F = FresnelDielectricAccurate(Frame::cosTheta(bRec.wi), eta);
     float G = BeckmannDistribution::G(bRec.wi, bRec.wo, m_alpha);
     float D = BeckmannDistribution::D(m_alpha, m);
-    // TODO, hack, multiple it by 2
-    SpectrumRGB specular_term = SpectrumRGB{m_specular_weight * D * F * G /
-                                            (4 * Frame::cosTheta(bRec.wi)) * 2};
+    SpectrumRGB specular_term = SpectrumRGB{specular_weight * D * F * G /
+                                            (4 * Frame::cosTheta(bRec.wi))};
     return diffuse_term + specular_term;
   }
 
@@ -53,9 +54,11 @@ class Plastic : public BSDF {
       return .0f;
     Vector3f m = normalize(bRec.wi + bRec.wo);
     float dwh_dho = 0.25f / dot(m, bRec.wo);
+    float diffuse_weight = m_texture->evaluate(bRec.uv).max(),
+          specular_weight = 1 - diffuse_weight;
     float specular_pdf =
-        m_specular_weight * Warp::squareToBeckmannPdf(m, m_alpha) * dwh_dho;
-    float diffuse_pdf = m_diffuse_weight * Frame::cosTheta(bRec.wo) * INV_PI;
+        specular_weight * Warp::squareToBeckmannPdf(m, m_alpha) * dwh_dho;
+    float diffuse_pdf = diffuse_weight * Frame::cosTheta(bRec.wo) * INV_PI;
     return specular_pdf + diffuse_pdf;
   }
 
@@ -64,7 +67,9 @@ class Plastic : public BSDF {
                              ScatterSampleType *type) const override {
     float prob = .5f * (sample[0] + sample[1]);
     float microfacet_pdf;
-    if (prob < m_specular_weight) {
+    float diffuse_weight = m_texture->evaluate(bRec.uv).max(),
+          specular_weight = 1 - diffuse_weight;
+    if (prob < specular_weight) {
       // sample according to specular
       Vector3f m =
           BeckmannDistribution::sampleWh(m_alpha, sample, microfacet_pdf);
@@ -75,22 +80,24 @@ class Plastic : public BSDF {
     }
     SpectrumRGB bsdf_value = evaluate(bRec);
     *type = ScatterSampleType::SurfaceReflection;
-    if (bsdf_value.isZero()) return SpectrumRGB{.0f};
+    if (bsdf_value.isZero())
+      return SpectrumRGB{.0f};
     pdf = this->pdf(bRec);
-    if (pdf == 0) return SpectrumRGB{.0f};
+    if (pdf == 0)
+      return SpectrumRGB{.0f};
     return bsdf_value / pdf;
   }
 
- private:
+private:
   float m_alpha;
 
   float m_int_eta;
 
   float m_ext_eta;
 
-  float m_specular_weight;
+  //  float m_specular_weight;
 
-  float m_diffuse_weight;
+  //  float m_diffuse_weight;
 };
 
 REGISTER_CLASS(Plastic, "plastic")

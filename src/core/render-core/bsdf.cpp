@@ -3,7 +3,8 @@
 #include <core/render-core/info.h>
 
 void BSDF::bumpComputeShadingNormal(RayIntersectionRec *i_rec) const {
-  if (m_bumpmap == nullptr) return;
+  if (m_bumpmap == nullptr)
+    return;
   Normal3f n = i_rec->geoN;
   Point2f uv = i_rec->UV;
 
@@ -18,7 +19,8 @@ void BSDF::bumpComputeShadingNormal(RayIntersectionRec *i_rec) const {
 }
 
 void BSDF::computeShadingNormal(RayIntersectionRec *i_rec) const {
-  if (m_normalmap == nullptr || !i_rec->hasTangent) return;
+  if (m_normalmap == nullptr || !i_rec->hasTangent)
+    return;
 
   Normal3f n = i_rec->geoN;
   Vector3f tangent = i_rec->tangent;
@@ -44,7 +46,8 @@ void BSDF::computeShadingNormal(RayIntersectionRec *i_rec) const {
 }
 
 void BSDF::computeShadingFrame(SurfaceIntersectionInfo *its) const {
-  if (!m_normalmap) return;
+  if (!m_normalmap)
+    return;
 
   auto value = m_normalmap->evaluate(its->uv) * 2 - SpectrumRGB(1);
   //* cuz local frame using Y axis as up
@@ -66,9 +69,10 @@ SpectrumRGB BSDF::evaluate(const SurfaceIntersectionInfo &info,
   bRec.uv = info.uv;
   bRec.wi = wi;
   bRec.wo = wo;
-  //    bRec.du = bRec.dv = .0f;
   bRec.du = std::max(std::abs(info.dudx), std::abs(info.dudy));
   bRec.dv = std::max(std::abs(info.dvdx), std::abs(info.dvdy));
+  // TODO fixme
+  bRec.du = bRec.dv = .0f;
   return evaluate(bRec);
 }
 
@@ -81,6 +85,8 @@ ScatterInfo BSDF::sample(const SurfaceIntersectionInfo &info,
   bRec.wi = wi;
   bRec.du = std::max(std::abs(info.dudx), std::abs(info.dudy));
   bRec.dv = std::max(std::abs(info.dvdx), std::abs(info.dvdy));
+  // TODO fixme
+  bRec.du = bRec.dv = .0f;
   scatterInfo.weight = sample(bRec, uv, scatterInfo.pdf, &scatterInfo.type);
   scatterInfo.wo = info.toWorld(bRec.wo);
 

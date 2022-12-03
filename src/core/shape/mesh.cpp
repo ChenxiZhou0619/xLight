@@ -2,16 +2,16 @@
 
 #include "core/render-core/sampler.h"
 
-std::unordered_map<std::string, std::shared_ptr<ShapeInterface>> loadObjFile(
-    const std::string &filePath) {
+std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
+loadObjFile(const std::string &filePath) {
   std::unordered_map<std::string, std::shared_ptr<ShapeInterface>> result;
 
   Assimp::Importer importer;
   const aiScene *ai_scene =
-      importer.ReadFile(filePath, aiProcess_ConvertToLeftHanded |
-                                      aiProcess_JoinIdenticalVertices |
-                                      // aiProcess_CalcTangentSpace |
-                                      aiProcess_Triangulate);
+      importer.ReadFile(filePath, // aiProcess_ConvertToLeftHanded |
+                        aiProcess_JoinIdenticalVertices |
+                            // aiProcess_CalcTangentSpace |
+                            aiProcess_Triangulate);
 
   if (ai_scene == nullptr) {
     std::cerr << "Error: Parsing obj file!\n";
@@ -177,7 +177,8 @@ Vector3f TriangleMesh::dpdu(int triIdx) const {
 
   Vector3f dpdu = (uv1[1] - uv2[1]) * (p0 - p2) + (uv2[1] - uv0[1]) * (p1 - p2);
 
-  if (determinant != 0) dpdu /= determinant;
+  if (determinant != 0)
+    dpdu /= determinant;
   return dpdu;
 }
 
@@ -194,7 +195,8 @@ Normal3f TriangleMesh::getHitNormal(int triIdx) const {
 }
 
 Point2f TriangleMesh::getHitTextureCoordinate(int triIdx, Point2f uv) const {
-  if (!this->hasUV) return Point2f(.0f);
+  if (!this->hasUV)
+    return Point2f(.0f);
   auto [u, v] = uv;
   auto triangle = this->getFace(triIdx);
   auto uv0 = this->getUV(triangle.x), uv1 = this->getUV(triangle.y),
@@ -218,8 +220,8 @@ void TriangleMesh::sampleOnSurface(PointQueryRecord *pRec,
   pRec->pdf = 1 / m_surface_area;
 }
 
-std::pair<Vector3f, Vector3f> TriangleMesh::positionDifferential(
-    int triIdx) const {
+std::pair<Vector3f, Vector3f>
+TriangleMesh::positionDifferential(int triIdx) const {
   //* Return dpdu & dpdv
   /*
    * | u01 v01 || dpdu |   | p01 |

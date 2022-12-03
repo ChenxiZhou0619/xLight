@@ -1,7 +1,7 @@
 #include "core/render-core/texture.h"
 
 class CheckBoard : public Texture {
- public:
+public:
   CheckBoard() : m_light(SpectrumRGB(0.9f)), m_dark(SpectrumRGB(0.4f)) {}
 
   CheckBoard(const rapidjson::Value &_value) {
@@ -10,8 +10,8 @@ class CheckBoard : public Texture {
     m_dark = SpectrumRGB(0.4f);
   }
 
-  virtual SpectrumRGB evaluate(const Point2f &uv, float du,
-                               float dv) const override {
+  virtual SpectrumRGB evaluate(const Point2f &uv, float du = 0,
+                               float dv = 0) const override {
     int u = static_cast<int>(uv.x / m_grid) % 2,
         v = static_cast<int>(uv.y / m_grid) % 2,
         u_ = static_cast<int>((uv.x + du) / m_grid) % 2,
@@ -52,12 +52,12 @@ class CheckBoard : public Texture {
     std::exit(1);
   }
 
- private:
+private:
   SpectrumRGB m_light;
 
   SpectrumRGB m_dark;
 
-  float m_grid = 0.1;  // default
+  float m_grid = 0.1; // default
 };
 
 REGISTER_CLASS(CheckBoard, "checkboard")

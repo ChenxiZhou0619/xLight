@@ -15,10 +15,10 @@
 #include "core/render-core/bsdf.h"
 
 class Microfacet : public BSDF {
- protected:
+protected:
   float alpha;
 
- public:
+public:
   Microfacet() = default;
 
   Microfacet(const rapidjson::Value &_value) {
@@ -33,8 +33,10 @@ class Microfacet : public BSDF {
     Vector3f wh = normalize(bRec.wi + bRec.wo);
     float D = BeckmannDistribution::D(alpha, wh),
           G = BeckmannDistribution::G(bRec.wi, bRec.wo, alpha);
-    // TODO fresnel term
     float cosThetaT;
+    //    float F =
+    // fresnelDielectric(Frame::cosTheta(bRec.wi), (1.f / 1000), cosThetaT);
+    // TODO fresnel term
     return m_texture->evaluate(bRec.uv) * D * G /
            (4.f * Frame::cosTheta(bRec.wo));
   }
