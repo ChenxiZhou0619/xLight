@@ -52,9 +52,50 @@ public:
           }
         }
       }
+
       //* Sample the bsdf
       ScatterInfo scatterInfo = itsInfo->sampleScatter(sampler->next2D());
       ray = itsInfo->scatterRay(scene, scatterInfo.wo);
+
+      //* Handle bssrdf if sample a transimission and bssrdf exists
+      if (scatterInfo.type == ScatterSampleType::SurfaceTransmission) {
+        auto sits = static_cast<SurfaceIntersectionInfo *>(itsInfo.get());
+        if (auto bssrdf = sits->shape->getBSSRDF(); bssrdf) {
+          SurfaceIntersectionInfo po_info;
+          float pdf_sp;
+          SpectrumRGB sp = bssrdf->sample_sp(
+              scene, sampler->next1D(), sampler->next2D(), &po_info, &pdf_sp);
+          if (sp.isZero() || pdf_sp == 0)
+            break;
+          beta *= sp / pdf_sp;
+
+          //* Sample the direct for bssrdf
+          {
+            LightSourceInfo lightSourceInfo =
+                scene.sampleLightSource(po_info, sampler);
+            Ray3f shadowRay =
+                po_info.scatterRay(scene, lightSourceInfo.position);
+            if (!scene.occlude(shadowRay)) {
+              auto light = lightSourceInfo.light;
+              auto [LeWeight, pdf] =
+                  light->evaluate(lightSourceInfo, po_info.position);
+              SpectrumRGB sw = bssrdf->evaluate_sw(po_info, shadowRay.dir);
+              float misw =
+                  powerHeuristic(pdf, bssrdf->pdf_sw(po_info, shadowRay.dir));
+              if (!sw.isZero()) {
+                Li += beta * sw * LeWeight * misw;
+              }
+            }
+          }
+
+          //* Sample the sw
+          {
+            scatterInfo = bssrdf->sample_sw(po_info, sampler->next2D());
+            ray = po_info.scatterRay(scene, scatterInfo.wo);
+          }
+        }
+      }
+
       pathInfo = samplePath(scene, ray, scatterInfo.pdf, scatterInfo.weight);
       if (bounces++ > mRRThreshold) {
         if (sampler->next1D() > 0.95f)

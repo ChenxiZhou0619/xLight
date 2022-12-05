@@ -49,7 +49,7 @@ float SurfaceIntersectionInfo::pdfScatter(Vector3f wi, Vector3f wo) const {
 ScatterInfo SurfaceIntersectionInfo::sampleScatter(Point2f sample) const {
   assert(shape);
   auto sInfo = shape->getBSDF()->sample(*this, sample);
-  sInfo.scatterType = ScatterInfo::ScatterType::Surface;
+  //  sInfo.scatterType = ScatterInfo::ScatterType::Surface;
   return sInfo;
 }
 
@@ -64,11 +64,13 @@ float SurfaceIntersectionInfo::pdfLe() const {
 bool SurfaceIntersectionInfo::terminate() const { return (!shape); }
 
 void SurfaceIntersectionInfo::computeShadingFrame() {
-  if (!terminate()) this->shape->getBSDF()->computeShadingFrame(this);
+  if (!terminate())
+    this->shape->getBSDF()->computeShadingFrame(this);
 }
 
 void SurfaceIntersectionInfo::computeDifferential(const Ray3f &ray) {
-  if (!ray.is_ray_differential) return;
+  if (!ray.is_ray_differential)
+    return;
   //* Compute dudx, dudy, dvdx and dvdy
   float d = dot(geometryNormal, Vector3f{position.x, position.y, position.z});
   float tx = -(dot(geometryNormal, Vector3f{ray.ori.x, ray.ori.y, ray.ori.z}) -
@@ -151,7 +153,7 @@ ScatterInfo MediumIntersectionInfo::sampleScatter(Point2f sample) const {
   info.weight = medium->samplePhase(&pRec, sample);
   info.wo = toWorld(pRec.wo);
   info.pdf = medium->pdfPhase(pRec);
-  info.scatterType = ScatterInfo::ScatterType::Medium;
+  // info.scatterType = ScatterInfo::ScatterType::Medium;
   return info;
 }
 

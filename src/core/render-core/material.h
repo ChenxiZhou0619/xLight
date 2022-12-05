@@ -2,25 +2,18 @@
 #include <optional>
 
 #include "bsdf.h"
-#include "core/utils/configurable.h"
+#include "bssrdf.h"
 #include "medium.h"
+#include "texture.h"
+#include <core/utils/configurable.h>
 
 class Material {
- public:
+public:
   Material() = default;
   Material(const rapidjson::Value &_value) {}
   virtual ~Material() = default;
 
-  virtual BSDF *getBSDF(const RayIntersectionRec &i_rec) const {
-    return m_bsdf;
-  }
-
-  virtual Medium *getMedium(const RayIntersectionRec &i_rec) const {
-    return m_medium;
-  }
-
- protected:
-  Medium
-      *m_medium;  //* The medium inside the mesh which the material is attached
-  BSDF *m_bsdf;   //* The bsdf attach to the mesh surface
+protected:
+  std::shared_ptr<BSDF> bsdf;
+  std::shared_ptr<BSSRDF> bssrdf;
 };

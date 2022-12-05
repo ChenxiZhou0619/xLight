@@ -4,9 +4,10 @@
 #include <embree3/rtcore.h>
 class Emitter;
 class BSDF;
+class BSSRDF;
 
 class ShapeInterface {
- public:
+public:
   bool two_side = false;
   friend class Scene;
 
@@ -43,12 +44,16 @@ class ShapeInterface {
 
   std::shared_ptr<BSDF> getBSDF() const { return bsdf; }
 
+  std::shared_ptr<BSSRDF> getBSSRDF() const { return bssrdf; }
+
   virtual void sampleOnSurface(PointQueryRecord *pRec,
                                Point3f sample) const = 0;
 
   float getSurfaceArea() const { return m_surface_area; }
 
   void setBSDF(std::shared_ptr<BSDF> bsdf) { this->bsdf = bsdf; }
+
+  void setBSSRDF(std::shared_ptr<BSSRDF> bssrdf) { this->bssrdf = bssrdf; }
 
   void setEmitter(std::shared_ptr<Emitter> emitter) { this->emitter = emitter; }
 
@@ -61,10 +66,10 @@ class ShapeInterface {
   void setMedium(std::shared_ptr<Medium> medium) { this->medium = medium; }
 
   //* Return dpdu and dpdv
-  virtual std::pair<Vector3f, Vector3f> positionDifferential(
-      int triIdx) const = 0;
+  virtual std::pair<Vector3f, Vector3f>
+  positionDifferential(int triIdx) const = 0;
 
- protected:
+protected:
   virtual Point3f getVertex(int idx) const = 0;
 
   virtual Point3ui getFace(int idx) const = 0;
@@ -84,6 +89,8 @@ class ShapeInterface {
   std::shared_ptr<Emitter> emitter;
 
   std::shared_ptr<BSDF> bsdf;
+
+  std::shared_ptr<BSSRDF> bssrdf;
 
   std::shared_ptr<Medium> medium;
 };

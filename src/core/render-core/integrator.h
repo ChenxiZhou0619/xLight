@@ -2,6 +2,7 @@
 #include <variant>
 
 #include "bsdf.h"
+#include "bssrdf.h"
 #include "camera.h"
 #include "core/scene/scene.h"
 #include "core/utils/configurable.h"

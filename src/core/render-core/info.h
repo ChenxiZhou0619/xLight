@@ -31,7 +31,6 @@ enum class ScatterSampleType {
 };
 
 struct ScatterInfo {
-  enum ScatterType { Unknown = 0, Surface, Medium } scatterType = Unknown;
 
   ScatterSampleType type = ScatterSampleType::Unknown;
 

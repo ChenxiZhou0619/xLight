@@ -10,7 +10,7 @@ class Dielectric : public BSDF {
     return Vector3f{wi.x * scale, cosThetaT, wi.z * scale};
   }
 
- public:
+public:
   Dielectric() = default;
 
   Dielectric(const rapidjson::Value &_value) {
