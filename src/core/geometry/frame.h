@@ -19,7 +19,7 @@ inline void Coordinate(const Vector3f &n, Vector3f *v1, Vector3f *v2) {
 class Frame {
   Vector3f _x, _y, _z;
 
- public:
+public:
   Frame() = default;
 
   explicit Frame(const Normal3f &normal) {
@@ -42,7 +42,8 @@ class Frame {
 
   static float tanTheta(const Vector3f &localV) {
     float temp = 1.f - localV.y * localV.y;
-    if (temp <= .0f) return .0f;
+    if (temp <= .0f)
+      return .0f;
     return std::sqrt(temp) / localV.y;
   }
 

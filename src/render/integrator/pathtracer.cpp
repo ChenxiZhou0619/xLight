@@ -63,8 +63,9 @@ public:
         if (auto bssrdf = sits->shape->getBSSRDF(); bssrdf) {
           SurfaceIntersectionInfo po_info;
           float pdf_sp;
-          SpectrumRGB sp = bssrdf->sample_sp(
-              scene, sampler->next1D(), sampler->next2D(), &po_info, &pdf_sp);
+          SpectrumRGB sp =
+              bssrdf->sample_sp(scene, *sits, sampler->next1D(),
+                                sampler->next2D(), &po_info, &pdf_sp);
           if (sp.isZero() || pdf_sp == 0)
             break;
           beta *= sp / pdf_sp;
@@ -79,20 +80,19 @@ public:
               auto light = lightSourceInfo.light;
               auto [LeWeight, pdf] =
                   light->evaluate(lightSourceInfo, po_info.position);
-              SpectrumRGB sw = bssrdf->evaluate_sw(po_info, shadowRay.dir);
+              float sw = bssrdf->evaluate_sw(po_info, shadowRay.dir);
               float misw =
                   powerHeuristic(pdf, bssrdf->pdf_sw(po_info, shadowRay.dir));
-              if (!sw.isZero()) {
+              if (sw != 0) {
                 Li += beta * sw * LeWeight * misw;
               }
             }
           }
 
           //* Sample the sw
-          {
-            scatterInfo = bssrdf->sample_sw(po_info, sampler->next2D());
-            ray = po_info.scatterRay(scene, scatterInfo.wo);
-          }
+
+          scatterInfo = bssrdf->sample_sw(po_info, sampler->next2D());
+          ray = po_info.scatterRay(scene, scatterInfo.wo);
         }
       }
 

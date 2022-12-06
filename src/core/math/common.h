@@ -8,7 +8,8 @@
 inline int sign(float t) { return t > 0 ? 1 : -1; }
 
 inline float powerHeuristic(float fpdf, float gpdf) {
-  if (fpdf == FINF) return 1;
+  if (fpdf == FINF)
+    return 1;
   fpdf *= fpdf;
   gpdf *= gpdf;
   return fpdf / (fpdf + gpdf);
@@ -72,18 +73,41 @@ inline float FresnelDielectricAccurate(float cos_theta_i, float eta) {
   return .5f * (r_perp * r_perp + r_parl * r_parl);
 }
 
+//* eta = intIOR / extIOR
+inline float Fresnel(float cosThetaI, float eta, float *cosThetaT) {
+  if (cosThetaI < 0)
+    eta = 1 / eta;
+
+  float sin_theta_t = std::sqrt(std::max(.0f, 1 - cosThetaI * cosThetaI)) / eta;
+  if (sin_theta_t >= 1)
+    return 1;
+
+  float cos_theta_t = std::sqrt(1 - sin_theta_t * sin_theta_t);
+
+  float r1 = (eta * std::abs(cosThetaI) - cos_theta_t) /
+             (eta * std::abs(cosThetaI) + cos_theta_t),
+        r2 = (std::abs(cosThetaI) - eta * cos_theta_t) /
+             (std::abs(cosThetaI) + eta * cos_theta_t);
+  *cosThetaT = cos_theta_t * (cosThetaI > 0 ? -1 : 1);
+  return .5f * (r1 * r1 + r2 * r2);
+}
+
 inline float clamp01(float f) {
-  if (f < 0) f = .0f;
-  if (f > 1) f = 1.f;
+  if (f < 0)
+    f = .0f;
+  if (f > 1)
+    f = 1.f;
   return f;
 }
 
 inline bool solveLinearSys2X2(const float A[2][2], const float B[2], float *x0,
                               float *x1) {
   float det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
-  if (std::abs(det) < 1e-10) return false;
+  if (std::abs(det) < 1e-10)
+    return false;
   *x0 = (A[1][1] * B[0] - A[0][1] * B[1]) / det;
   *x1 = (A[0][0] * B[1] - A[0][1] * B[0]) / det;
-  if (std::isnan(*x0) || std::isnan(*x1)) return false;
+  if (std::isnan(*x0) || std::isnan(*x1))
+    return false;
   return true;
 }
