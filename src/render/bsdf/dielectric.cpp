@@ -34,8 +34,7 @@ public:
                              float &pdf,
                              ScatterSampleType *type) const override {
     float cosThetaT;
-    // float F = fresnelDielectric(Frame::cosTheta(bRec.wi), (intIOR / extIOR),
-    //                             cosThetaT);
+
     float eta = (intIOR / extIOR);
     float F = Fresnel(Frame::cosTheta(bRec.wi), eta, &cosThetaT);
 

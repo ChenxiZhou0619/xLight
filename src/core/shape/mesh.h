@@ -3,17 +3,18 @@
 #include <assimp/scene.h>
 
 #include <assimp/Importer.hpp>
+#include <core/math/discretepdf.h>
 #include <eigen3/Eigen/Eigen>
 #include <vector>
 
 #include "core/geometry/geometry.h"
 #include "shape.h"
 
-std::unordered_map<std::string, std::shared_ptr<ShapeInterface>> loadObjFile(
-    const std::string &filePath);
+std::unordered_map<std::string, std::shared_ptr<ShapeInterface>>
+loadObjFile(const std::string &filePath);
 
 class TriangleMesh : public ShapeInterface {
- public:
+public:
   TriangleMesh() = default;
 
   virtual ~TriangleMesh() = default;
@@ -40,10 +41,10 @@ class TriangleMesh : public ShapeInterface {
   virtual void sampleOnSurface(PointQueryRecord *pRec,
                                Point3f sample) const override;
 
-  virtual std::pair<Vector3f, Vector3f> positionDifferential(
-      int triIdx) const override;
+  virtual std::pair<Vector3f, Vector3f>
+  positionDifferential(int triIdx) const override;
 
- protected:
+protected:
   virtual Point3f getVertex(int idx) const override;
 
   virtual Point3ui getFace(int idx) const override;
@@ -56,13 +57,13 @@ class TriangleMesh : public ShapeInterface {
 
   float getTriArea(int idx) const;
 
- private:
+private:
   //* data
   Eigen::MatrixXf m_vertexes;
   Eigen::MatrixXf m_normals;
-  Eigen::MatrixXf m_tangents;  // optional
+  Eigen::MatrixXf m_tangents; // optional
   std::vector<Point3ui> m_faces;
-  std::vector<Point2f> m_UVs;  // optional
+  std::vector<Point2f> m_UVs; // optional
 
   std::shared_ptr<Distribution1D> m_triangles_distribution;
 

@@ -8,7 +8,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/target/bin)
 
 set(XLIGHT_TEST_DIR ${PROJECT_SOURCE_DIR}/src/test)
 
-set(XLIGHT_CORE_MESH_DIR ${PROJECT_SOURCE_DIR}/src/core/mesh)
 set(XLIGHT_CORE_RENDER_DIR ${PROJECT_SOURCE_DIR}/src/core/render-core)
 set(XLIGHT_CORE_ACCEL_DIR ${PROJECT_SOURCE_DIR}/src/core/accelerate)
 set(XLIGHT_CORE_UTIL_DIR ${PROJECT_SOURCE_DIR}/src/core/utils)
@@ -25,6 +24,7 @@ set(XLIGHT_RENDER_BSDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bsdf)
 set(XLIGHT_RENDER_EMITTER_DIR ${PROJECT_SOURCE_DIR}/src/render/emitter)
 set(XLIGHT_RENDER_MEDIUM_DIR ${PROJECT_SOURCE_DIR}/src/render/medium)
 set(XLIGHT_RENDER_FILTER_DIR ${PROJECT_SOURCE_DIR}/src/render/filter)
+set(XLIGHT_RENDER_BSSRDF_DIR ${PROJECT_SOURCE_DIR}/src/render/bssrdf)
 
 set(XLIGHT_GUI_DIR ${PROJECT_SOURCE_DIR}/src/gui)
 
@@ -53,7 +53,6 @@ add_executable(
     ${XLIGHT_CORE_RENDER_DIR}/info.cpp
 
     # core/file
-    ${XLIGHT_CORE_FILE_DIR}/image.cpp
     ${XLIGHT_CORE_FILE_DIR}/figure.cpp
 
     
@@ -88,6 +87,9 @@ add_executable(
     ${XLIGHT_RENDER_BSDF_DIR}/plastic.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/empty.cpp
     ${XLIGHT_RENDER_BSDF_DIR}/disney.cpp
+
+    # render/bssrdf
+    ${XLIGHT_RENDER_BSSRDF_DIR}/seperate.cpp
 
     ${XLIGHT_RENDER_FILTER_DIR}/filter.cpp
     # render/emitter

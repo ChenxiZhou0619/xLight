@@ -1,7 +1,6 @@
 #pragma once
 #include <optional>
 
-#include "core/mesh/mesh.h"
 #include "core/render-core/texture.h"
 #include "core/utils/configurable.h"
 
@@ -33,7 +32,7 @@ struct EmitterQueryRecord {
   const Emitter *getEmitter() const {
     if (pRec.mesh == nullptr)
       return pRec.emitter;
-    return pRec.mesh->getEmitter();
+    //    return pRec.mesh->getEmitter();
   }
 };
 

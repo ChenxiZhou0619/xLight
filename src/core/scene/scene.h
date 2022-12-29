@@ -3,6 +3,7 @@
 #include <core/shape/shape.h>
 #include <embree3/rtcore.h>
 
+#include <core/math/discretepdf.h>
 #include <memory>
 #include <optional>
 #include <stack>
@@ -13,7 +14,7 @@
 
 using Intersection = std::variant<ShapeIntersection, MediumIntersection>;
 class Scene {
- public:
+public:
   Scene();
 
   ~Scene() = default;
@@ -42,7 +43,7 @@ class Scene {
 
   std::shared_ptr<Emitter> getEnvEmitter() const { return environment; }
 
- private:
+private:
   //* Embree
   RTCDevice device;
   RTCScene scene;
@@ -55,9 +56,9 @@ class Scene {
   std::vector<std::shared_ptr<Emitter>> emitters;
   Distrib1D<std::shared_ptr<Emitter>> lightDistrib;
 
- public:
-  std::shared_ptr<SurfaceIntersectionInfo> intersectWithSurface(
-      const Ray3f &ray) const;
+public:
+  std::shared_ptr<SurfaceIntersectionInfo>
+  intersectWithSurface(const Ray3f &ray) const;
   LightSourceInfo sampleLightSource(const IntersectionInfo &info,
                                     Sampler *sampler) const;
   LightSourceInfo sampleLightSource(Sampler *sampler) const;

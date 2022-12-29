@@ -213,6 +213,13 @@ void configureScene(std::shared_ptr<RenderTask> task,
           bool twoSide = property["twoSide"].GetBool();
           mesh->second->two_side = true;
         }
+        if (property.HasMember("BSSRDF")) {
+          bool bssrdf = property["BSSRDF"].GetBool();
+          std::shared_ptr<BSSRDF> bssrdf_ptr{static_cast<BSSRDF *>(
+              ObjectFactory::createInstance("seperate", property))};
+          if (bssrdf)
+            mesh->second->setBSSRDF(bssrdf_ptr);
+        }
       }
     } else if (std::strcmp("grid-medium", fileType) == 0) {
       float scale = entity["scale"].GetFloat();

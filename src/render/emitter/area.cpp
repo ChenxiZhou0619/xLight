@@ -70,10 +70,6 @@ public:
     lightInfo.normal = pRec.normal;
     lightInfo.direction = normalize(pRec.p - info.position);
     lightInfo.Le = m_lightEnergy;
-    //        lightInfo.pdf = pRec.pdf * (lightInfo.position -
-    //        info.position).length2() /
-    //                        std::abs(dot(pRec.normal, normalize(pRec.p -
-    //                        info.position)));
     lightInfo.pdf = pRec.pdf;
     return lightInfo;
   }

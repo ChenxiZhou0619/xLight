@@ -9,7 +9,10 @@ struct SurfaceIntersectionInfo;
 class BSSRDF : public Configurable {
 public:
   BSSRDF() = default;
-  BSSRDF(const rapidjson::Value &_value) { eta = getFloat("eta", _value); };
+  BSSRDF(const rapidjson::Value &_value) {
+    // eta = getFloat("eta", _value);
+    eta = 1.5f;
+  };
   virtual ~BSSRDF() = default;
 
   virtual SpectrumRGB sample_sp(const Scene &scene,

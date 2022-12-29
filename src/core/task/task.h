@@ -1,7 +1,6 @@
 #pragma once
 
 #include "core/file/figure.h"
-#include "core/file/image.h"
 #include "core/render-core/bsdf.h"
 #include "core/render-core/camera.h"
 #include "core/render-core/emitter.h"

@@ -62,7 +62,7 @@ public:
         auto sits = static_cast<SurfaceIntersectionInfo *>(itsInfo.get());
         if (auto bssrdf = sits->shape->getBSSRDF(); bssrdf) {
           SurfaceIntersectionInfo po_info;
-          float pdf_sp;
+          float pdf_sp = 0;
           SpectrumRGB sp =
               bssrdf->sample_sp(scene, *sits, sampler->next1D(),
                                 sampler->next2D(), &po_info, &pdf_sp);
@@ -88,9 +88,7 @@ public:
               }
             }
           }
-
           //* Sample the sw
-
           scatterInfo = bssrdf->sample_sw(po_info, sampler->next2D());
           ray = po_info.scatterRay(scene, scatterInfo.wo);
         }

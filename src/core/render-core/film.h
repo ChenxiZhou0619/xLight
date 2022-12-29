@@ -68,7 +68,6 @@ public:
     splat_pixel.write_lock.unlock();
   }
 
-  // TODO add filter
   void add_sample(Point2i pixel_location, SpectrumRGB _value,
                   float _weight) const {
     auto [x, y] = pixel_location;
